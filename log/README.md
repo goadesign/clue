@@ -42,7 +42,6 @@ messages.
 The following example shows how to use the buffering feature:
 
 ```go
-ctx := log.Context(context.Background())
 log.Info(ctx, "request started")
 // ... no log written so far
 log.Error("request failed") // flushes all previous log entries
@@ -81,8 +80,6 @@ context with a series of key-value pairs via the `With` function. The following
 example shows how to leverage structured logging:
 
 ```go
-ctx := log.Context(context.Background())
-
 ctx := log.With(ctx, "foo", "bar")
 log.Print(ctx, "hello world 1")
 
@@ -100,11 +97,24 @@ The example above logs the following message to stdout:
 Keys of key-value pairs must be strings and values must be strings, numbers,
 booleans, nil or a slice of these types.
 
-## Log Levels
+Log messages are optional and can be omitted by passing an empty string. The
+following example shows how to omit a log message:
 
-`log` supports three log levels: `Debug`, `Info`, and `Error`. By default debug
-level logs are not written to the log output. The following example shows how to
-enable debug level logging:
+```go
+log.Print(ctx, "", "foo", "bar")
+```
+
+The example above logs the following message to stdout:
+
+```
+[INFO] [foo=bar]
+```
+
+## Log Severity
+
+`log` supports three log severities: `Debug`, `Info`, and `Error`. By default
+debug logs are not written to the log output. The following example shows how to
+enable debug logging:
 
 ```go
 ctx := log.Context(context.Background())
@@ -122,8 +132,8 @@ The example above logs the following messages to stdout:
 [INFO] info message
 ```
 
-Note that setting the log level to `Debug` disables buffering and causes all log
-messages to be written to the log output.
+Note that enabling debug logging also disables buffering and causes all future
+log messages to be written to the log output.
 
 ## Log Output
 
@@ -149,7 +159,7 @@ interface.
 By default `log` writes log messages in the following format:
 
 ```
-[LEVEL] [key=val key=val ...] message
+[SEVERITY] [key=val key=val ...] message
 ```
 
 The output is colored if the application is running in a terminal.
@@ -166,7 +176,7 @@ log.Print(ctx, "hello world")
 The example above logs the following message to stdout:
 
 ```
-{"level":"INFO","message":"hello world","foo":"bar","baz":"qux"}
+{"severity":"INFO","message":"hello world","foo":"bar","baz":"qux"}
 ```
 
 Any function that accepts a `Entry` object and returns a slice of bytes can be
@@ -175,7 +185,7 @@ format function:
 
 ```go
 func formatFunc(entry *log.Entry) []byte {
-        return []byte(fmt.Sprintf("%s: %s", entry.Level, entry.Message))
+        return []byte(fmt.Sprintf("%s: %s", entry.Severity, entry.Message))
 }
 
 ctx := log.Context(context.Background(), log.WithFormat(formatFunc))

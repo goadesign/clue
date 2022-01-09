@@ -9,11 +9,11 @@ import (
 // DefaultFormat is the default log formatter, it prints entries in the
 // following format:
 //
-//    [LEVEL] [key=val key=val ...] message
+//    [SEVERITY] [key=val key=val ...] message
 func DefaultFormat(e *Entry) []byte {
 	var b bytes.Buffer
 	b.WriteByte('[')
-	b.WriteString(e.Level.String())
+	b.WriteString(e.Severity.String())
 	b.WriteByte(']')
 	if len(e.KeyVals) > 0 {
 		b.WriteByte(' ')
@@ -29,8 +29,11 @@ func DefaultFormat(e *Entry) []byte {
 		}
 		b.WriteByte(']')
 	}
-	b.WriteByte(' ')
-	b.WriteString(e.Message + "\n")
+	if len(e.Message) > 0 {
+		b.WriteByte(' ')
+		b.WriteString(e.Message)
+	}
+	b.WriteByte('\n')
 	return b.Bytes()
 }
 
@@ -41,14 +44,15 @@ func DefaultFormat(e *Entry) []byte {
 func JSONFormat(e *Entry) []byte {
 	var b bytes.Buffer
 	b.WriteByte('{')
-	b.WriteString(`"level":`)
+	b.WriteString(`"severity":`)
 	b.WriteString(`"`)
-	b.WriteString(e.Level.String())
-	b.WriteString(`",`)
-	b.WriteString(`"message":`)
-	b.WriteString(`"`)
-	b.WriteString(e.Message)
-	b.WriteString(`"`)
+	b.WriteString(e.Severity.String())
+	if len(e.Message) > 0 {
+		b.WriteString(`","message":`)
+		b.WriteString(`"`)
+		b.WriteString(e.Message)
+		b.WriteString(`"`)
+	}
 	if len(e.KeyVals) > 0 {
 		b.WriteByte(',')
 		keys, vals := e.KeyVals.Parse()
@@ -70,8 +74,8 @@ func JSONFormat(e *Entry) []byte {
 func ColoredFormat(e *Entry) []byte {
 	var b bytes.Buffer
 	b.WriteByte('[')
-	b.WriteString(e.Level.Color())
-	b.WriteString(e.Level.String())
+	b.WriteString(e.Severity.Color())
+	b.WriteString(e.Severity.String())
 	b.WriteString(reset)
 	b.WriteByte(']')
 	if len(e.KeyVals) > 0 {
@@ -92,10 +96,12 @@ func ColoredFormat(e *Entry) []byte {
 		}
 		b.WriteByte(']')
 	}
-	b.WriteByte(' ')
-	b.WriteString(e.Level.Color())
-	b.WriteString(e.Message)
-	b.WriteString(reset)
+	if len(e.Message) > 0 {
+		b.WriteByte(' ')
+		b.WriteString(e.Severity.Color())
+		b.WriteString(e.Message)
+		b.WriteString(reset)
+	}
 	b.WriteByte('\n')
 	return b.Bytes()
 }

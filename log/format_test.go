@@ -180,7 +180,7 @@ func TestFormat(t *testing.T) {
 			format:  JSONFormat,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    `{"level":"DEBUG","message":"hello",` + jsonKeyVals + "}",
+			want:    `{"severity":"DEBUG","message":"hello",` + jsonKeyVals + "}",
 		},
 		{
 			name:    "json info",
@@ -188,7 +188,7 @@ func TestFormat(t *testing.T) {
 			format:  JSONFormat,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    `{"level":"INFO","message":"hello",` + jsonKeyVals + "}",
+			want:    `{"severity":"INFO","message":"hello",` + jsonKeyVals + "}",
 		},
 		{
 			name:    "json print",
@@ -196,7 +196,7 @@ func TestFormat(t *testing.T) {
 			format:  JSONFormat,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    `{"level":"INFO","message":"hello",` + jsonKeyVals + "}",
+			want:    `{"severity":"INFO","message":"hello",` + jsonKeyVals + "}",
 		},
 		{
 			name:    "json error",
@@ -204,7 +204,7 @@ func TestFormat(t *testing.T) {
 			format:  JSONFormat,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    `{"level":"ERROR","message":"hello",` + jsonKeyVals + "}",
+			want:    `{"severity":"ERROR","message":"hello",` + jsonKeyVals + "}",
 		},
 	}
 	for _, tc := range cases {

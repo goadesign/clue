@@ -12,15 +12,15 @@ import (
 )
 
 type (
+	// LogOption is a function that applies a configuration option to a logger.
+	LogOption func(*options)
+
 	// DisableBufferingFunc is a function that returns true if the logger
 	// should disable buffering for the given context.
 	DisableBufferingFunc func(context.Context) bool
 
 	// FormatFunc is a function that formats a log entry.
 	FormatFunc func(e *Entry) []byte
-
-	// LogOption is a function that applies a configuration option to a logger.
-	LogOption func(*options)
 
 	options struct {
 		disableBuffering DisableBufferingFunc
@@ -46,7 +46,7 @@ func WithDisableBuffering(fn DisableBufferingFunc) LogOption {
 	}
 }
 
-// WithDebug enables debug level logging and disables buffering.
+// WithDebug enables debug logging and disables buffering.
 func WithDebug() LogOption {
 	return func(o *options) {
 		o.debug = true

@@ -11,9 +11,9 @@ type (
 
 	// Log entry
 	Entry struct {
-		Level   Level
-		KeyVals KeyVals
-		Message string
+		Severity Severity
+		KeyVals  KeyVals
+		Message  string
 	}
 
 	// Logger implementation
@@ -25,17 +25,17 @@ type (
 		flushed bool
 	}
 
-	// Log level enum
-	Level int
+	// Log severity enum
+	Severity int
 
 	// private type for context keys
 	ctxKey int
 )
 
 const (
-	LvlDebug Level = iota + 1
-	LvlInfo
-	LvlError
+	SeverityDebug Severity = iota + 1
+	SeverityInfo
+	SeverityError
 )
 
 const (
@@ -58,23 +58,23 @@ func Context(ctx context.Context, opts ...LogOption) context.Context {
 
 // Debug logs a debug message.
 func Debug(ctx context.Context, msg string, keyvals ...interface{}) {
-	log(ctx, LvlDebug, true, msg, keyvals...)
+	log(ctx, SeverityDebug, true, msg, keyvals...)
 }
 
 // Print logs an info message and ignores buffering.
 func Print(ctx context.Context, msg string, keyvals ...interface{}) {
-	log(ctx, LvlInfo, false, msg, keyvals...)
+	log(ctx, SeverityInfo, false, msg, keyvals...)
 }
 
 // Info logs an info message.
 func Info(ctx context.Context, msg string, keyvals ...interface{}) {
-	log(ctx, LvlInfo, true, msg, keyvals...)
+	log(ctx, SeverityInfo, true, msg, keyvals...)
 }
 
 // Error logs an error message.
 func Error(ctx context.Context, msg string, keyvals ...interface{}) {
 	Flush(ctx)
-	log(ctx, LvlError, true, msg, keyvals...)
+	log(ctx, SeverityError, true, msg, keyvals...)
 }
 
 // With adds the given key/value pairs to the log context.
@@ -117,7 +117,7 @@ func (l *logger) flush() {
 	l.flushed = true
 }
 
-func log(ctx context.Context, level Level, buffer bool, msg string, keyvals ...interface{}) {
+func log(ctx context.Context, sev Severity, buffer bool, msg string, keyvals ...interface{}) {
 	v := ctx.Value(ctxLogger)
 	if v == nil {
 		return // do nothing if context isn't initialized
@@ -126,7 +126,7 @@ func log(ctx context.Context, level Level, buffer bool, msg string, keyvals ...i
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
-	if !l.options.debug && level == LvlDebug {
+	if !l.options.debug && sev == SeverityDebug {
 		return
 	}
 	if l.options.debug && !l.flushed {
@@ -138,7 +138,7 @@ func log(ctx context.Context, level Level, buffer bool, msg string, keyvals ...i
 		keyvals = append(keyvals, nil)
 	}
 
-	e := &Entry{level, keyvals, msg}
+	e := &Entry{sev, keyvals, msg}
 	if l.flushed || !buffer {
 		l.options.w.Write(l.options.format(e))
 		return
@@ -165,28 +165,29 @@ func (kv KeyVals) Parse() (keys []string, vals []interface{}) {
 	return keys, vals
 }
 
-// String returns a string representation of the log level.
-func (l Level) String() string {
+// String returns a string representation of the log severity.
+func (l Severity) String() string {
 	switch l {
-	case LvlDebug:
+	case SeverityDebug:
 		return "DEBUG"
-	case LvlInfo:
+	case SeverityInfo:
 		return "INFO"
-	case LvlError:
+	case SeverityError:
 		return "ERROR"
 	default:
 		return "<INVALID>"
 	}
 }
 
-// Color returns an escape sequence that colors the output for the given level.
-func (l Level) Color() string {
+// Color returns an escape sequence that colors the output for the given
+// severity.
+func (l Severity) Color() string {
 	switch l {
-	case LvlDebug:
+	case SeverityDebug:
 		return "\033[1;32m"
-	case LvlInfo:
+	case SeverityInfo:
 		return "\033[1;34m"
-	case LvlError:
+	case SeverityError:
 		return "\033[1;31m"
 	default:
 		return ""
