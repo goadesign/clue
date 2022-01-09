@@ -152,6 +152,8 @@ By default `log` writes log messages in the following format:
 [LEVEL] [key=val key=val ...] message
 ```
 
+The output is colored if the application is running in a terminal.
+
 The format can be changed by using the `WithFormat` function. The following
 example shows how to change the format:
 
