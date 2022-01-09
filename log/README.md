@@ -110,7 +110,7 @@ enable debug level logging:
 ctx := log.Context(context.Background())
 log.Debug(ctx, "debug message 1")
 
-ctx := log.Context(ctx, log.WithDebug)
+ctx := log.Context(ctx, log.WithDebug())
 log.Debug(ctx, "debug message 2")
 log.Info(ctx, "info message")
 ```
@@ -177,4 +177,11 @@ func formatFunc(entry *log.Entry) []byte {
 }
 
 ctx := log.Context(context.Background(), log.WithFormat(formatFunc))
+log.Print(ctx, "hello world")
+```
+
+The example above logs the following message to stdout:
+
+```
+INFO: hello world
 ```
