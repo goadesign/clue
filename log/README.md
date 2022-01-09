@@ -159,9 +159,9 @@ interface.
 
 `log` comes with three predefined log formats and makes it easy to provide
 custom formatters. The three built-in formats are:
-* `TextFormat`: a simple plain text format.
-* `TerminalFormat`: a format suitable to print logs to colored terminals.
-* `JSONFormat`: a JSON format.
+* `FormatText`: a plain text format
+* `FormatTerminal`: a format suitable to print logs to colored terminals
+* `FormatJSON`: a JSON format
 
 ### Text Format
 
@@ -178,6 +178,8 @@ The example above logs the following message:
 ```
 INFO[2022-01-09T20:29:45Z] hello world foo=bar
 ```
+
+Where `2022-01-09T20:29:45Z` is the current time in UTC.
 
 ### Terminal Format
 
@@ -201,7 +203,7 @@ blue for info entries and red for errors).
 
 ### JSON Format
 
-The JSON format prints entries in JSON as follows:
+The JSON format prints entries in JSON.
 
 ```go
 ctx := log.Context(context.Background(), log.WithFormat(log.FormatJSON))
@@ -216,7 +218,7 @@ The example above logs the following message:
 
 ### Custom Formats
 
-The format can be changed by using the `WithFormat` function as showna above.
+The format can be changed by using the `WithFormat` function as shown above.
 Any function that accepts a `Entry` object and returns a slice of bytes can be
 used as a format function. The following example shows how to use a custom
 format function:
