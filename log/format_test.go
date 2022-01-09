@@ -4,9 +4,15 @@ import (
 	"bytes"
 	"context"
 	"testing"
+	"time"
 )
 
 func TestFormat(t *testing.T) {
+	now, epoc := timeNow, epoch
+	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
+	epoch = timeNow()
+	defer func() { timeNow = now; epoch = epoc }()
+
 	keyVals := []interface{}{
 		"string", "val",
 		"int", 1,
@@ -32,6 +38,7 @@ func TestFormat(t *testing.T) {
 		"sliceNil", []interface{}{nil, nil, nil},
 		"sliceMix", []interface{}{"a", 1, true, nil},
 	}
+
 	formattedKeyVals := "string=val " +
 		"int=1 " +
 		"int32=2 " +
@@ -55,29 +62,33 @@ func TestFormat(t *testing.T) {
 		"sliceBool=[true false true] " +
 		"sliceNil=[<nil> <nil> <nil>] " +
 		"sliceMix=[a 1 true <nil>]"
-	coloredKeyVals := "\033[34mstring\033[0m=\033[32mval\033[0m " +
-		"\033[34mint\033[0m=\033[32m1\033[0m " +
-		"\033[34mint32\033[0m=\033[32m2\033[0m " +
-		"\033[34mint64\033[0m=\033[32m3\033[0m " +
-		"\033[34muint\033[0m=\033[32m4\033[0m " +
-		"\033[34muint32\033[0m=\033[32m5\033[0m " +
-		"\033[34muint64\033[0m=\033[32m6\033[0m " +
-		"\033[34mfloat32\033[0m=\033[32m7\033[0m " +
-		"\033[34mfloat64\033[0m=\033[32m8.1\033[0m " +
-		"\033[34mbool\033[0m=\033[32mtrue\033[0m " +
-		"\033[34mnil\033[0m=\033[32m<nil>\033[0m " +
-		"\033[34msliceString\033[0m=\033[32m[a b c]\033[0m " +
-		"\033[34msliceInt\033[0m=\033[32m[1 1]\033[0m " +
-		"\033[34msliceInt32\033[0m=\033[32m[2 2]\033[0m " +
-		"\033[34msliceInt64\033[0m=\033[32m[3 3]\033[0m " +
-		"\033[34msliceUint\033[0m=\033[32m[4 4]\033[0m " +
-		"\033[34msliceUint32\033[0m=\033[32m[5 5]\033[0m " +
-		"\033[34msliceUint64\033[0m=\033[32m[6 6]\033[0m " +
-		"\033[34msliceFloat32\033[0m=\033[32m[7 7]\033[0m " +
-		"\033[34msliceFloat64\033[0m=\033[32m[8.1 8.1]\033[0m " +
-		"\033[34msliceBool\033[0m=\033[32m[true false true]\033[0m " +
-		"\033[34msliceNil\033[0m=\033[32m[<nil> <nil> <nil>]\033[0m " +
-		"\033[34msliceMix\033[0m=\033[32m[a 1 true <nil>]\033[0m"
+
+	coloredKeyVals := func(col string) string {
+		return col + "string\033[0m=val " +
+			col + "int\033[0m=1 " +
+			col + "int32\033[0m=2 " +
+			col + "int64\033[0m=3 " +
+			col + "uint\033[0m=4 " +
+			col + "uint32\033[0m=5 " +
+			col + "uint64\033[0m=6 " +
+			col + "float32\033[0m=7 " +
+			col + "float64\033[0m=8.1 " +
+			col + "bool\033[0m=true " +
+			col + "nil\033[0m=<nil> " +
+			col + "sliceString\033[0m=[a b c] " +
+			col + "sliceInt\033[0m=[1 1] " +
+			col + "sliceInt32\033[0m=[2 2] " +
+			col + "sliceInt64\033[0m=[3 3] " +
+			col + "sliceUint\033[0m=[4 4] " +
+			col + "sliceUint32\033[0m=[5 5] " +
+			col + "sliceUint64\033[0m=[6 6] " +
+			col + "sliceFloat32\033[0m=[7 7] " +
+			col + "sliceFloat64\033[0m=[8.1 8.1] " +
+			col + "sliceBool\033[0m=[true false true] " +
+			col + "sliceNil\033[0m=[<nil> <nil> <nil>] " +
+			col + "sliceMix\033[0m=[a 1 true <nil>]"
+	}
+
 	jsonKeyVals := `"string":"val",` +
 		`"int":1,` +
 		`"int32":2,` +
@@ -113,98 +124,98 @@ func TestFormat(t *testing.T) {
 		{
 			name:    "default debug",
 			logfn:   Debug,
-			format:  DefaultFormat,
+			format:  FormatText,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    "[DEBUG] [" + formattedKeyVals + "] hello\n",
+			want:    "DEBG[2022-01-09T20:29:45Z] hello " + formattedKeyVals + "\n",
 		},
 		{
 			name:    "default info",
 			logfn:   Info,
-			format:  DefaultFormat,
+			format:  FormatText,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    "[INFO] [" + formattedKeyVals + "] hello\n",
+			want:    "INFO[2022-01-09T20:29:45Z] hello " + formattedKeyVals + "\n",
 		},
 		{
 			name:    "default print",
 			logfn:   Print,
-			format:  DefaultFormat,
+			format:  FormatText,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    "[INFO] [" + formattedKeyVals + "] hello\n",
+			want:    "INFO[2022-01-09T20:29:45Z] hello " + formattedKeyVals + "\n",
 		},
 		{
 			name:    "default error",
 			logfn:   Error,
-			format:  DefaultFormat,
+			format:  FormatText,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    "[ERROR] [" + formattedKeyVals + "] hello\n",
+			want:    "ERRO[2022-01-09T20:29:45Z] hello " + formattedKeyVals + "\n",
 		},
 		{
 			name:    "colored debug",
 			logfn:   Debug,
-			format:  ColoredFormat,
+			format:  FormatTerminal,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    "[\033[1;32mDEBUG\033[0m] [" + coloredKeyVals + "] \033[1;32mhello\033[0m\n",
+			want:    "\033[37mDEBG\033[0m[0000] hello " + coloredKeyVals("\033[37m") + "\n",
 		},
 		{
 			name:    "colored info",
 			logfn:   Info,
-			format:  ColoredFormat,
+			format:  FormatTerminal,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    "[\033[1;34mINFO\033[0m] [" + coloredKeyVals + "] \033[1;34mhello\033[0m\n",
+			want:    "\033[34mINFO\033[0m[0000] hello " + coloredKeyVals("\033[34m") + "\n",
 		},
 		{
 			name:    "colored print",
 			logfn:   Print,
-			format:  ColoredFormat,
+			format:  FormatTerminal,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    "[\033[1;34mINFO\033[0m] [" + coloredKeyVals + "] \033[1;34mhello\033[0m\n",
+			want:    "\033[34mINFO\033[0m[0000] hello " + coloredKeyVals("\033[34m") + "\n",
 		},
 		{
 			name:    "colored error",
 			logfn:   Error,
-			format:  ColoredFormat,
+			format:  FormatTerminal,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    "[\033[1;31mERROR\033[0m] [" + coloredKeyVals + "] \033[1;31mhello\033[0m\n",
+			want:    "\033[1;31mERRO\033[0m[0000] hello " + coloredKeyVals("\033[1;31m") + "\n",
 		},
 		{
 			name:    "json debug",
 			logfn:   Debug,
-			format:  JSONFormat,
+			format:  FormatJSON,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    `{"severity":"DEBUG","message":"hello",` + jsonKeyVals + "}",
+			want:    `{"level":"DEBUG","time":"2022-01-09T20:29:45Z","msg":"hello",` + jsonKeyVals + "}",
 		},
 		{
 			name:    "json info",
 			logfn:   Info,
-			format:  JSONFormat,
+			format:  FormatJSON,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    `{"severity":"INFO","message":"hello",` + jsonKeyVals + "}",
+			want:    `{"level":"INFO","time":"2022-01-09T20:29:45Z","msg":"hello",` + jsonKeyVals + "}",
 		},
 		{
 			name:    "json print",
 			logfn:   Print,
-			format:  JSONFormat,
+			format:  FormatJSON,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    `{"severity":"INFO","message":"hello",` + jsonKeyVals + "}",
+			want:    `{"level":"INFO","time":"2022-01-09T20:29:45Z","msg":"hello",` + jsonKeyVals + "}",
 		},
 		{
 			name:    "json error",
 			logfn:   Error,
-			format:  JSONFormat,
+			format:  FormatJSON,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    `{"severity":"ERROR","message":"hello",` + jsonKeyVals + "}",
+			want:    `{"level":"ERROR","time":"2022-01-09T20:29:45Z","msg":"hello",` + jsonKeyVals + "}",
 		},
 	}
 	for _, tc := range cases {

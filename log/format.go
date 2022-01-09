@@ -4,20 +4,37 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"time"
 )
 
-// DefaultFormat is the default log formatter, it prints entries in the
-// following format:
+// reset escape sequence for color unset
+const reset = "\033[0m"
+
+// epoch used to compute relative timestamps
+var epoch time.Time
+
+func init() {
+	epoch = time.Now()
+}
+
+// FormatText is the default log formatter when not running in a terminal, it
+// prints entries in the following format:
 //
-//    [SEVERITY] [key=val key=val ...] message
-func DefaultFormat(e *Entry) []byte {
+//    SEVERITY[time] message key=val key=val ...
+//
+// Where SEVERITY is one of DEBG, INFO or ERRO, time is the UTC timestamp in
+// RFC3339 format, message is the log message, and key=val are the entry
+// key/value pairs.
+func FormatText(e *Entry) []byte {
 	var b bytes.Buffer
-	b.WriteByte('[')
-	b.WriteString(e.Severity.String())
-	b.WriteByte(']')
+	b.WriteString(e.Severity.Code())
+	b.WriteString(fmt.Sprintf("[%s]", e.Time.Format(time.RFC3339)))
+	if len(e.Message) > 0 {
+		b.WriteByte(' ')
+		b.WriteString(e.Message)
+	}
 	if len(e.KeyVals) > 0 {
 		b.WriteByte(' ')
-		b.WriteByte('[')
 		keys, vals := e.KeyVals.Parse()
 		for i := 0; i < len(keys); i++ {
 			b.WriteString(keys[i])
@@ -27,28 +44,36 @@ func DefaultFormat(e *Entry) []byte {
 				b.WriteByte(' ')
 			}
 		}
-		b.WriteByte(']')
-	}
-	if len(e.Message) > 0 {
-		b.WriteByte(' ')
-		b.WriteString(e.Message)
 	}
 	b.WriteByte('\n')
 	return b.Bytes()
 }
 
-// JSONFormat is a log formatter that prints entries using JSON.
+// FormatJSON is a log formatter that prints entries using JSON. Entries are
+// formatted as follows:
+//
+//   {
+//     "level": "SEVERITY", // one of DEBUG, INFO or ERROR
+//     "time": "TIMESTAMP", // UTC timestamp in RFC3339 format
+//     "msg": "MESSAGE",    // log message
+//     "key1": "val1",      // entry key/value pairs
+//     "key2": "val2",
+//     ...
+//   }
 //
 // note: the implementation avoids using reflection (and thus the json package)
 // for efficiency.
-func JSONFormat(e *Entry) []byte {
+func FormatJSON(e *Entry) []byte {
 	var b bytes.Buffer
 	b.WriteByte('{')
-	b.WriteString(`"severity":`)
+	b.WriteString(`"level":`)
 	b.WriteString(`"`)
 	b.WriteString(e.Severity.String())
+	b.WriteString(`","time":"`)
+	b.WriteString(e.Time.Format(time.RFC3339))
+	b.WriteByte('"')
 	if len(e.Message) > 0 {
-		b.WriteString(`","message":`)
+		b.WriteString(`,"msg":`)
 		b.WriteString(`"`)
 		b.WriteString(e.Message)
 		b.WriteString(`"`)
@@ -70,37 +95,38 @@ func JSONFormat(e *Entry) []byte {
 	return b.Bytes()
 }
 
-// ColoredFormat is a log formatter that prints entries using colored text.
-func ColoredFormat(e *Entry) []byte {
+// FormatTerminal is a log formatter that prints entries suitable for terminal
+// that supports colors. It prints entries in the following format:
+//
+//    SEVERITY[seconds] message key=val key=val ...
+//
+// Where SEVERITY is one of DEBG, INFO or ERRO, seconds is the number of seconds
+// since the application started, message is the log message, and key=val are
+// the entry key/value pairs. The severity and keys are colored according to the
+// severity (gray for debug entries, blue for info entries and red for errors).
+func FormatTerminal(e *Entry) []byte {
 	var b bytes.Buffer
-	b.WriteByte('[')
 	b.WriteString(e.Severity.Color())
-	b.WriteString(e.Severity.String())
+	b.WriteString(e.Severity.Code())
 	b.WriteString(reset)
-	b.WriteByte(']')
+	b.WriteString(fmt.Sprintf("[%04d]", int(e.Time.Sub(epoch)/time.Second)))
+	if len(e.Message) > 0 {
+		b.WriteByte(' ')
+		b.WriteString(e.Message)
+	}
 	if len(e.KeyVals) > 0 {
 		b.WriteByte(' ')
-		b.WriteByte('[')
 		keys, vals := e.KeyVals.Parse()
 		for i := 0; i < len(keys); i++ {
-			b.WriteString(blue)
+			b.WriteString(e.Severity.Color())
 			b.WriteString(keys[i])
 			b.WriteString(reset)
 			b.WriteByte('=')
-			b.WriteString(green)
 			b.WriteString(fmt.Sprintf("%v", vals[i]))
-			b.WriteString(reset)
 			if i < len(keys)-1 {
 				b.WriteByte(' ')
 			}
 		}
-		b.WriteByte(']')
-	}
-	if len(e.Message) > 0 {
-		b.WriteByte(' ')
-		b.WriteString(e.Severity.Color())
-		b.WriteString(e.Message)
-		b.WriteString(reset)
 	}
 	b.WriteByte('\n')
 	return b.Bytes()
@@ -227,9 +253,3 @@ func writeJSON(val interface{}, b *bytes.Buffer) {
 		b.WriteString(fmt.Sprintf("%v", v))
 	}
 }
-
-const (
-	reset = "\033[0m"
-	green = "\033[32m"
-	blue  = "\033[34m"
-)

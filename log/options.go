@@ -69,9 +69,9 @@ func WithFormat(fn FormatFunc) LogOption {
 
 // defaultOptions returns a new options struct with default options.
 func defaultOptions() *options {
-	format := DefaultFormat
+	format := FormatText
 	if term.IsTerminal(syscall.Stdin) {
-		format = ColoredFormat
+		format = FormatTerminal
 	}
 	return &options{
 		disableBuffering: IsTracing,

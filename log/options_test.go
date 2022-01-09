@@ -23,8 +23,8 @@ func TestDefaultOptions(t *testing.T) {
 	if opts.w != os.Stdout {
 		t.Errorf("got output %p, expected os.Stdout", opts.w)
 	}
-	if fmt.Sprintf("%p", opts.format) != fmt.Sprintf("%p", DefaultFormat) {
-		t.Errorf("got format %p, expected %p", opts.format, DefaultFormat)
+	if fmt.Sprintf("%p", opts.format) != fmt.Sprintf("%p", FormatText) {
+		t.Errorf("got format %p, expected %p", opts.format, FormatText)
 	}
 }
 

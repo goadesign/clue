@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"sync"
+	"time"
 )
 
 type (
@@ -11,6 +12,7 @@ type (
 
 	// Log entry
 	Entry struct {
+		Time     time.Time
 		Severity Severity
 		KeyVals  KeyVals
 		Message  string
@@ -41,6 +43,9 @@ const (
 const (
 	ctxLogger ctxKey = iota + 1
 )
+
+// Be kind to tests
+var timeNow = time.Now
 
 // Context initializes a context for logging.
 func Context(ctx context.Context, opts ...LogOption) context.Context {
@@ -138,7 +143,7 @@ func log(ctx context.Context, sev Severity, buffer bool, msg string, keyvals ...
 		keyvals = append(keyvals, nil)
 	}
 
-	e := &Entry{sev, keyvals, msg}
+	e := &Entry{timeNow().UTC(), sev, keyvals, msg}
 	if l.flushed || !buffer {
 		l.options.w.Write(l.options.format(e))
 		return
@@ -179,14 +184,28 @@ func (l Severity) String() string {
 	}
 }
 
+// Code returns a 4-character code for the log severity.
+func (l Severity) Code() string {
+	switch l {
+	case SeverityDebug:
+		return "DEBG"
+	case SeverityInfo:
+		return "INFO"
+	case SeverityError:
+		return "ERRO"
+	default:
+		return "<INVALID>"
+	}
+}
+
 // Color returns an escape sequence that colors the output for the given
 // severity.
 func (l Severity) Color() string {
 	switch l {
 	case SeverityDebug:
-		return "\033[1;32m"
+		return "\033[37m"
 	case SeverityInfo:
-		return "\033[1;34m"
+		return "\033[34m"
 	case SeverityError:
 		return "\033[1;31m"
 	default:

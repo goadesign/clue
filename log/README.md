@@ -16,14 +16,15 @@ import (
 func main() {
         ctx := log.Context(context.Background())
         ctx := log.With(ctx, "foo", "bar")
-        log.Print(ctx, "hello world")
+        log.Print(ctx, "hello world", "baz", "qux")
 }
 ```
 
-The example above logs the following message to stdout:
+The example above logs the following message to stdout, it is colored if the
+application runs in a terminal:
 
 ```
-[INFO] [foo=bar] hello world
+INFO[0000] hello world foo=bar baz=qux
 ```
 
 ## Buffering
@@ -50,8 +51,8 @@ log.Error("request failed") // flushes all previous log entries
 The example above logs the following messages to stdout:
 
 ```
-[INFO] request started
-[ERROR] request failed
+INFO[0000] request started
+ERRO[0000] request failed
 ```
 
 ### Conditional Buffering
@@ -90,8 +91,8 @@ log.Print(ctx, "hello world 2", "qqux", "qqqux")
 The example above logs the following message to stdout:
 
 ```
-[INFO] [foo=bar] hello world 1
-[INFO] [foo=bar baz=qux qqux=qqqux] hello world 2
+INFO[0000] hello world 1 foo=bar
+INFO[0000] hello world 2 foo=bar baz=qux qqux=qqqux
 ```
 
 Keys of key-value pairs must be strings and values must be strings, numbers,
@@ -107,7 +108,7 @@ log.Print(ctx, "", "foo", "bar")
 The example above logs the following message to stdout:
 
 ```
-[INFO] [foo=bar]
+INFO[0000] foo=bar
 ```
 
 ## Log Severity
@@ -128,8 +129,8 @@ log.Info(ctx, "info message")
 The example above logs the following messages to stdout:
 
 ```
-[DEBUG] debug message 2
-[INFO] info message
+DEBG[0000] debug message 2
+INFO[0000] info message
 ```
 
 Note that enabling debug logging also disables buffering and causes all future
@@ -148,7 +149,7 @@ log.Print(ctx, "hello world")
 The example above logs the following message to stderr:
 
 ```
-[INFO] hello world
+INFO[0000] hello world
 ```
 
 The `WithOuput` function accepts any type that implements the `io.Writer`
@@ -156,29 +157,66 @@ interface.
 
 ## Log Format
 
-By default `log` writes log messages in the following format:
+`log` comes with three predefined log formats and makes it easy to provide
+custom formatters. The three built-in formats are:
+* `TextFormat`: a simple plain text format.
+* `TerminalFormat`: a format suitable to print logs to colored terminals.
+* `JSONFormat`: a JSON format.
+
+### Text Format
+
+The text format is the default format used when the application is not running
+in a terminal.
+
+```go
+ctx := log.Context(context.Background(), log.WithFormat(log.FormatText))
+log.Print(ctx, "hello world", "foo", "bar")
+```
+
+The example above logs the following message:
 
 ```
-[SEVERITY] [key=val key=val ...] message
+INFO[2022-01-09T20:29:45Z] hello world foo=bar
 ```
 
-The output is colored if the application is running in a terminal.
+### Terminal Format
 
-The format can be changed by using the `WithFormat` function. The following
-example shows how to change the format:
+The terminal format is the default format used when the application is running
+in a terminal.
+
+```go
+ctx := log.Context(context.Background(), log.WithFormat(log.FormatTerminal))
+log.Print(ctx, "hello world", "foo", "bar")
+```
+
+The example above logs the following message:
+
+```
+INFO[0000] hello world foo=bar
+```
+
+Where `0000` is the number of seconds since the application started. The
+severity and each key are colored based on the severity (gray for debug entries,
+blue for info entries and red for errors).
+
+### JSON Format
+
+The JSON format prints entries in JSON as follows:
 
 ```go
 ctx := log.Context(context.Background(), log.WithFormat(log.FormatJSON))
-ctx = log.With(ctx, "foo", "bar", "baz", "qux")
-log.Print(ctx, "hello world")
+log.Print(ctx, "hello world", "foo", "bar")
 ```
 
-The example above logs the following message to stdout:
+The example above logs the following message:
 
 ```
-{"severity":"INFO","message":"hello world","foo":"bar","baz":"qux"}
+{"level":"INFO","time":"2022-01-09T20:29:45Z","message":"hello world","foo":"bar"}
 ```
 
+### Custom Formats
+
+The format can be changed by using the `WithFormat` function as showna above.
 Any function that accepts a `Entry` object and returns a slice of bytes can be
 used as a format function. The following example shows how to use a custom
 format function:
@@ -197,3 +235,17 @@ The example above logs the following message to stdout:
 ```
 INFO: hello world
 ```
+
+## Goa Compatibility
+
+Loggers created via the `log` package can be adapted to the Goa
+[middleware.Logger](https://pkg.go.dev/goa.design/goa/v3/middleware#Logger)
+interface. This makes it possible to use this package to configure the logger
+used by the middlewares.
+
+```go
+ctx := log.Context(context.Background())
+logger := log.Adapt(ctx) // logger implements middleware.Logger
+```
+
+See the [Adapt](adapt.go) function for more details on usage.
