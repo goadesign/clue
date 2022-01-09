@@ -17,3 +17,13 @@ TBD:
 - [x] Logging
 - [ ] Tracing
 - [ ] Metrics
+
+## Importing Private Repositories
+
+Make sure to run the following commands before importing any module hosted on
+the CrossnoKaye GitHub org private repositories (e.g. this one):
+
+```
+git config --global url.git@github.com:.insteadOf https://github.com/
+go env -w GOPRIVATE=github.com/crossnokaye/*
+```

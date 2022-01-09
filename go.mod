@@ -1,4 +1,4 @@
-module micro
+module github.com/crossnokaye/micro
 
 go 1.17
 
