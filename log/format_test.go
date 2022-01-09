@@ -104,7 +104,7 @@ func TestFormat(t *testing.T) {
 
 	cases := []struct {
 		name    string
-		logfn   func(ctx context.Context, msg string, keysAndVals ...interface{})
+		logfn   func(ctx context.Context, msg string, keyvals ...interface{})
 		format  FormatFunc
 		msg     string
 		keyVals []interface{}

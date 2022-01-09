@@ -18,11 +18,11 @@ type (
 
 	// Logger implementation
 	logger struct {
-		options     *options
-		lock        sync.Mutex
-		keysAndVals []interface{}
-		entries     []*Entry
-		flushed     bool
+		options *options
+		lock    sync.Mutex
+		keyvals []interface{}
+		entries []*Entry
+		flushed bool
 	}
 
 	// Log level enum
@@ -57,28 +57,28 @@ func Context(ctx context.Context, opts ...LogOption) context.Context {
 }
 
 // Debug logs a debug message.
-func Debug(ctx context.Context, msg string, keysAndVals ...interface{}) {
-	log(ctx, LvlDebug, true, msg, keysAndVals...)
+func Debug(ctx context.Context, msg string, keyvals ...interface{}) {
+	log(ctx, LvlDebug, true, msg, keyvals...)
 }
 
 // Print logs an info message and ignores buffering.
-func Print(ctx context.Context, msg string, keysAndVals ...interface{}) {
-	log(ctx, LvlInfo, false, msg, keysAndVals...)
+func Print(ctx context.Context, msg string, keyvals ...interface{}) {
+	log(ctx, LvlInfo, false, msg, keyvals...)
 }
 
 // Info logs an info message.
-func Info(ctx context.Context, msg string, keysAndVals ...interface{}) {
-	log(ctx, LvlInfo, true, msg, keysAndVals...)
+func Info(ctx context.Context, msg string, keyvals ...interface{}) {
+	log(ctx, LvlInfo, true, msg, keyvals...)
 }
 
 // Error logs an error message.
-func Error(ctx context.Context, msg string, keysAndVals ...interface{}) {
+func Error(ctx context.Context, msg string, keyvals ...interface{}) {
 	Flush(ctx)
-	log(ctx, LvlError, true, msg, keysAndVals...)
+	log(ctx, LvlError, true, msg, keyvals...)
 }
 
 // With adds the given key/value pairs to the log context.
-func With(ctx context.Context, keysAndVals ...interface{}) context.Context {
+func With(ctx context.Context, keyvals ...interface{}) context.Context {
 	v := ctx.Value(ctxLogger)
 	if v == nil {
 		return ctx
@@ -86,10 +86,10 @@ func With(ctx context.Context, keysAndVals ...interface{}) context.Context {
 	l := v.(*logger)
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	if len(keysAndVals)%2 != 0 {
-		keysAndVals = append(keysAndVals, nil)
+	if len(keyvals)%2 != 0 {
+		keyvals = append(keyvals, nil)
 	}
-	l.keysAndVals = append(l.keysAndVals, keysAndVals...)
+	l.keyvals = append(l.keyvals, keyvals...)
 	return ctx
 }
 
@@ -117,7 +117,7 @@ func (l *logger) flush() {
 	l.flushed = true
 }
 
-func log(ctx context.Context, level Level, buffer bool, msg string, keysAndVals ...interface{}) {
+func log(ctx context.Context, level Level, buffer bool, msg string, keyvals ...interface{}) {
 	v := ctx.Value(ctxLogger)
 	if v == nil {
 		return // do nothing if context isn't initialized
@@ -133,12 +133,12 @@ func log(ctx context.Context, level Level, buffer bool, msg string, keysAndVals 
 		l.flush()
 	}
 
-	keysAndVals = append(l.keysAndVals, keysAndVals...)
-	if len(keysAndVals)%2 != 0 {
-		keysAndVals = append(keysAndVals, nil)
+	keyvals = append(l.keyvals, keyvals...)
+	if len(keyvals)%2 != 0 {
+		keyvals = append(keyvals, nil)
 	}
 
-	e := &Entry{level, keysAndVals, msg}
+	e := &Entry{level, keyvals, msg}
 	if l.flushed || !buffer {
 		l.options.w.Write(l.options.format(e))
 		return
