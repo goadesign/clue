@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -253,6 +254,61 @@ func TestNoLogging(t *testing.T) {
 	Error(ctx, "")
 	With(ctx, "key", "val")
 	Flush(ctx)
+}
+
+func TestMaxSize(t *testing.T) {
+	var (
+		txt            = "|txt|"
+		maxsize        = len(txt)
+		keyval         = []interface{}{"key", txt}
+		toolong        = []interface{}{"key", txt + "b"}
+		toomany        = make([]string, maxsize+1)
+		toomanytoolong = make([]string, maxsize+1)
+	)
+	for i := 0; i < maxsize+1; i += 1 {
+		toomany[i] = txt
+		toomanytoolong[i] = txt + "b"
+	}
+	cases := []struct {
+		name     string
+		msg      string
+		keyvals  []interface{}
+		expected int
+	}{
+		{"short message", txt, nil, len(txt)},
+		{"long message", txt + "a", nil, len(txt)},
+		{"short message with short value", txt, keyval, 2 * len(txt)},
+		{"long message with short value", txt + "a", keyval, 2 * len(txt)},
+		{"short message with long value", txt, toolong, 2 * len(txt)},
+		{"long message with long value", txt + "a", toolong, 2 * len(txt)},
+		{"too many elements in value", "", []interface{}{"key", toomany}, maxsize * len(txt)},
+		{"too many too long elements in value", "", []interface{}{"key", toomanytoolong}, maxsize * len(txt)},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var buf bytes.Buffer
+
+			// Append message and values
+			format := func(e *Entry) []byte {
+				var vals string
+				for i := 1; i < len(e.KeyVals); i += 2 {
+					if sv, ok := e.KeyVals[i].([]string); ok {
+						vals += strings.Join(sv, "")
+					} else {
+						vals += e.KeyVals[i].(string)
+					}
+				}
+				return []byte(e.Message + vals)
+			}
+
+			ctx := Context(context.Background(), WithOutput(&buf), WithMaxSize(maxsize), WithFormat(format))
+			Print(ctx, c.msg, c.keyvals...)
+
+			if buf.Len() != c.expected {
+				t.Errorf("got %d (%q), want %d", buf.Len(), buf.String(), c.expected)
+			}
+		})
+	}
 }
 
 func debugFormat(e *Entry) []byte {

@@ -28,8 +28,13 @@ type (
 		w                io.Writer
 		format           FormatFunc
 		keyvals          []interface{}
+		maxsize          int
 	}
 )
+
+// DefaultMaxSize is the default maximum size of a single log message or value
+// in bytes. It's also the maximum number of elements in a slice value.
+const DefaultMaxSize = 1024
 
 // IsTracing returns true if the context contains a trace created via the
 // go.opentelemetry.io/otel/trace package. It is the default
@@ -76,6 +81,13 @@ func WithKeyValue(key string, value interface{}) LogOption {
 	}
 }
 
+// WithMaxSize sets the maximum size of a single log message or value.
+func WithMaxSize(n int) LogOption {
+	return func(o *options) {
+		o.maxsize = n
+	}
+}
+
 // defaultOptions returns a new options struct with default options.
 func defaultOptions() *options {
 	format := FormatText
@@ -86,5 +98,6 @@ func defaultOptions() *options {
 		disableBuffering: IsTracing,
 		w:                os.Stdout,
 		format:           format,
+		maxsize:          DefaultMaxSize,
 	}
 }

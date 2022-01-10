@@ -83,9 +83,10 @@ func Info(ctx context.Context, msg string, keyvals ...interface{}) {
 	log(ctx, SeverityInfo, true, msg, keyvals...)
 }
 
-// Error logs an error message. msg is optional and can be empty. keyvals is an
-// alternating list of keys and values. Keys must be strings and values must be
-// strings, numbers, booleans, nil or a slice of these types.
+// Error logs an error message and flushes the log buffer if not already
+// flushed. msg is optional and can be empty. keyvals is an alternating list of
+// keys and values. Keys must be strings and values must be strings, numbers,
+// booleans, nil or a slice of these types.
 func Error(ctx context.Context, msg string, keyvals ...interface{}) {
 	Flush(ctx)
 	log(ctx, SeverityError, true, msg, keyvals...)
@@ -155,6 +156,11 @@ func log(ctx context.Context, sev Severity, buffer bool, msg string, keyvals ...
 		keyvals = append(keyvals, nil)
 	}
 
+	if len(msg) > l.options.maxsize {
+		msg = msg[0:l.options.maxsize]
+	}
+	truncate(keyvals, l.options.maxsize)
+
 	e := &Entry{timeNow().UTC(), sev, keyvals, msg}
 	if l.flushed || !buffer {
 		l.options.w.Write(l.options.format(e))
@@ -222,5 +228,77 @@ func (l Severity) Color() string {
 		return "\033[1;31m"
 	default:
 		return ""
+	}
+}
+
+// truncate makes sure that all string values in keyvals are no longer than
+// maxsize and that all slice values are truncated to maxsize.
+//
+// Note: This could get very complicated very quickly (there could be different
+// max values for strings and slices, it could compute total size for slices vs.
+// size for each element, could recurse further etc.) - the point is to protect
+// against obvious mistakes - not to implement a bullet-proof solution.
+func truncate(keyvals []interface{}, maxsize int) {
+	for i := 1; i < len(keyvals); i += 2 {
+		switch v := keyvals[i].(type) {
+		case string:
+			if len(v) > maxsize {
+				keyvals[i] = v[0:maxsize]
+			}
+		case []string:
+			if len(v) > maxsize {
+				keyvals[i] = v[0:maxsize]
+			}
+			for j, s := range v {
+				if len(s) > maxsize {
+					v[j] = s[0:maxsize]
+				}
+			}
+		case []int:
+			if len(v) > maxsize {
+				keyvals[i] = v[0:maxsize]
+			}
+		case []int32:
+			if len(v) > maxsize {
+				keyvals[i] = v[0:maxsize]
+			}
+		case []int64:
+			if len(v) > maxsize {
+				keyvals[i] = v[0:maxsize]
+			}
+		case []uint:
+			if len(v) > maxsize {
+				keyvals[i] = v[0:maxsize]
+			}
+		case []uint32:
+			if len(v) > maxsize {
+				keyvals[i] = v[0:maxsize]
+			}
+		case []uint64:
+			if len(v) > maxsize {
+				keyvals[i] = v[0:maxsize]
+			}
+		case []float32:
+			if len(v) > maxsize {
+				keyvals[i] = v[0:maxsize]
+			}
+		case []float64:
+			if len(v) > maxsize {
+				keyvals[i] = v[0:maxsize]
+			}
+		case []bool:
+			if len(v) > maxsize {
+				keyvals[i] = v[0:maxsize]
+			}
+		case []interface{}:
+			if len(v) > maxsize {
+				keyvals[i] = v[0:maxsize]
+			}
+			for j, e := range v {
+				if s, ok := e.(string); ok && len(s) > maxsize {
+					v[j] = s[0:maxsize]
+				}
+			}
+		}
 	}
 }
