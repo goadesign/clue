@@ -92,6 +92,7 @@ func FormatJSON(e *Entry) []byte {
 		}
 	}
 	b.WriteByte('}')
+	b.WriteByte('\n')
 	return b.Bytes()
 }
 

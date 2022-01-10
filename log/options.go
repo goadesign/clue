@@ -27,6 +27,7 @@ type (
 		debug            bool
 		w                io.Writer
 		format           FormatFunc
+		keyvals          []interface{}
 	}
 )
 
@@ -64,6 +65,14 @@ func WithOutput(w io.Writer) LogOption {
 func WithFormat(fn FormatFunc) LogOption {
 	return func(o *options) {
 		o.format = fn
+	}
+}
+
+// WithKeyValue sets a key value pair to be logged with every log entry. value
+// must be a string, number, boolean, nil, or a slice of any of these.
+func WithKeyValue(key string, value interface{}) LogOption {
+	return func(o *options) {
+		o.keyvals = append(o.keyvals, key, value)
 	}
 }
 

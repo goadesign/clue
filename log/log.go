@@ -61,28 +61,39 @@ func Context(ctx context.Context, opts ...LogOption) context.Context {
 	return context.WithValue(ctx, ctxLogger, l)
 }
 
-// Debug logs a debug message.
+// Debug logs a debug message. msg is optional and can be empty. keyvals is an
+// alternating list of keys and values. Keys must be strings and values must be
+// strings, numbers, booleans, nil or a slice of these types.
 func Debug(ctx context.Context, msg string, keyvals ...interface{}) {
 	log(ctx, SeverityDebug, true, msg, keyvals...)
 }
 
-// Print logs an info message and ignores buffering.
+// Print logs an info message and ignores buffering. msg is optional and can be
+// empty. keyvals is an alternating list of keys and values. Keys must be
+// strings and values must be strings, numbers, booleans, nil or a slice of
+// these types.
 func Print(ctx context.Context, msg string, keyvals ...interface{}) {
 	log(ctx, SeverityInfo, false, msg, keyvals...)
 }
 
-// Info logs an info message.
+// Info logs an info message. msg is optional and can be empty. keyvals is an
+// alternating list of keys and values. Keys must be strings and values must be
+// strings, numbers, booleans, nil or a slice of these types.
 func Info(ctx context.Context, msg string, keyvals ...interface{}) {
 	log(ctx, SeverityInfo, true, msg, keyvals...)
 }
 
-// Error logs an error message.
+// Error logs an error message. msg is optional and can be empty. keyvals is an
+// alternating list of keys and values. Keys must be strings and values must be
+// strings, numbers, booleans, nil or a slice of these types.
 func Error(ctx context.Context, msg string, keyvals ...interface{}) {
 	Flush(ctx)
 	log(ctx, SeverityError, true, msg, keyvals...)
 }
 
-// With adds the given key/value pairs to the log context.
+// With adds the given key/value pairs to the log context. keyvals is an
+// alternating list of keys and values. Keys must be strings and values must be
+// strings, numbers, booleans, nil or a slice of these types.
 func With(ctx context.Context, keyvals ...interface{}) context.Context {
 	v := ctx.Value(ctxLogger)
 	if v == nil {
@@ -139,6 +150,7 @@ func log(ctx context.Context, sev Severity, buffer bool, msg string, keyvals ...
 	}
 
 	keyvals = append(l.keyvals, keyvals...)
+	keyvals = append(l.options.keyvals, keyvals...)
 	if len(keyvals)%2 != 0 {
 		keyvals = append(keyvals, nil)
 	}
