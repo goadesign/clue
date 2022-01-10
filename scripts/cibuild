@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e
+
+GIT_ROOT=$(git rev-parse --show-toplevel)
+pushd ${GIT_ROOT}
+
+./scripts/setup
+./scripts/test
+
+popd
