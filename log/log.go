@@ -92,22 +92,28 @@ func Error(ctx context.Context, msg string, keyvals ...interface{}) {
 	log(ctx, SeverityError, true, msg, keyvals...)
 }
 
-// With adds the given key/value pairs to the log context. keyvals is an
-// alternating list of keys and values. Keys must be strings and values must be
-// strings, numbers, booleans, nil or a slice of these types.
+// With creates a copy of the given log context and appends the given key/value
+// pairs to it. keyvals is an alternating list of keys and values. Keys must be
+// strings and values must be strings, numbers, booleans, nil or a slice of
+// these types.
 func With(ctx context.Context, keyvals ...interface{}) context.Context {
 	v := ctx.Value(ctxLogger)
 	if v == nil {
 		return ctx
 	}
 	l := v.(*logger)
-	l.lock.Lock()
-	defer l.lock.Unlock()
 	if len(keyvals)%2 != 0 {
 		keyvals = append(keyvals, nil)
 	}
-	l.keyvals = append(l.keyvals, keyvals...)
-	return ctx
+	copy := *l
+	copy.keyvals = append(copy.keyvals, keyvals...)
+
+	// Make sure that if Go needs to grow the slice then each context get
+	// its own memory.
+	copy.keyvals = copy.keyvals[:len(copy.keyvals):len(copy.keyvals)]
+	copy.entries = copy.entries[:len(copy.entries):len(copy.entries)]
+
+	return context.WithValue(ctx, ctxLogger, &copy)
 }
 
 // Flush flushes the log entries to the writer.

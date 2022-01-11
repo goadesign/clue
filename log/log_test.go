@@ -241,6 +241,33 @@ func TestStructuredLogging(t *testing.T) {
 	}
 }
 
+func TestChaining(t *testing.T) {
+	ctx1 := Context(context.Background())
+	ctx2 := With(ctx1, "key1", "val1")
+	Info(ctx1, "msg1")
+	Info(ctx2, "msg2")
+
+	if len(entries(ctx1)) != 1 {
+		t.Fatalf("got %d buffered entries, want 1", len(entries(ctx1)))
+	}
+	e := (entries(ctx1))[0]
+	if len(e.KeyVals) != 0 {
+		t.Errorf("got %d keyvals, want 0", len(e.KeyVals))
+	}
+
+	if len(entries(ctx2)) != 1 {
+		t.Fatalf("got %d buffered entries, want 1", len(entries(ctx2)))
+	}
+	e = (entries(ctx2))[0]
+	if len(e.KeyVals) != 2 {
+		t.Errorf("got %d keyvals, want 2", len(e.KeyVals))
+	}
+	keys, vals := e.KeyVals.Parse()
+	if keys[0] != "key1" || vals[0] != "val1" {
+		t.Errorf("got keyval %q=%q, want key1=val1", keys[0], vals[0])
+	}
+}
+
 func TestNoLogging(t *testing.T) {
 	defer func() {
 		if err := recover(); err != nil {
