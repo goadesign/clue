@@ -1,6 +1,5 @@
 # log: Smart Logging
 
----
 [![Build Status](https://github.com/crossnokaye/micro/workflows/CI/badge.svg?branch=main&event=push)](https://github.com/crossnokaye/micro/actions?query=branch%3Amain+event%3Apush)
 ![Coverage](https://img.shields.io/badge/Coverage-95%-green)
 
