@@ -88,7 +88,7 @@ func WithMaxSize(n int) LogOption {
 	}
 }
 
-// IsTerminal returns true if the output is a terminal.
+// IsTerminal returns true if the process is running in a terminal.
 func IsTerminal() bool {
 	return term.IsTerminal(syscall.Stdin)
 }
