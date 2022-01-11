@@ -30,25 +30,3 @@ jobs:
           files: coverage.out
           flags: micro
           fail_ci_if_error: true
-      - name: Go Coverage Badge
-        uses: tj-actions/coverage-badge-go@v1
-        with:
-          filename: log.coverprofile
-          target: log/README.md
-      - name: Verify Changed files
-        uses: tj-actions/verify-changed-files@v8.1
-        id: verify-changed-files
-        with:
-          files: log/README.md
-      - name: Commit files
-        if: steps.verify-changed-files.outputs.files_changed == 'true'
-        run: |
-          git config --local user.email "devops@crossnokaye.com"
-          git config --local user.name "CrossnoKaye Deployer"
-          git commit -m "Update coverage badge" -a
-      - name: Push changes
-        if: steps.verify-changed-files.outputs.files_changed == 'true'
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ github.token }}
-          branch: ${{ github.head_ref }}

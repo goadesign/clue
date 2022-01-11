@@ -14,6 +14,66 @@ const (
 	ignored  = "ignored"
 )
 
+func TestKeyValParse(t *testing.T) {
+	cases := []struct {
+		name         string
+		keyvals      []interface{}
+		expectedKeys []string
+		expectedVals []interface{}
+	}{
+		{"empty", []interface{}{}, []string{}, []interface{}{}},
+		{"one", []interface{}{"key", "val"}, []string{"key"}, []interface{}{"val"}},
+		{"invalid key", []interface{}{0, "val"}, []string{"<INVALID>"}, []interface{}{"val"}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			kv := KeyVals(c.keyvals)
+			keys, vals := kv.Parse()
+			if len(keys) != len(c.expectedKeys) {
+				t.Fatalf("got %d keys, want %d", len(keys), len(c.expectedKeys))
+			}
+			if len(vals) != len(c.expectedVals) {
+				t.Fatalf("got %d vals, want %d", len(vals), len(c.expectedVals))
+			}
+			for i, k := range keys {
+				if k != c.expectedKeys[i] {
+					t.Errorf("got key %q, want %q", k, c.expectedKeys[i])
+				}
+			}
+			for i, v := range vals {
+				if fmt.Sprintf("%v", v) != fmt.Sprintf("%v", c.expectedVals[i]) {
+					t.Errorf("got val %v, want %v", v, c.expectedVals[i])
+				}
+			}
+		})
+	}
+}
+
+func TestSeverity(t *testing.T) {
+	var buf bytes.Buffer
+	printSev := func(e *Entry) []byte {
+		return []byte(e.Severity.String() + ":" + e.Severity.Code() + ":" + e.Severity.Color() + " ")
+	}
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(printSev), WithDebug())
+	Debug(ctx, "")
+	Info(ctx, "")
+	Error(ctx, "")
+	want := "DEBUG:DEBG:\033[37m INFO:INFO:\033[34m ERROR:ERRO:\033[1;31m "
+	if got := buf.String(); got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+
+	if Severity(0).String() != "<INVALID>" {
+		t.Errorf("got %q, want %q", Severity(0).String(), "<INVALID>")
+	}
+	if Severity(0).Code() != "<INVALID>" {
+		t.Errorf("got %q, want %q", Severity(0).Code(), "<INVALID>")
+	}
+	if Severity(0).Color() != "" {
+		t.Errorf("got %q, want empty", Severity(0).Color())
+	}
+}
+
 func TestBuffering(t *testing.T) {
 	var buf bytes.Buffer
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat))
@@ -291,10 +351,12 @@ func TestMaxSize(t *testing.T) {
 		toolong        = []interface{}{"key", txt + "b"}
 		toomany        = make([]string, maxsize+1)
 		toomanytoolong = make([]string, maxsize+1)
+		toomanyi       = make([]interface{}, maxsize+1)
 	)
 	for i := 0; i < maxsize+1; i += 1 {
 		toomany[i] = txt
 		toomanytoolong[i] = txt + "b"
+		toomanyi[i] = txt + "b"
 	}
 	cases := []struct {
 		name     string
@@ -310,6 +372,7 @@ func TestMaxSize(t *testing.T) {
 		{"long message with long value", txt + "a", toolong, 2 * len(txt)},
 		{"too many elements in value", "", []interface{}{"key", toomany}, maxsize * len(txt)},
 		{"too many too long elements in value", "", []interface{}{"key", toomanytoolong}, maxsize * len(txt)},
+		{"too many too long elements in []interface{} value", "", []interface{}{"key", toomanyi}, maxsize * len(txt)},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -321,6 +384,12 @@ func TestMaxSize(t *testing.T) {
 				for i := 1; i < len(e.KeyVals); i += 2 {
 					if sv, ok := e.KeyVals[i].([]string); ok {
 						vals += strings.Join(sv, "")
+					} else if sv, ok := e.KeyVals[i].([]interface{}); ok {
+						strs := make([]string, len(sv))
+						for j := range sv {
+							strs[j] = sv[j].(string)
+						}
+						vals += strings.Join(strs, "")
 					} else {
 						vals += e.KeyVals[i].(string)
 					}
