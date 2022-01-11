@@ -102,3 +102,9 @@ func TestIsTracing(t *testing.T) {
 		t.Errorf("expected IsTracing to return true")
 	}
 }
+
+func TestIsTerminal(t *testing.T) {
+	if IsTerminal() {
+		t.Errorf("expected IsTerminal to return false")
+	}
+}

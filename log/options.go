@@ -88,10 +88,15 @@ func WithMaxSize(n int) LogOption {
 	}
 }
 
+// IsTerminal returns true if the output is a terminal.
+func IsTerminal() bool {
+	return term.IsTerminal(syscall.Stdin)
+}
+
 // defaultOptions returns a new options struct with default options.
 func defaultOptions() *options {
 	format := FormatText
-	if term.IsTerminal(syscall.Stdin) {
+	if IsTerminal() {
 		format = FormatTerminal
 	}
 	return &options{
