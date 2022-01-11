@@ -23,6 +23,13 @@ jobs:
             ${{ runner.os }}-go-v1-
       - name: tests
         run: scripts/cibuild
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.out
+          flags: micro
+          fail_ci_if_error: true
       - name: Go Coverage Badge
         uses: tj-actions/coverage-badge-go@v1
         with:
