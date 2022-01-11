@@ -8,6 +8,11 @@ GIT_ROOT=$(git rev-parse --show-toplevel)
 pushd ${GIT_ROOT}
 
 staticcheck ./...
-go test ./...
+
+# Generate coverage reports for each sub-directory for badges
+for d in $(go list ./...); do
+    go test -coverprofile=$(basename $d).coverprofile -covermode=count ${d}
+    go tool cover -func=$(basename $d).coverprofile -o=$(basename $d).coverprofile
+done
 
 popd
