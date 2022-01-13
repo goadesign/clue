@@ -25,12 +25,12 @@ method names respectively.
 
 The `HTTP` function creates the following metrics on the given `meter`:
 
-* `http.request.count`: Counter of requests.
-* `http.4xxresponse.count`: Counter of 4xx responses.
-* `http.5xxresponse.count`: Counter of 5xx responses.
-* `http.request.duration.ms`: Histogram of HTTP request durations with buckets defined in milliseconds.
-* `http.request.size.bytes`: Histogram of HTTP request sizes with buckets defined in bytes.
-* `http.response.size.bytes`: Histogram of HTTP response sizes with buckets defined in bytes.
+* `http.request.count`: Total requests count.
+* `http.4xxresponse.count`: 4xx responses count.
+* `http.5xxresponse.count`: 5xx responses count.
+* `http.request.ms`: Histogram of HTTP request durations with buckets defined in milliseconds.
+* `http.request.bytes`: Histogram of HTTP request sizes with buckets defined in bytes.
+* `http.response.bytes`: Histogram of HTTP response sizes with buckets defined in bytes.
 
 The histogram buckets can be specified using the `WithRequestDurationBuckets`,
 `WithRequestSizeBuckets` and `WithResponseSizeBuckets` functions. The default
@@ -54,7 +54,7 @@ metrics:
 
 * `grpc.request.count`: Counter of requests.
 * `grpc.error.count`: Counter of error responses.
-* `grpc.request.duration.ms`: Histogram of gRPC request durations with buckets defined in milliseconds.
+* `grpc.request.ms`: Histogram of gRPC request durations with buckets defined in milliseconds.
 
 The histogram buckets can be specified using the `WithRequestDurationBuckets`. The default
 buckets are `{1, 50, 200, 500, 1000, 2000, 5000, 10000, +Inf}`.
