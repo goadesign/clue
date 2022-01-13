@@ -1,4 +1,4 @@
-instrument: Auto Metrics
+# instrument: Auto Metrics
 
 [![Build Status](https://github.com/crossnokaye/micro/workflows/CI/badge.svg?branch=main&event=push)](https://github.com/crossnokaye/micro/actions?query=branch%3Amain+event%3Apush)
 ![Coverage](https://img.shields.io/badge/Coverage-93.7%25-brightgreen)
@@ -23,7 +23,7 @@ method names respectively.
 
 ## HTTP Metrics
 
-The `HTTP` function creates the following metrics:
+The `HTTP` function creates the following metrics on the given `meter`:
 
 * `http.request.count`: Counter of requests.
 * `http.4xxresponse.count`: Counter of 4xx responses.
@@ -39,15 +39,13 @@ buckets are:
 * `{1, 50, 200, 500, 1000, 2000, 5000, 10000, +Inf}` for request duration.
 * `{1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, +Inf}` for request and response size.
 
-```go
-durationBuckets := []float64{1, 50, 200, 500, 1000, 2000, 5000, 10000, -1}
-requestSizeBuckets := []float64{1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, -1}
-responseSizeBuckets := []float64{1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, -1}
-err := instrument.HTTP(svr, meter, svc.ServiceName, svc.MethodNames,
-    instrument.WithRequestDurationBuckets(durationBuckets),
-    instrument.WithRequestSizeBuckets(requestSizeBuckets),
-    instrument.WithResponseSizeBuckets(responseSizeBuckets))
-```
+All the metrics have the following labels:
+
+* `http.verb`: The HTTP verb (`GET`, `POST` etc.).
+* `http.path`: The HTTP path.
+* `http.status_code`: The HTTP status code.
+* `http.service`: The service name.
+* `http.method`: The method name.
 
 ## GRPC Metrics
 
@@ -60,3 +58,9 @@ metrics:
 
 The histogram buckets can be specified using the `WithRequestDurationBuckets`. The default
 buckets are `{1, 50, 200, 500, 1000, 2000, 5000, 10000, +Inf}`.
+
+All the metrics have the following labels:
+
+* `grpc.status_code`: The gRPC status code.
+* `grpc.service`: The service name.
+* `grpc.method`: The method name.
