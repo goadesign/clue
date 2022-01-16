@@ -1,0 +1,48 @@
+// Code generated with goa v3.5.3, DO NOT EDIT.
+//
+// test protocol buffer definition
+//
+// Command:
+// $ goa gen github.com/crossnokaye/micro/instrument/testsvc/design
+
+syntax = "proto3";
+
+package test;
+
+option go_package = "/testpb";
+
+// Service is the test service interface.
+service Test {
+	// GrpcMethod implements grpc_method.
+	rpc GrpcMethod (GrpcMethodRequest) returns (GrpcMethodResponse);
+	// GrpcStreaming implements grpc_streaming.
+	rpc GrpcStreaming (stream GrpcStreamingStreamingRequest) returns (stream GrpcStreamingResponse);
+}
+
+message GrpcMethodRequest {
+	// String operand
+	string s = 1;
+	// Int operand
+	sint32 i = 2;
+}
+
+message GrpcMethodResponse {
+	// String operand
+	string s = 1;
+	// Int operand
+	sint32 i = 2;
+}
+
+message GrpcStreamingStreamingRequest {
+	// String operand
+	string s = 1;
+	// Int operand
+	sint32 i = 2;
+}
+
+message GrpcStreamingResponse {
+	// String operand
+	string s = 1;
+	// Int operand
+	sint32 i = 2;
+}
