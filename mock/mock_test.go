@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-type namedFuncs struct {
+type namedFunc struct {
 	Name string
 	Func func() string
 }
@@ -12,31 +12,31 @@ type namedFuncs struct {
 func TestAdd(t *testing.T) {
 	cases := []struct {
 		Name     string
-		Funcs    []namedFuncs
+		Funcs    []namedFunc
 		NextArgs []string
 		Expected []func() string
 	}{
 		{
 			Name:     "single",
-			Funcs:    []namedFuncs{{"f1", f1}},
+			Funcs:    []namedFunc{{"f1", f1}},
 			NextArgs: []string{"f1"},
 			Expected: []func() string{f1},
 		},
 		{
 			Name:     "multiple",
-			Funcs:    []namedFuncs{{"f1", f1}, {"f2", f2}},
+			Funcs:    []namedFunc{{"f1", f1}, {"f2", f2}},
 			NextArgs: []string{"f1", "f2"},
 			Expected: []func() string{f1, f2},
 		},
 		{
 			Name:     "nofunc",
-			Funcs:    []namedFuncs{{"f1", f1}},
+			Funcs:    []namedFunc{{"f1", f1}},
 			NextArgs: []string{"f2"},
 			Expected: []func() string{nil},
 		},
 		{
 			Name:     "consumed",
-			Funcs:    []namedFuncs{{"f1", f1}},
+			Funcs:    []namedFunc{{"f1", f1}},
 			NextArgs: []string{"f1", "f1"},
 			Expected: []func() string{f1, nil},
 		},
@@ -58,31 +58,31 @@ func TestAdd(t *testing.T) {
 func TestSet(t *testing.T) {
 	cases := []struct {
 		Name     string
-		Funcs    []namedFuncs
+		Funcs    []namedFunc
 		NextArgs []string
 		Expected []func() string
 	}{
 		{
 			Name:     "single",
-			Funcs:    []namedFuncs{{"f1", f1}},
+			Funcs:    []namedFunc{{"f1", f1}},
 			NextArgs: []string{"f1"},
 			Expected: []func() string{f1},
 		},
 		{
 			Name:     "multiple",
-			Funcs:    []namedFuncs{{"f1", f1}, {"f2", f2}},
+			Funcs:    []namedFunc{{"f1", f1}, {"f2", f2}},
 			NextArgs: []string{"f1", "f2"},
 			Expected: []func() string{f1, f2},
 		},
 		{
 			Name:     "nofunc",
-			Funcs:    []namedFuncs{{"f1", f1}},
+			Funcs:    []namedFunc{{"f1", f1}},
 			NextArgs: []string{"f2"},
 			Expected: []func() string{nil},
 		},
 		{
 			Name:     "permanent",
-			Funcs:    []namedFuncs{{"f1", f1}},
+			Funcs:    []namedFunc{{"f1", f1}},
 			NextArgs: []string{"f1", "f1"},
 			Expected: []func() string{f1, f1},
 		},
@@ -104,7 +104,7 @@ func TestSet(t *testing.T) {
 func TestHasMore(t *testing.T) {
 	cases := []struct {
 		Name     string
-		Funcs    []namedFuncs
+		Funcs    []namedFunc
 		NextArgs []string
 		Expected []bool
 	}{
@@ -114,25 +114,25 @@ func TestHasMore(t *testing.T) {
 		},
 		{
 			Name:     "single",
-			Funcs:    []namedFuncs{{"f1", f1}},
+			Funcs:    []namedFunc{{"f1", f1}},
 			NextArgs: []string{"f1"},
 			Expected: []bool{true, false},
 		},
 		{
 			Name:     "multiple",
-			Funcs:    []namedFuncs{{"f1", f1}, {"f2", f2}},
+			Funcs:    []namedFunc{{"f1", f1}, {"f2", f2}},
 			NextArgs: []string{"f1", "f2"},
 			Expected: []bool{true, true, false},
 		},
 		{
 			Name:     "nofunc",
-			Funcs:    []namedFuncs{{"f1", f1}},
+			Funcs:    []namedFunc{{"f1", f1}},
 			NextArgs: []string{"f2"},
 			Expected: []bool{true, true},
 		},
 		{
 			Name:     "consumed",
-			Funcs:    []namedFuncs{{"f1", f1}},
+			Funcs:    []namedFunc{{"f1", f1}},
 			NextArgs: []string{"f1", "f1"},
 			Expected: []bool{true, false, false},
 		},
@@ -152,6 +152,66 @@ func TestHasMore(t *testing.T) {
 				if got != c.Expected[i+1] {
 					t.Errorf("got %v, want %v", got, c.Expected[i])
 				}
+			}
+		})
+	}
+}
+
+func TestNext(t *testing.T) {
+	cases := []struct {
+		Name     string
+		Seq      []namedFunc
+		Set      namedFunc
+		NextArgs []string
+		Expected []func() string
+	}{
+		{
+			Name:     "no sequence",
+			Expected: []func() string{nil},
+		},
+		{
+			Name:     "single",
+			Seq:      []namedFunc{{"f1", f1}},
+			NextArgs: []string{"f1"},
+			Expected: []func() string{f1},
+		},
+		{
+			Name:     "multiple",
+			Seq:      []namedFunc{{"f1", f1}, {"f2", f2}},
+			NextArgs: []string{"f1", "f2"},
+			Expected: []func() string{f1, f2},
+		},
+		{
+			Name:     "nofunc",
+			Seq:      []namedFunc{{"f1", f1}},
+			NextArgs: []string{"f2"},
+			Expected: []func() string{nil},
+		},
+		{
+			Name:     "consumed",
+			Seq:      []namedFunc{{"f1", f1}},
+			NextArgs: []string{"f1", "f1"},
+			Expected: []func() string{f1, nil},
+		},
+		{
+			Name:     "set",
+			Set:      namedFunc{"f1", f1},
+			NextArgs: []string{"f1", "f1", "f1", "f1"},
+			Expected: []func() string{f1, f1, f1, f1},
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			m := New()
+			for _, nf := range c.Seq {
+				m.Add(nf.Name, nf.Func)
+			}
+			if nf := c.Set; nf.Name != "" {
+				m.Set(nf.Name, nf.Func)
+			}
+			for i, a := range c.NextArgs {
+				got := m.Next(a)
+				compareFuncs(t, got, c.Expected[i])
 			}
 		})
 	}
