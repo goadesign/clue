@@ -1,16 +1,57 @@
-# health: Health Services
+# health: Healthy Services
 
 [![Build Status](https://github.com/crossnokaye/micro/workflows/CI/badge.svg?branch=main&event=push)](https://github.com/crossnokaye/micro/actions?query=branch%3Amain+event%3Apush)
 ![Coverage](https://img.shields.io/badge/Coverage-93.7%25-brightgreen)
 
 ## Overview
 
-Package `health` provides a standard health check HTTP handler.
+Package `health` provides a standard health check HTTP endpoint typically served
+under the `/healthz` and/or `/livez` paths.
 
 The handler implementation iterates through a given list of service dependencies
 and respond with HTTP status `200 OK` if all dependencies are healthy,
 `503 Service Unavailable` otherwise. the response body lists each dependency
 with its status.
+
+Healthy service example (using the [httpie](https://httpie.org/) command line utility):
+
+```bash
+http http://localhost:8083/livez
+HTTP/1.1 200 OK
+Content-Length: 109
+Content-Type: text/plain; charset=utf-8
+Date: Mon, 17 Jan 2022 23:23:12 GMT
+
+{
+    "status": {
+        "ClickHouse": "OK",
+        "poller": "OK"
+    },
+    "uptime": 20,
+    "version": "91bb64a8103b494d0eac680f8e929e74882eea5f"
+}
+```
+
+Unhealthy service:
+
+```bash
+http http://localhost:8083/livez
+HTTP/1.1 503 Service Unavailable
+Content-Length: 113
+Content-Type: text/plain; charset=utf-8
+Date: Mon, 17 Jan 2022 23:23:20 GMT
+
+{
+    "status": {
+        "ClickHouse": "OK",
+        "poller": "NOT OK"
+    },
+    "uptime": 20,
+    "version": "91bb64a8103b494d0eac680f8e929e74882eea5f"
+}
+```
+
+## Usage
 
 ```go
 package main
@@ -50,8 +91,6 @@ func main() {
         // ... start HTTP server
 }
 ```
-
-## Usage
 
 Creating an health check HTTP handler is as simple as:
 
