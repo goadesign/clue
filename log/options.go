@@ -93,7 +93,7 @@ func IsTerminal() bool {
 	return term.IsTerminal(syscall.Stdin)
 }
 
-// defaultOptions returns a new options struct with default options.
+// defaultOptions returns a new options struct with default values.
 func defaultOptions() *options {
 	format := FormatText
 	if IsTerminal() {
