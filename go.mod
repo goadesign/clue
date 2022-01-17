@@ -10,9 +10,9 @@ require (
 	go.opentelemetry.io/otel/sdk v1.3.0
 	go.opentelemetry.io/otel/trace v1.3.0
 	goa.design/goa v2.2.5+incompatible
-	goa.design/goa/v3 v3.5.3
+	goa.design/goa/v3 v3.5.4
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
-	google.golang.org/grpc v1.42.0
+	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.27.1
 )
 
