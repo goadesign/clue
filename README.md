@@ -10,18 +10,21 @@ following topics:
 
 * Logging: the [log](log/) package provides a context-based logging API that
   intelligently selects what to log.
+* Metrics: the [instrument](instrument/) package makes it possible for Goa
+  services to expose a Prometheus compatible `/metrics` HTTP endpoint.
+* Health checks: the [health](health/) package provides a simple way for
+  services to expose a health check endpoint.
 * Tracing: the [tracing](tracing/) package conforms to the
   [OpenTelemetry](https://opentelemetry.io/) specification and implements a
   [Goa](https://goa.design) compatible library to trace requests.
-* Metrics: the [metrics](metrics/) package provides makes it possible for Goa
-  services to expose a Prometheus compatible metrics endpoint.
 
 Consult the package-specific READMEs for more information.
 
 TBD:
 - [x] Logging
+- [x] Metrics
+- [x] Health checks
 - [ ] Tracing
-- [ ] Metrics
 
 ## Importing Private Repositories
 
