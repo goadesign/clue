@@ -69,44 +69,44 @@ The `instrument` functions used to instrument the service are:
 
 The middleware returned by the `HTTP` function creates the following metrics:
 
-* `http.server.duration`: Histogram of HTTP request durations in milliseconds.
-* `http.server.active_requests`: UpDownCounter of active HTTP requests.
-* `http.server.request.size`: Histogram of HTTP request sizes in bytes.
-* `http.server.response.size`: Histogram of HTTP response sizes in bytes.
+* `http_server_duration`: Histogram of HTTP request durations in milliseconds.
+* `http_server_active_requests`: UpDownCounter of active HTTP requests.
+* `http_server_request_size`: Histogram of HTTP request sizes in bytes.
+* `http_server_response_size`: Histogram of HTTP response sizes in bytes.
 
 All the metrics have the following labels:
 
-* `goa.service`: The service name as specified in the Goa design.
-* `http.verb`: The HTTP verb (`GET`, `POST` etc.).
-* `http.host`: The value of the HTTP host header.
-* `http.path`: The HTTP path.
+* `goa_service`: The service name as specified in the Goa design.
+* `http_verb`: The HTTP verb (`GET`, `POST` etc.).
+* `http_host`: The value of the HTTP host header.
+* `http_path`: The HTTP path.
 
-All the metrics but `http.server.active_requests` also have the following
+All the metrics but `http_server_active_requests` also have the following
 additional labels:
 
-* `http.status_code`: The HTTP status code.
+* `http_status_code`: The HTTP status code.
 
 ## GRPC Metrics
 
 The `UnaryInterceptor` and `StreamInterceptor` functions create the following
 metrics:
 
-* `rpc.server.duration`: Histogram of unary request durations in milliseconds.
-* `rpc.server.active_requests`: UpDownCounter of active unary and stream requests.
-* `rpc.server.request.size`: Histogram of message sizes in bytes, per message for streaming RPCs.
-* `rpc.server.response.size`: Histogram of response sizes in bytes, per message for streaming RPCs.
+* `rpc_server_duration`: Histogram of unary request durations in milliseconds.
+* `rpc_server_active_requests`: UpDownCounter of active unary and stream requests.
+* `rpc_server_request_size`: Histogram of message sizes in bytes, per message for streaming RPCs.
+* `rpc_server_response_size`: Histogram of response sizes in bytes, per message for streaming RPCs.
 
 All the metrics have the following labels:
 
-* `goa.service`: The service name as specified in the Goa design.
-* `net.peer.addr`: The peer address.
-* `rpc.method`: Full name of RPC method.
+* `goa_service`: The service name as specified in the Goa design.
+* `net_peer.addr`: The peer address.
+* `rpc_method`: Full name of RPC method.
 
-All the metrics but `rpc.server.active_requests` for both unary and streaming
-gRPC methods and `rpc.server.request.size` and `rpc.server.response.size` for
+All the metrics but `rpc_server_active_requests` for both unary and streaming
+gRPC methods and `rpc_server_request_size` and `rpc_server_response_size` for
 streaming methods also have the following additional labels:
 
-* `rpc.status_code`: The response status code.
+* `rpc_status_code`: The response status code.
 
 ## Configuration
 
