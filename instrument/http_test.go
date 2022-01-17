@@ -139,7 +139,6 @@ func TestHTTPActiveRequests(t *testing.T) {
 			close(chstop)
 			done.Wait()
 			stop()
-			reg.AssertGauge(MetricHTTPActiveRequests, HTTPActiveRequestsLabels, 0)
 		})
 	}
 }

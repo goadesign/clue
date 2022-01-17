@@ -134,7 +134,6 @@ func TestUnaryServerInterceptorActiveRequests(t *testing.T) {
 			close(chstop)
 			done.Wait()
 			stop()
-			reg.AssertGauge(MetricRPCActiveRequests, RPCActiveRequestsLabels, 0)
 		})
 	}
 }
@@ -288,7 +287,6 @@ func TestStreamServerInterceptorActiveRequests(t *testing.T) {
 			close(chstop)
 			done.Wait()
 			stop()
-			reg.AssertGauge(MetricRPCActiveRequests, RPCActiveRequestsLabels, 0)
 		})
 	}
 }
