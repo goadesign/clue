@@ -1,7 +1,6 @@
 package instrument
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"strconv"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"goa.design/goa/http/middleware"
-	goa "goa.design/goa/v3/pkg"
 )
 
 // lengthReader is a wrapper around an io.ReadCloser that keeps track of how
@@ -130,14 +128,6 @@ func HTTP(svc string, opts ...Option) func(http.Handler) http.Handler {
 			respSizes.With(labels).Observe(float64(rw.ContentLength))
 		})
 	}
-}
-
-func methodFromCtx(ctx context.Context) string {
-	v := ctx.Value(goa.MethodKey)
-	if v != nil {
-		return v.(string)
-	}
-	return ""
 }
 
 func (r *lengthReader) Read(b []byte) (int, error) {
