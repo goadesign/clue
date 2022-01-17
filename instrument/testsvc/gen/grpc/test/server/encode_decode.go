@@ -46,13 +46,13 @@ func DecodeGrpcMethodRequest(ctx context.Context, v interface{}, md metadata.MD)
 	return payload, nil
 }
 
-// EncodeGrpcStreamingResponse encodes responses from the "test" service
-// "grpc_streaming" endpoint.
-func EncodeGrpcStreamingResponse(ctx context.Context, v interface{}, hdr, trlr *metadata.MD) (interface{}, error) {
+// EncodeGrpcStreamResponse encodes responses from the "test" service
+// "grpc_stream" endpoint.
+func EncodeGrpcStreamResponse(ctx context.Context, v interface{}, hdr, trlr *metadata.MD) (interface{}, error) {
 	result, ok := v.(*test.Fields)
 	if !ok {
-		return nil, goagrpc.ErrInvalidType("test", "grpc_streaming", "*test.Fields", v)
+		return nil, goagrpc.ErrInvalidType("test", "grpc_stream", "*test.Fields", v)
 	}
-	resp := NewGrpcStreamingResponse(result)
+	resp := NewGrpcStreamResponse(result)
 	return resp, nil
 }

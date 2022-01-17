@@ -23,7 +23,7 @@ var _ = Service("test", func() {
 		GRPC(func() {})
 	})
 
-	Method("grpc_streaming", func() {
+	Method("grpc_stream", func() {
 		StreamingPayload(Fields)
 		StreamingResult(Fields)
 		GRPC(func() {})

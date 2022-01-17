@@ -15,24 +15,24 @@ import (
 
 // Endpoints wraps the "test" service endpoints.
 type Endpoints struct {
-	HTTPMethod    goa.Endpoint
-	GrpcMethod    goa.Endpoint
-	GrpcStreaming goa.Endpoint
+	HTTPMethod goa.Endpoint
+	GrpcMethod goa.Endpoint
+	GrpcStream goa.Endpoint
 }
 
-// GrpcStreamingEndpointInput holds both the payload and the server stream of
-// the "grpc_streaming" method.
-type GrpcStreamingEndpointInput struct {
-	// Stream is the server stream used by the "grpc_streaming" method to send data.
-	Stream GrpcStreamingServerStream
+// GrpcStreamEndpointInput holds both the payload and the server stream of the
+// "grpc_stream" method.
+type GrpcStreamEndpointInput struct {
+	// Stream is the server stream used by the "grpc_stream" method to send data.
+	Stream GrpcStreamServerStream
 }
 
 // NewEndpoints wraps the methods of the "test" service with endpoints.
 func NewEndpoints(s Service) *Endpoints {
 	return &Endpoints{
-		HTTPMethod:    NewHTTPMethodEndpoint(s),
-		GrpcMethod:    NewGrpcMethodEndpoint(s),
-		GrpcStreaming: NewGrpcStreamingEndpoint(s),
+		HTTPMethod: NewHTTPMethodEndpoint(s),
+		GrpcMethod: NewGrpcMethodEndpoint(s),
+		GrpcStream: NewGrpcStreamEndpoint(s),
 	}
 }
 
@@ -40,7 +40,7 @@ func NewEndpoints(s Service) *Endpoints {
 func (e *Endpoints) Use(m func(goa.Endpoint) goa.Endpoint) {
 	e.HTTPMethod = m(e.HTTPMethod)
 	e.GrpcMethod = m(e.GrpcMethod)
-	e.GrpcStreaming = m(e.GrpcStreaming)
+	e.GrpcStream = m(e.GrpcStream)
 }
 
 // NewHTTPMethodEndpoint returns an endpoint function that calls the method
@@ -61,11 +61,11 @@ func NewGrpcMethodEndpoint(s Service) goa.Endpoint {
 	}
 }
 
-// NewGrpcStreamingEndpoint returns an endpoint function that calls the method
-// "grpc_streaming" of service "test".
-func NewGrpcStreamingEndpoint(s Service) goa.Endpoint {
+// NewGrpcStreamEndpoint returns an endpoint function that calls the method
+// "grpc_stream" of service "test".
+func NewGrpcStreamEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req interface{}) (interface{}, error) {
-		ep := req.(*GrpcStreamingEndpointInput)
-		return nil, s.GrpcStreaming(ctx, ep.Stream)
+		ep := req.(*GrpcStreamEndpointInput)
+		return nil, s.GrpcStream(ctx, ep.Stream)
 	}
 }

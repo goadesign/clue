@@ -90,7 +90,6 @@ All the metrics have the following labels:
 All the metrics but `http.server.active_requests` also have the following
 additional labels:
 
-* `goa.method`: The method name as specified in the Goa design.
 * `http.status_code`: The HTTP status code.
 
 ## GRPC Metrics
@@ -109,10 +108,10 @@ All the metrics have the following labels:
 * `net.peer.addr`: The peer address.
 * `rpc.method`: Full name of RPC method.
 
-All the metrics but `rpc.server.active_requests` also have the following
-additional labels:
+All the metrics but `rpc.server.active_requests` for both unary and streaming
+gRPC methods and `rpc.server.request.size` and `rpc.server.response.size` for
+streaming methods also have the following additional labels:
 
-* `goa.method`: The method name as specified in the Goa design.
 * `rpc.status_code`: The response status code.
 
 ## Configuration

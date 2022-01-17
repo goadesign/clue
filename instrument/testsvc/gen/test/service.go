@@ -17,8 +17,8 @@ type Service interface {
 	HTTPMethod(context.Context, *Fields) (res *Fields, err error)
 	// GrpcMethod implements grpc_method.
 	GrpcMethod(context.Context, *Fields) (res *Fields, err error)
-	// GrpcStreaming implements grpc_streaming.
-	GrpcStreaming(context.Context, GrpcStreamingServerStream) (err error)
+	// GrpcStream implements grpc_stream.
+	GrpcStream(context.Context, GrpcStreamServerStream) (err error)
 }
 
 // ServiceName is the name of the service as defined in the design. This is the
@@ -29,11 +29,11 @@ const ServiceName = "test"
 // MethodNames lists the service method names as defined in the design. These
 // are the same values that are set in the endpoint request contexts under the
 // MethodKey key.
-var MethodNames = [3]string{"http_method", "grpc_method", "grpc_streaming"}
+var MethodNames = [3]string{"http_method", "grpc_method", "grpc_stream"}
 
-// GrpcStreamingServerStream is the interface a "grpc_streaming" endpoint
-// server stream must satisfy.
-type GrpcStreamingServerStream interface {
+// GrpcStreamServerStream is the interface a "grpc_stream" endpoint server
+// stream must satisfy.
+type GrpcStreamServerStream interface {
 	// Send streams instances of "Fields".
 	Send(*Fields) error
 	// Recv reads instances of "Fields" from the stream.
@@ -42,9 +42,9 @@ type GrpcStreamingServerStream interface {
 	Close() error
 }
 
-// GrpcStreamingClientStream is the interface a "grpc_streaming" endpoint
-// client stream must satisfy.
-type GrpcStreamingClientStream interface {
+// GrpcStreamClientStream is the interface a "grpc_stream" endpoint client
+// stream must satisfy.
+type GrpcStreamClientStream interface {
 	// Send streams instances of "Fields".
 	Send(*Fields) error
 	// Recv reads instances of "Fields" from the stream.

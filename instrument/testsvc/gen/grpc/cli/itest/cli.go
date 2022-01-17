@@ -22,7 +22,7 @@ import (
 //    command (subcommand1|subcommand2|...)
 //
 func UsageCommands() string {
-	return `test (grpc-method|grpc-streaming)
+	return `test (grpc-method|grpc-stream)
 `
 }
 
@@ -44,11 +44,11 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 		testGrpcMethodFlags       = flag.NewFlagSet("grpc-method", flag.ExitOnError)
 		testGrpcMethodMessageFlag = testGrpcMethodFlags.String("message", "", "")
 
-		testGrpcStreamingFlags = flag.NewFlagSet("grpc-streaming", flag.ExitOnError)
+		testGrpcStreamFlags = flag.NewFlagSet("grpc-stream", flag.ExitOnError)
 	)
 	testFlags.Usage = testUsage
 	testGrpcMethodFlags.Usage = testGrpcMethodUsage
-	testGrpcStreamingFlags.Usage = testGrpcStreamingUsage
+	testGrpcStreamFlags.Usage = testGrpcStreamUsage
 
 	if err := flag.CommandLine.Parse(os.Args[1:]); err != nil {
 		return nil, nil, err
@@ -87,8 +87,8 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 			case "grpc-method":
 				epf = testGrpcMethodFlags
 
-			case "grpc-streaming":
-				epf = testGrpcStreamingFlags
+			case "grpc-stream":
+				epf = testGrpcStreamFlags
 
 			}
 
@@ -118,8 +118,8 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 			case "grpc-method":
 				endpoint = c.GrpcMethod()
 				data, err = testc.BuildGrpcMethodPayload(*testGrpcMethodMessageFlag)
-			case "grpc-streaming":
-				endpoint = c.GrpcStreaming()
+			case "grpc-stream":
+				endpoint = c.GrpcStream()
 				data = nil
 			}
 		}
@@ -139,7 +139,7 @@ Usage:
 
 COMMAND:
     grpc-method: GrpcMethod implements grpc_method.
-    grpc-streaming: GrpcStreaming implements grpc_streaming.
+    grpc-stream: GrpcStream implements grpc_stream.
 
 Additional help:
     %[1]s test COMMAND --help
@@ -159,12 +159,12 @@ Example:
 `, os.Args[0])
 }
 
-func testGrpcStreamingUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] test grpc-streaming
+func testGrpcStreamUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] test grpc-stream
 
-GrpcStreaming implements grpc_streaming.
+GrpcStream implements grpc_stream.
 
 Example:
-    %[1]s test grpc-streaming
+    %[1]s test grpc-stream
 `, os.Args[0])
 }

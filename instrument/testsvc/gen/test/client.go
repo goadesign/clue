@@ -15,17 +15,17 @@ import (
 
 // Client is the "test" service client.
 type Client struct {
-	HTTPMethodEndpoint    goa.Endpoint
-	GrpcMethodEndpoint    goa.Endpoint
-	GrpcStreamingEndpoint goa.Endpoint
+	HTTPMethodEndpoint goa.Endpoint
+	GrpcMethodEndpoint goa.Endpoint
+	GrpcStreamEndpoint goa.Endpoint
 }
 
 // NewClient initializes a "test" service client given the endpoints.
-func NewClient(hTTPMethod, grpcMethod, grpcStreaming goa.Endpoint) *Client {
+func NewClient(hTTPMethod, grpcMethod, grpcStream goa.Endpoint) *Client {
 	return &Client{
-		HTTPMethodEndpoint:    hTTPMethod,
-		GrpcMethodEndpoint:    grpcMethod,
-		GrpcStreamingEndpoint: grpcStreaming,
+		HTTPMethodEndpoint: hTTPMethod,
+		GrpcMethodEndpoint: grpcMethod,
+		GrpcStreamEndpoint: grpcStream,
 	}
 }
 
@@ -49,12 +49,12 @@ func (c *Client) GrpcMethod(ctx context.Context, p *Fields) (res *Fields, err er
 	return ires.(*Fields), nil
 }
 
-// GrpcStreaming calls the "grpc_streaming" endpoint of the "test" service.
-func (c *Client) GrpcStreaming(ctx context.Context) (res GrpcStreamingClientStream, err error) {
+// GrpcStream calls the "grpc_stream" endpoint of the "test" service.
+func (c *Client) GrpcStream(ctx context.Context) (res GrpcStreamClientStream, err error) {
 	var ires interface{}
-	ires, err = c.GrpcStreamingEndpoint(ctx, nil)
+	ires, err = c.GrpcStreamEndpoint(ctx, nil)
 	if err != nil {
 		return
 	}
-	return ires.(GrpcStreamingClientStream), nil
+	return ires.(GrpcStreamClientStream), nil
 }

@@ -15,8 +15,8 @@ option go_package = "/testpb";
 service Test {
 	// GrpcMethod implements grpc_method.
 	rpc GrpcMethod (GrpcMethodRequest) returns (GrpcMethodResponse);
-	// GrpcStreaming implements grpc_streaming.
-	rpc GrpcStreaming (stream GrpcStreamingStreamingRequest) returns (stream GrpcStreamingResponse);
+	// GrpcStream implements grpc_stream.
+	rpc GrpcStream (stream GrpcStreamStreamingRequest) returns (stream GrpcStreamResponse);
 }
 
 message GrpcMethodRequest {
@@ -33,14 +33,14 @@ message GrpcMethodResponse {
 	sint32 i = 2;
 }
 
-message GrpcStreamingStreamingRequest {
+message GrpcStreamStreamingRequest {
 	// String operand
 	string s = 1;
 	// Int operand
 	sint32 i = 2;
 }
 
-message GrpcStreamingResponse {
+message GrpcStreamResponse {
 	// String operand
 	string s = 1;
 	// Int operand

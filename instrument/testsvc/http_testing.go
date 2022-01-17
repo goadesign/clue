@@ -2,8 +2,9 @@ package testsvc
 
 import (
 	"context"
-	"net"
 	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	goahttp "goa.design/goa/v3/http"
@@ -16,7 +17,7 @@ import (
 type (
 	// HTTPClient is a test service HTTP client.
 	HTTPClient interface {
-		HTTPMethod(ctx context.Context, req *Fields) (res *Fields, err error)
+		Method(ctx context.Context, req *Fields) (res *Fields, err error)
 	}
 
 	// HTTPOption is a function that can be used to configure the HTTP server.
@@ -53,20 +54,15 @@ func SetupHTTP(t *testing.T, opts ...HTTPOption) (c HTTPClient, stop func()) {
 	if options.middleware != nil {
 		handler = options.middleware(handler)
 	}
+	httpsvr := httptest.NewServer(handler)
 
-	// Start listen loop
-	l, err := net.Listen("tcp", ":0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	go http.Serve(l, handler)
-
-	// Connect to in-memory server
-	c = httpc{client.NewClient("http", l.Addr().String(), http.DefaultClient, goahttp.RequestEncoder, goahttp.ResponseDecoder, false)}
+	// Create client
+	u, _ := url.Parse(httpsvr.URL)
+	c = httpc{client.NewClient("http", u.Host, http.DefaultClient, goahttp.RequestEncoder, goahttp.ResponseDecoder, false)}
 
 	// Cleanup
 	stop = func() {
-		l.Close()
+		httpsvr.Close()
 	}
 
 	return
@@ -85,7 +81,7 @@ func WithHTTPMiddleware(fn func(http.Handler) http.Handler) HTTPOption {
 }
 
 // HTTPMethod implements HTTPClient.HTTPMethod using the generated client.
-func (c httpc) HTTPMethod(ctx context.Context, req *Fields) (res *Fields, err error) {
+func (c httpc) Method(ctx context.Context, req *Fields) (res *Fields, err error) {
 	rq := &test.Fields{}
 	if req != nil {
 		*rq = test.Fields(*req)

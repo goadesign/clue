@@ -39,7 +39,7 @@ func NewGrpcMethodResult(message *testpb.GrpcMethodResponse) *test.Fields {
 	return result
 }
 
-func NewFields(v *testpb.GrpcStreamingResponse) *test.Fields {
+func NewFields(v *testpb.GrpcStreamResponse) *test.Fields {
 	result := &test.Fields{}
 	if v.S != "" {
 		result.S = &v.S
@@ -51,8 +51,8 @@ func NewFields(v *testpb.GrpcStreamingResponse) *test.Fields {
 	return result
 }
 
-func NewGrpcStreamingStreamingRequest(spayload *test.Fields) *testpb.GrpcStreamingStreamingRequest {
-	v := &testpb.GrpcStreamingStreamingRequest{}
+func NewGrpcStreamStreamingRequest(spayload *test.Fields) *testpb.GrpcStreamStreamingRequest {
+	v := &testpb.GrpcStreamStreamingRequest{}
 	if spayload.S != nil {
 		v.S = *spayload.S
 	}

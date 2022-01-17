@@ -39,12 +39,15 @@ const (
 )
 
 var (
-	// RPCLabels is the set of dynamic labels used for all metrics but
-	// MetricRPCActiveRequests.
-	RPCLabels = []string{LabelGoaMethod, LabelPeerAddr, LabelRPCMethod, LabelRPCStatusCode}
+	// RPCLabels is the default set of dynamic metric labels
+	RPCLabels = []string{LabelPeerAddr, LabelRPCMethod, LabelRPCStatusCode}
+
+	// RPCStreamLabels is the set of dynamic metric labels used for gRPC
+	// streaming request and response size metrics.
+	RPCStreamLabels = []string{LabelPeerAddr, LabelRPCMethod}
 
 	// RPCActiveRequestsLabels is the set of dynamic labels used for
-	// MetricRPCActiveRequests.
+	// active gRPC requests metric.
 	RPCActiveRequestsLabels = []string{LabelRPCMethod, LabelPeerAddr}
 )
 
@@ -116,7 +119,6 @@ func UnaryServerInterceptor(ctx context.Context, svc string, opts ...Option) grp
 		now := time.Now()
 		resp, err := handler(ctx, req)
 
-		labels[LabelGoaMethod] = methodFromCtx(ctx)
 		st, _ := status.FromError(err)
 		labels[LabelRPCStatusCode] = strconv.Itoa(int(st.Code()))
 		durations.With(labels).Observe(float64(timeSince(now)) / float64(time.Millisecond))
@@ -169,7 +171,7 @@ func StreamServerInterceptor(ctx context.Context, svc string, opts ...Option) gr
 		Help:        "Histogram of request sizes in bytes.",
 		ConstLabels: prometheus.Labels{LabelGoaService: svc},
 		Buckets:     options.requestSizeBuckets,
-	}, RPCLabels)
+	}, RPCStreamLabels)
 	options.registerer.MustRegister(reqSizes)
 
 	respSizes := prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -177,7 +179,7 @@ func StreamServerInterceptor(ctx context.Context, svc string, opts ...Option) gr
 		Help:        "Histogram of response sizes in bytes.",
 		ConstLabels: prometheus.Labels{LabelGoaService: svc},
 		Buckets:     options.responseSizeBuckets,
-	}, RPCLabels)
+	}, RPCStreamLabels)
 	options.registerer.MustRegister(respSizes)
 
 	activeReqs := prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -189,8 +191,10 @@ func StreamServerInterceptor(ctx context.Context, svc string, opts ...Option) gr
 
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		labels := prometheus.Labels{LabelRPCMethod: info.FullMethod}
-		if p, ok := peer.FromContext(ctx); ok {
+		if p, ok := peer.FromContext(stream.Context()); ok {
 			labels[LabelPeerAddr] = p.Addr.String()
+		} else {
+			labels[LabelPeerAddr] = "unknown" // avoid panic because of inconsistent label cardinality
 		}
 		activeReqs.With(labels).Add(1)
 		defer activeReqs.With(labels).Sub(1)
@@ -199,11 +203,10 @@ func StreamServerInterceptor(ctx context.Context, svc string, opts ...Option) gr
 		wrapper := streamWrapper{stream, labels, reqSizes, respSizes}
 		err := handler(srv, &wrapper)
 
-		labels[LabelGoaMethod] = methodFromCtx(ctx)
 		st, _ := status.FromError(err)
 		labels[LabelRPCStatusCode] = strconv.Itoa(int(st.Code()))
 
-		durations.With(labels).Observe(float64(time.Since(now)) / float64(time.Millisecond))
+		durations.With(labels).Observe(float64(timeSince(now)) / float64(time.Millisecond))
 
 		return err
 	}

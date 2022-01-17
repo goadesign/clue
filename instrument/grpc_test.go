@@ -139,23 +139,75 @@ func TestUnaryServerInterceptorActiveRequests(t *testing.T) {
 	}
 }
 
+func TestStreamServerInterceptorServerDuration(t *testing.T) {
+	buckets := []float64{10, 110}
+	cases := []struct {
+		name                 string
+		d                    time.Duration
+		expectedBucketCounts []int
+	}{
+		{"fast", 1 * time.Millisecond, []int{1, 1}},
+		{"slow", 100 * time.Millisecond, []int{0, 1}},
+		{"very slow", 1000 * time.Millisecond, []int{0, 0}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			restore := timeSince
+			defer func() { timeSince = restore }()
+			timeSince = func(time.Time) time.Duration { return c.d }
+
+			reg := NewTestRegistry(t)
+			sinter := StreamServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
+			cli, stop := testsvc.SetupGRPC(t,
+				testsvc.WithStreamInterceptor(sinter),
+				testsvc.WithStreamFunc(echoStreamMethod()))
+
+			stream, err := cli.GRPCStream(context.Background())
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			stream.Send(&testsvc.Fields{})
+			_, err = stream.Recv()
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+
+			stop()
+			reg.AssertHistogram(MetricRPCDuration, RPCLabels, 1, c.expectedBucketCounts)
+		})
+	}
+}
+
 func noopUnaryMethod() testsvc.UnaryFunc {
-	return func(ctx context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
+	return func(_ context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
 		return &testsvc.Fields{}, nil
 	}
 }
 
 func stringUnaryMethod(str string) testsvc.UnaryFunc {
-	return func(ctx context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
+	return func(_ context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
 		return &testsvc.Fields{S: &str}, nil
 	}
 }
 
 func waitUnaryMethod(running, done *sync.WaitGroup, stop chan struct{}) testsvc.UnaryFunc {
-	return func(ctx context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
+	return func(_ context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
 		running.Done()
 		defer done.Done()
 		<-stop
 		return &testsvc.Fields{}, nil
+	}
+}
+
+func echoStreamMethod() testsvc.StreamFunc {
+	return func(_ context.Context, stream testsvc.Stream) (err error) {
+		f, err := stream.Recv()
+		if err != nil {
+			return err
+		}
+		if err := stream.Send(f); err != nil {
+			return err
+		}
+		return stream.Close()
 	}
 }

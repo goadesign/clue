@@ -20,8 +20,8 @@ const _ = grpc.SupportPackageIsVersion7
 type TestClient interface {
 	// GrpcMethod implements grpc_method.
 	GrpcMethod(ctx context.Context, in *GrpcMethodRequest, opts ...grpc.CallOption) (*GrpcMethodResponse, error)
-	// GrpcStreaming implements grpc_streaming.
-	GrpcStreaming(ctx context.Context, opts ...grpc.CallOption) (Test_GrpcStreamingClient, error)
+	// GrpcStream implements grpc_stream.
+	GrpcStream(ctx context.Context, opts ...grpc.CallOption) (Test_GrpcStreamClient, error)
 }
 
 type testClient struct {
@@ -41,31 +41,31 @@ func (c *testClient) GrpcMethod(ctx context.Context, in *GrpcMethodRequest, opts
 	return out, nil
 }
 
-func (c *testClient) GrpcStreaming(ctx context.Context, opts ...grpc.CallOption) (Test_GrpcStreamingClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Test_ServiceDesc.Streams[0], "/test.Test/GrpcStreaming", opts...)
+func (c *testClient) GrpcStream(ctx context.Context, opts ...grpc.CallOption) (Test_GrpcStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Test_ServiceDesc.Streams[0], "/test.Test/GrpcStream", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &testGrpcStreamingClient{stream}
+	x := &testGrpcStreamClient{stream}
 	return x, nil
 }
 
-type Test_GrpcStreamingClient interface {
-	Send(*GrpcStreamingStreamingRequest) error
-	Recv() (*GrpcStreamingResponse, error)
+type Test_GrpcStreamClient interface {
+	Send(*GrpcStreamStreamingRequest) error
+	Recv() (*GrpcStreamResponse, error)
 	grpc.ClientStream
 }
 
-type testGrpcStreamingClient struct {
+type testGrpcStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *testGrpcStreamingClient) Send(m *GrpcStreamingStreamingRequest) error {
+func (x *testGrpcStreamClient) Send(m *GrpcStreamStreamingRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *testGrpcStreamingClient) Recv() (*GrpcStreamingResponse, error) {
-	m := new(GrpcStreamingResponse)
+func (x *testGrpcStreamClient) Recv() (*GrpcStreamResponse, error) {
+	m := new(GrpcStreamResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -78,8 +78,8 @@ func (x *testGrpcStreamingClient) Recv() (*GrpcStreamingResponse, error) {
 type TestServer interface {
 	// GrpcMethod implements grpc_method.
 	GrpcMethod(context.Context, *GrpcMethodRequest) (*GrpcMethodResponse, error)
-	// GrpcStreaming implements grpc_streaming.
-	GrpcStreaming(Test_GrpcStreamingServer) error
+	// GrpcStream implements grpc_stream.
+	GrpcStream(Test_GrpcStreamServer) error
 	mustEmbedUnimplementedTestServer()
 }
 
@@ -90,8 +90,8 @@ type UnimplementedTestServer struct {
 func (UnimplementedTestServer) GrpcMethod(context.Context, *GrpcMethodRequest) (*GrpcMethodResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GrpcMethod not implemented")
 }
-func (UnimplementedTestServer) GrpcStreaming(Test_GrpcStreamingServer) error {
-	return status.Errorf(codes.Unimplemented, "method GrpcStreaming not implemented")
+func (UnimplementedTestServer) GrpcStream(Test_GrpcStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method GrpcStream not implemented")
 }
 func (UnimplementedTestServer) mustEmbedUnimplementedTestServer() {}
 
@@ -124,26 +124,26 @@ func _Test_GrpcMethod_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Test_GrpcStreaming_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(TestServer).GrpcStreaming(&testGrpcStreamingServer{stream})
+func _Test_GrpcStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(TestServer).GrpcStream(&testGrpcStreamServer{stream})
 }
 
-type Test_GrpcStreamingServer interface {
-	Send(*GrpcStreamingResponse) error
-	Recv() (*GrpcStreamingStreamingRequest, error)
+type Test_GrpcStreamServer interface {
+	Send(*GrpcStreamResponse) error
+	Recv() (*GrpcStreamStreamingRequest, error)
 	grpc.ServerStream
 }
 
-type testGrpcStreamingServer struct {
+type testGrpcStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *testGrpcStreamingServer) Send(m *GrpcStreamingResponse) error {
+func (x *testGrpcStreamServer) Send(m *GrpcStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *testGrpcStreamingServer) Recv() (*GrpcStreamingStreamingRequest, error) {
-	m := new(GrpcStreamingStreamingRequest)
+func (x *testGrpcStreamServer) Recv() (*GrpcStreamStreamingRequest, error) {
+	m := new(GrpcStreamStreamingRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -164,8 +164,8 @@ var Test_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "GrpcStreaming",
-			Handler:       _Test_GrpcStreaming_Handler,
+			StreamName:    "GrpcStream",
+			Handler:       _Test_GrpcStream_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

@@ -51,24 +51,24 @@ func DecodeGrpcMethodResponse(ctx context.Context, v interface{}, hdr, trlr meta
 	return res, nil
 }
 
-// BuildGrpcStreamingFunc builds the remote method to invoke for "test" service
-// "grpc_streaming" endpoint.
-func BuildGrpcStreamingFunc(grpccli testpb.TestClient, cliopts ...grpc.CallOption) goagrpc.RemoteFunc {
+// BuildGrpcStreamFunc builds the remote method to invoke for "test" service
+// "grpc_stream" endpoint.
+func BuildGrpcStreamFunc(grpccli testpb.TestClient, cliopts ...grpc.CallOption) goagrpc.RemoteFunc {
 	return func(ctx context.Context, reqpb interface{}, opts ...grpc.CallOption) (interface{}, error) {
 		for _, opt := range cliopts {
 			opts = append(opts, opt)
 		}
 		if reqpb != nil {
-			return grpccli.GrpcStreaming(ctx, opts...)
+			return grpccli.GrpcStream(ctx, opts...)
 		}
-		return grpccli.GrpcStreaming(ctx, opts...)
+		return grpccli.GrpcStream(ctx, opts...)
 	}
 }
 
-// DecodeGrpcStreamingResponse decodes responses from the test grpc_streaming
+// DecodeGrpcStreamResponse decodes responses from the test grpc_stream
 // endpoint.
-func DecodeGrpcStreamingResponse(ctx context.Context, v interface{}, hdr, trlr metadata.MD) (interface{}, error) {
-	return &GrpcStreamingClientStream{
-		stream: v.(testpb.Test_GrpcStreamingClient),
+func DecodeGrpcStreamResponse(ctx context.Context, v interface{}, hdr, trlr metadata.MD) (interface{}, error) {
+	return &GrpcStreamClientStream{
+		stream: v.(testpb.Test_GrpcStreamClient),
 	}, nil
 }

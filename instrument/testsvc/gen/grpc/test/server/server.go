@@ -18,8 +18,8 @@ import (
 
 // Server implements the testpb.TestServer interface.
 type Server struct {
-	GrpcMethodH    goagrpc.UnaryHandler
-	GrpcStreamingH goagrpc.StreamHandler
+	GrpcMethodH goagrpc.UnaryHandler
+	GrpcStreamH goagrpc.StreamHandler
 	testpb.UnimplementedTestServer
 }
 
@@ -29,17 +29,16 @@ type ErrorNamer interface {
 	ErrorName() string
 }
 
-// GrpcStreamingServerStream implements the test.GrpcStreamingServerStream
-// interface.
-type GrpcStreamingServerStream struct {
-	stream testpb.Test_GrpcStreamingServer
+// GrpcStreamServerStream implements the test.GrpcStreamServerStream interface.
+type GrpcStreamServerStream struct {
+	stream testpb.Test_GrpcStreamServer
 }
 
 // New instantiates the server struct with the test service endpoints.
 func New(e *test.Endpoints, uh goagrpc.UnaryHandler, sh goagrpc.StreamHandler) *Server {
 	return &Server{
-		GrpcMethodH:    NewGrpcMethodHandler(e.GrpcMethod, uh),
-		GrpcStreamingH: NewGrpcStreamingHandler(e.GrpcStreaming, sh),
+		GrpcMethodH: NewGrpcMethodHandler(e.GrpcMethod, uh),
+		GrpcStreamH: NewGrpcStreamHandler(e.GrpcStream, sh),
 	}
 }
 
@@ -63,45 +62,44 @@ func (s *Server) GrpcMethod(ctx context.Context, message *testpb.GrpcMethodReque
 	return resp.(*testpb.GrpcMethodResponse), nil
 }
 
-// NewGrpcStreamingHandler creates a gRPC handler which serves the "test"
-// service "grpc_streaming" endpoint.
-func NewGrpcStreamingHandler(endpoint goa.Endpoint, h goagrpc.StreamHandler) goagrpc.StreamHandler {
+// NewGrpcStreamHandler creates a gRPC handler which serves the "test" service
+// "grpc_stream" endpoint.
+func NewGrpcStreamHandler(endpoint goa.Endpoint, h goagrpc.StreamHandler) goagrpc.StreamHandler {
 	if h == nil {
 		h = goagrpc.NewStreamHandler(endpoint, nil)
 	}
 	return h
 }
 
-// GrpcStreaming implements the "GrpcStreaming" method in testpb.TestServer
-// interface.
-func (s *Server) GrpcStreaming(stream testpb.Test_GrpcStreamingServer) error {
+// GrpcStream implements the "GrpcStream" method in testpb.TestServer interface.
+func (s *Server) GrpcStream(stream testpb.Test_GrpcStreamServer) error {
 	ctx := stream.Context()
-	ctx = context.WithValue(ctx, goa.MethodKey, "grpc_streaming")
+	ctx = context.WithValue(ctx, goa.MethodKey, "grpc_stream")
 	ctx = context.WithValue(ctx, goa.ServiceKey, "test")
-	_, err := s.GrpcStreamingH.Decode(ctx, nil)
+	_, err := s.GrpcStreamH.Decode(ctx, nil)
 	if err != nil {
 		return goagrpc.EncodeError(err)
 	}
-	ep := &test.GrpcStreamingEndpointInput{
-		Stream: &GrpcStreamingServerStream{stream: stream},
+	ep := &test.GrpcStreamEndpointInput{
+		Stream: &GrpcStreamServerStream{stream: stream},
 	}
-	err = s.GrpcStreamingH.Handle(ctx, ep)
+	err = s.GrpcStreamH.Handle(ctx, ep)
 	if err != nil {
 		return goagrpc.EncodeError(err)
 	}
 	return nil
 }
 
-// Send streams instances of "testpb.GrpcStreamingResponse" to the
-// "grpc_streaming" endpoint gRPC stream.
-func (s *GrpcStreamingServerStream) Send(res *test.Fields) error {
-	v := NewGrpcStreamingResponse(res)
+// Send streams instances of "testpb.GrpcStreamResponse" to the "grpc_stream"
+// endpoint gRPC stream.
+func (s *GrpcStreamServerStream) Send(res *test.Fields) error {
+	v := NewGrpcStreamResponse(res)
 	return s.stream.Send(v)
 }
 
-// Recv reads instances of "testpb.GrpcStreamingStreamingRequest" from the
-// "grpc_streaming" endpoint gRPC stream.
-func (s *GrpcStreamingServerStream) Recv() (*test.Fields, error) {
+// Recv reads instances of "testpb.GrpcStreamStreamingRequest" from the
+// "grpc_stream" endpoint gRPC stream.
+func (s *GrpcStreamServerStream) Recv() (*test.Fields, error) {
 	var res *test.Fields
 	v, err := s.stream.Recv()
 	if err != nil {
@@ -110,7 +108,7 @@ func (s *GrpcStreamingServerStream) Recv() (*test.Fields, error) {
 	return NewFields(v), nil
 }
 
-func (s *GrpcStreamingServerStream) Close() error {
+func (s *GrpcStreamServerStream) Close() error {
 	// nothing to do here
 	return nil
 }

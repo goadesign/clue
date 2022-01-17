@@ -16,19 +16,22 @@ type (
 		responseSizeBuckets []float64
 		// Prometheus registerer
 		registerer prometheus.Registerer
-		// Prometheus gatherer
-		gatherer prometheus.Gatherer
 	}
+)
+
+var (
+	DefaultDurationBuckets     = []float64{10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000}
+	DefaultRequestSizeBuckets  = []float64{10, 100, 500, 1000, 5000, 10000, 50000, 100000, 1000000, 10000000}
+	DefaultResponseSizeBuckets = []float64{10, 100, 500, 1000, 5000, 10000, 50000, 100000, 1000000, 10000000}
 )
 
 // defaultOptions returns a new options struct with default values.
 func defaultOptions() *options {
 	return &options{
-		durationBuckets:     []float64{10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000},
-		requestSizeBuckets:  []float64{10, 100, 500, 1000, 5000, 10000, 50000, 100000, 1000000, 10000000},
-		responseSizeBuckets: []float64{10, 100, 500, 1000, 5000, 10000, 50000, 100000, 1000000, 10000000},
+		durationBuckets:     DefaultDurationBuckets,
+		requestSizeBuckets:  DefaultRequestSizeBuckets,
+		responseSizeBuckets: DefaultResponseSizeBuckets,
 		registerer:          prometheus.DefaultRegisterer,
-		gatherer:            prometheus.DefaultGatherer,
 	}
 }
 

@@ -39,10 +39,10 @@ func NewGrpcMethodResponse(result *test.Fields) *testpb.GrpcMethodResponse {
 	return message
 }
 
-// NewGrpcStreamingResponse builds the gRPC response type from the result of
-// the "grpc_streaming" endpoint of the "test" service.
-func NewGrpcStreamingResponse(result *test.Fields) *testpb.GrpcStreamingResponse {
-	message := &testpb.GrpcStreamingResponse{}
+// NewGrpcStreamResponse builds the gRPC response type from the result of the
+// "grpc_stream" endpoint of the "test" service.
+func NewGrpcStreamResponse(result *test.Fields) *testpb.GrpcStreamResponse {
+	message := &testpb.GrpcStreamResponse{}
 	if result.S != nil {
 		message.S = *result.S
 	}
@@ -52,7 +52,7 @@ func NewGrpcStreamingResponse(result *test.Fields) *testpb.GrpcStreamingResponse
 	return message
 }
 
-func NewFields(v *testpb.GrpcStreamingStreamingRequest) *test.Fields {
+func NewFields(v *testpb.GrpcStreamStreamingRequest) *test.Fields {
 	spayload := &test.Fields{}
 	if v.S != "" {
 		spayload.S = &v.S

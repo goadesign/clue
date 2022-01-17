@@ -2,6 +2,7 @@ package instrument
 
 import (
 	"context"
+	"io"
 	"strings"
 	"sync"
 	"testing"
@@ -32,8 +33,7 @@ func TestHTTPServerDuration(t *testing.T) {
 			cli, stop := testsvc.SetupHTTP(t,
 				testsvc.WithHTTPMiddleware(middleware),
 				testsvc.WithHTTPFunc(noopUnaryMethod()))
-
-			_, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{})
+			_, err := cli.Method(context.Background(), &testsvc.Fields{})
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -63,7 +63,7 @@ func TestHTTPRequestSize(t *testing.T) {
 				testsvc.WithHTTPMiddleware(middleware),
 				testsvc.WithHTTPFunc(noopUnaryMethod()))
 
-			_, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{S: &c.str})
+			_, err := cli.Method(context.Background(), &testsvc.Fields{S: &c.str})
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -93,7 +93,7 @@ func TestHTTPResponseSize(t *testing.T) {
 				testsvc.WithHTTPMiddleware(middleware),
 				testsvc.WithHTTPFunc(stringUnaryMethod(c.str)))
 
-			_, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{})
+			_, err := cli.Method(context.Background(), &testsvc.Fields{})
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -111,7 +111,7 @@ func TestHTTPActiveRequests(t *testing.T) {
 	}{
 		{"one", 1},
 		{"ten", 10},
-		{"one thousand", 1000},
+		{"one hundred", 100},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -127,7 +127,7 @@ func TestHTTPActiveRequests(t *testing.T) {
 
 			for i := 0; i < c.numReqs; i++ {
 				go func() {
-					_, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{})
+					_, err := cli.Method(context.Background(), &testsvc.Fields{})
 					if err != nil {
 						t.Errorf("unexpected error: %v", err)
 					}
@@ -140,6 +140,36 @@ func TestHTTPActiveRequests(t *testing.T) {
 			done.Wait()
 			reg.AssertGauge(MetricHTTPActiveRequests, HTTPActiveRequestsLabels, 0)
 			stop()
+		})
+	}
+}
+
+func TestLengthReader(t *testing.T) {
+	cases := []struct {
+		name         string
+		str          string
+		expectedSize int
+	}{
+		{"empty", "", 0},
+		{"one", "1", 1},
+		{"ten", strings.Repeat("1", 10), 10},
+		{"one hundred", strings.Repeat("1", 100), 100},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			r := strings.NewReader(c.str)
+			lr := &lengthReader{Source: io.NopCloser(r)}
+			n, err := lr.Read(make([]byte, 100))
+			if err != nil && err != io.EOF {
+				t.Errorf("unexpected error: %v", err)
+			}
+			if n != c.expectedSize {
+				t.Errorf("expected %d bytes, got %d", c.expectedSize, n)
+			}
+			err = lr.Close()
+			if err != nil {
+				t.Errorf("unexpected close error: %v", err)
+			}
 		})
 	}
 }

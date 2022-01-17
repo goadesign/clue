@@ -23,10 +23,9 @@ type Client struct {
 	opts    []grpc.CallOption
 }
 
-// GrpcStreamingClientStream implements the test.GrpcStreamingClientStream
-// interface.
-type GrpcStreamingClientStream struct {
-	stream testpb.Test_GrpcStreamingClient
+// GrpcStreamClientStream implements the test.GrpcStreamClientStream interface.
+type GrpcStreamClientStream struct {
+	stream testpb.Test_GrpcStreamClient
 }
 
 // NewClient instantiates gRPC client for all the test service servers.
@@ -52,14 +51,13 @@ func (c *Client) GrpcMethod() goa.Endpoint {
 	}
 }
 
-// GrpcStreaming calls the "GrpcStreaming" function in testpb.TestClient
-// interface.
-func (c *Client) GrpcStreaming() goa.Endpoint {
+// GrpcStream calls the "GrpcStream" function in testpb.TestClient interface.
+func (c *Client) GrpcStream() goa.Endpoint {
 	return func(ctx context.Context, v interface{}) (interface{}, error) {
 		inv := goagrpc.NewInvoker(
-			BuildGrpcStreamingFunc(c.grpccli, c.opts...),
+			BuildGrpcStreamFunc(c.grpccli, c.opts...),
 			nil,
-			DecodeGrpcStreamingResponse)
+			DecodeGrpcStreamResponse)
 		res, err := inv.Invoke(ctx, v)
 		if err != nil {
 			return nil, goa.Fault(err.Error())
@@ -68,9 +66,9 @@ func (c *Client) GrpcStreaming() goa.Endpoint {
 	}
 }
 
-// Recv reads instances of "testpb.GrpcStreamingResponse" from the
-// "grpc_streaming" endpoint gRPC stream.
-func (s *GrpcStreamingClientStream) Recv() (*test.Fields, error) {
+// Recv reads instances of "testpb.GrpcStreamResponse" from the "grpc_stream"
+// endpoint gRPC stream.
+func (s *GrpcStreamClientStream) Recv() (*test.Fields, error) {
 	var res *test.Fields
 	v, err := s.stream.Recv()
 	if err != nil {
@@ -79,14 +77,14 @@ func (s *GrpcStreamingClientStream) Recv() (*test.Fields, error) {
 	return NewFields(v), nil
 }
 
-// Send streams instances of "testpb.GrpcStreamingStreamingRequest" to the
-// "grpc_streaming" endpoint gRPC stream.
-func (s *GrpcStreamingClientStream) Send(res *test.Fields) error {
-	v := NewGrpcStreamingStreamingRequest(res)
+// Send streams instances of "testpb.GrpcStreamStreamingRequest" to the
+// "grpc_stream" endpoint gRPC stream.
+func (s *GrpcStreamClientStream) Send(res *test.Fields) error {
+	v := NewGrpcStreamStreamingRequest(res)
 	return s.stream.Send(v)
 }
 
-func (s *GrpcStreamingClientStream) Close() error {
+func (s *GrpcStreamClientStream) Close() error {
 	// Close the send direction of the stream
 	return s.stream.CloseSend()
 }

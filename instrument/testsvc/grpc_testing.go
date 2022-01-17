@@ -16,7 +16,7 @@ type (
 	// GRPClient is a test service gRPC client.
 	GRPClient interface {
 		GRPCMethod(context.Context, *Fields) (*Fields, error)
-		GRPCStreaming(context.Context, ServerStream) error
+		GRPCStream(context.Context) (Stream, error)
 	}
 
 	// GRPCOption is a function that can be used to configure the gRPC server.
@@ -28,7 +28,7 @@ type (
 
 	grpcOptions struct {
 		grpcfn   UnaryFunc
-		streamfn GRPCStreamFunc
+		streamfn StreamFunc
 		unary    grpc.UnaryServerInterceptor
 		stream   grpc.StreamServerInterceptor
 	}
@@ -85,7 +85,7 @@ func WithUnaryFunc(fn UnaryFunc) GRPCOption {
 }
 
 // WithStreamFunc provides the implementation for the gRPC streaming method.
-func WithStreamFunc(fn GRPCStreamFunc) GRPCOption {
+func WithStreamFunc(fn StreamFunc) GRPCOption {
 	return func(opt *grpcOptions) {
 		opt.streamfn = fn
 	}
@@ -123,8 +123,11 @@ func (c grpcc) GRPCMethod(ctx context.Context, req *Fields) (res *Fields, err er
 	return
 }
 
-// GRPCStreaming implements the gRPC streaming method.
-func (c grpcc) GRPCStreaming(ctx context.Context, stream ServerStream) error {
-	_, err := c.genc.GrpcStreaming()(ctx, stream)
-	return err
+// GRPCStream implements the gRPC stream method.
+func (c grpcc) GRPCStream(ctx context.Context) (Stream, error) {
+	res, err := c.genc.GrpcStream()(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	return adapter{res.(test.GrpcStreamClientStream)}, nil
 }

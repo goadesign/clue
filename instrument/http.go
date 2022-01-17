@@ -30,8 +30,6 @@ const (
 	MetricHTTPActiveRequests = "http_server_active_requests"
 	// LabelGoaService is the name of the label containing the Goa service name_
 	LabelGoaService = "goa_service"
-	// LabelGoaMethod is the name of the label containing the Goa method name_
-	LabelGoaMethod = "goa_method"
 	// LabelHTTPVerb is the name of the label containing the HTTP verb_
 	LabelHTTPVerb = "http_verb"
 	// LabelHTTPHost is the name of the label containing the HTTP host_
@@ -45,7 +43,7 @@ const (
 var (
 	// HTTPLabels is the set of dynamic labels used for all metrics but
 	// MetricHTTPActiveRequests.
-	HTTPLabels = []string{LabelGoaMethod, LabelHTTPVerb, LabelHTTPHost, LabelHTTPPath, LabelHTTPStatusCode}
+	HTTPLabels = []string{LabelHTTPVerb, LabelHTTPHost, LabelHTTPPath, LabelHTTPStatusCode}
 
 	// HTTPActiveRequestsLabels is the set of dynamic labels used for the
 	// MetricHTTPActiveRequests metric.
@@ -125,7 +123,6 @@ func HTTP(svc string, opts ...Option) func(http.Handler) http.Handler {
 
 			h.ServeHTTP(rw, r)
 
-			labels[LabelGoaMethod] = methodFromCtx(r.Context())
 			labels[LabelHTTPStatusCode] = strconv.Itoa(rw.StatusCode)
 
 			durations.With(labels).Observe(float64(timeSince(now).Milliseconds()))
