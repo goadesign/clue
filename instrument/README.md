@@ -9,7 +9,7 @@ Package `instrument` provides a convenient way to add Prometheus metrics to Goa
 services. The following example shows how to use the package. It implements an
 illustrative `main` function for a fictional service `svc` implemented in the
 package `github.com/repo/services/svc`. The service is assumed to expose both
-
+HTTP and gRPC endpoints.
 
 ```go
 package main
@@ -22,8 +22,8 @@ import (
        	goahttp "goa.design/goa/v3/http"
 
        	"github.com/repo/services/svc"
-        httpserver "github.com/repo/services/svc/gen/http/svc/server"
-       	grpcserver "github.com/repo/services/svc/gen/grpc/svc/server"
+        httpsvrgen "github.com/repo/services/svc/gen/http/svc/server"
+       	grpcsvrgen "github.com/repo/services/svc/gen/grpc/svc/server"
        	svcgen "github.com/repo/services/svc/gen/svc"
 )
 
@@ -37,24 +37,18 @@ func main() {
 
         // Create HTTP server
         mux := goahttp.NewMuxer()
-        httpsvr := httpserver.New(endpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)
-        httpserver.Mount(mux, httpsvr)
+        httpsvr := httpsvrgen.New(endpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)
+        httpsvrgen.Mount(mux, httpsvr)
 
-        // ** Instrument HTTP handler **
+        // ** Instrument HTTP endpoints **
         handler := instrument.HTTP(svcgen.ServiceName)(mux)
 
         // Create gRPC server
-        grpcsvr := grpcserver.New(endpoints, nil)
+        grpcsvr := grpcsvrgen.New(endpoints, nil)
 
-        // ** Instrument gRPC server **
-        unaryInterceptor, err := instrument.UnaryServerInterceptor(ctx, svcgen.ServiceName)
-        if err != nil {
-                log.Error(ctx, err)
-        }
-        streamInterceptor, err := instrument.StreamServerInterceptor(ctx, svcgen.ServiceName)
-        if err != nil {
-                log.Error(ctx, err)
-        }
+        // ** Instrument gRPC endpoints **
+        unaryInterceptor := instrument.UnaryServerInterceptor(ctx, svcgen.ServiceName)
+        streamInterceptor := instrument.StreamServerInterceptor(ctx, svcgen.ServiceName)
         pbsvr := grpc.NewServer(grpc.UnaryInterceptor(unaryInterceptor), grpc.StreamInterceptor(streamInterceptor))
 
         // ** Mount the /metrics handler used by Prometheus to scrape metrics **
