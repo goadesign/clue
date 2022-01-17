@@ -17,7 +17,7 @@ import (
 type (
 	// HTTPClient is a test service HTTP client.
 	HTTPClient interface {
-		Method(ctx context.Context, req *Fields) (res *Fields, err error)
+		HTTPMethod(ctx context.Context, req *Fields) (res *Fields, err error)
 	}
 
 	// HTTPOption is a function that can be used to configure the HTTP server.
@@ -81,7 +81,7 @@ func WithHTTPMiddleware(fn func(http.Handler) http.Handler) HTTPOption {
 }
 
 // HTTPMethod implements HTTPClient.HTTPMethod using the generated client.
-func (c httpc) Method(ctx context.Context, req *Fields) (res *Fields, err error) {
+func (c httpc) HTTPMethod(ctx context.Context, req *Fields) (res *Fields, err error) {
 	rq := &test.Fields{}
 	if req != nil {
 		*rq = test.Fields(*req)

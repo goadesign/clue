@@ -31,7 +31,7 @@ func TestUnaryServerInterceptorServerDuration(t *testing.T) {
 			uinter := UnaryServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithUnaryInterceptor(uinter),
-				testsvc.WithUnaryFunc(noopUnaryMethod()))
+				testsvc.WithUnaryFunc(noopMethod()))
 
 			_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{})
 			if err != nil {
@@ -61,7 +61,7 @@ func TestUnaryServerInterceptorRequestSize(t *testing.T) {
 			uinter := UnaryServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithRequestSizeBuckets(buckets))
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithUnaryInterceptor(uinter),
-				testsvc.WithUnaryFunc(noopUnaryMethod()))
+				testsvc.WithUnaryFunc(noopMethod()))
 
 			_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{S: &c.str})
 			if err != nil {
@@ -91,7 +91,7 @@ func TestUnaryServerInterceptorResponseSize(t *testing.T) {
 			uinter := UnaryServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithResponseSizeBuckets(buckets))
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithUnaryInterceptor(uinter),
-				testsvc.WithUnaryFunc(stringUnaryMethod(c.str)))
+				testsvc.WithUnaryFunc(stringMethod(c.str)))
 
 			_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{})
 			if err != nil {
@@ -123,7 +123,7 @@ func TestUnaryServerInterceptorActiveRequests(t *testing.T) {
 			done.Add(c.numReqs)
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithUnaryInterceptor(uinter),
-				testsvc.WithUnaryFunc(waitUnaryMethod(&running, &done, chstop)))
+				testsvc.WithUnaryFunc(waitMethod(&running, &done, chstop)))
 
 			for i := 0; i < c.numReqs; i++ {
 				go cli.GRPCMethod(context.Background(), &testsvc.Fields{})
@@ -133,8 +133,8 @@ func TestUnaryServerInterceptorActiveRequests(t *testing.T) {
 			reg.AssertGauge(MetricRPCActiveRequests, RPCActiveRequestsLabels, c.numReqs)
 			close(chstop)
 			done.Wait()
-			reg.AssertGauge(MetricRPCActiveRequests, RPCActiveRequestsLabels, 0)
 			stop()
+			reg.AssertGauge(MetricRPCActiveRequests, RPCActiveRequestsLabels, 0)
 		})
 	}
 }
@@ -160,16 +160,17 @@ func TestStreamServerInterceptorServerDuration(t *testing.T) {
 			sinter := StreamServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithStreamInterceptor(sinter),
-				testsvc.WithStreamFunc(echoStreamMethod()))
+				testsvc.WithStreamFunc(echoMethod()))
 
 			stream, err := cli.GRPCStream(context.Background())
 			if err != nil {
-				t.Errorf("unexpected error: %v", err)
+				t.Errorf("unexpected stream error: %v", err)
 			}
-			stream.Send(&testsvc.Fields{})
-			_, err = stream.Recv()
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
+			if err := stream.Send(&testsvc.Fields{}); err != nil {
+				t.Errorf("unexpected send error: %v", err)
+			}
+			if _, err := stream.Recv(); err != nil {
+				t.Errorf("unexpected recv error: %v", err)
 			}
 
 			stop()
@@ -178,19 +179,133 @@ func TestStreamServerInterceptorServerDuration(t *testing.T) {
 	}
 }
 
-func noopUnaryMethod() testsvc.UnaryFunc {
+func TestStreamServerInterceptorRequestSize(t *testing.T) {
+	buckets := []float64{10, 110}
+	cases := []struct {
+		name                 string
+		str                  string
+		expectedBucketCounts []int
+	}{
+		{"small", "1", []int{1, 1}},
+		{"large", strings.Repeat("1", 100), []int{0, 1}},
+		{"very large", strings.Repeat("1", 1000), []int{0, 0}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			reg := NewTestRegistry(t)
+			sinter := StreamServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithRequestSizeBuckets(buckets))
+			cli, stop := testsvc.SetupGRPC(t,
+				testsvc.WithStreamInterceptor(sinter),
+				testsvc.WithStreamFunc(echoMethod()))
+
+			stream, err := cli.GRPCStream(context.Background())
+			if err != nil {
+				t.Errorf("unexpected stream error: %v", err)
+			}
+			if err := stream.Send(&testsvc.Fields{S: &c.str}); err != nil {
+				t.Errorf("unexpected send error: %v", err)
+			}
+			if _, err := stream.Recv(); err != nil {
+				t.Errorf("unexpected recv error: %v", err)
+			}
+
+			stop()
+			reg.AssertHistogram(MetricRPCRequestSize, RPCStreamLabels, 1, c.expectedBucketCounts)
+		})
+	}
+}
+
+func TestStreamServerInterceptorResponseSize(t *testing.T) {
+	buckets := []float64{10, 110}
+	cases := []struct {
+		name                 string
+		str                  string
+		expectedBucketCounts []int
+	}{
+		{"small", "1", []int{1, 1}},
+		{"large", strings.Repeat("1", 100), []int{0, 1}},
+		{"very large", strings.Repeat("1", 1000), []int{0, 0}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			reg := NewTestRegistry(t)
+			sinter := StreamServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithResponseSizeBuckets(buckets))
+			cli, stop := testsvc.SetupGRPC(t,
+				testsvc.WithStreamInterceptor(sinter),
+				testsvc.WithStreamFunc(echoMethod()))
+
+			stream, err := cli.GRPCStream(context.Background())
+			if err != nil {
+				t.Errorf("unexpected stream error: %v", err)
+			}
+			if err := stream.Send(&testsvc.Fields{S: &c.str}); err != nil {
+				t.Errorf("unexpected send error: %v", err)
+			}
+			if _, err := stream.Recv(); err != nil {
+				t.Errorf("unexpected recv error: %v", err)
+			}
+
+			stop()
+			reg.AssertHistogram(MetricRPCResponseSize, RPCStreamLabels, 1, c.expectedBucketCounts)
+		})
+	}
+}
+
+func TestStreamServerInterceptorActiveRequests(t *testing.T) {
+	cases := []struct {
+		name    string
+		numReqs int
+	}{
+		{"one", 1},
+		{"ten", 10},
+		{"one hundred", 100},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			reg := NewTestRegistry(t)
+			sinter := StreamServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg))
+			chstop := make(chan struct{})
+			var running, done sync.WaitGroup
+			running.Add(c.numReqs)
+			done.Add(c.numReqs)
+			cli, stop := testsvc.SetupGRPC(t,
+				testsvc.WithStreamInterceptor(sinter),
+				testsvc.WithStreamFunc(recvWaitMethod(&running, &done, chstop)))
+
+			for i := 0; i < c.numReqs; i++ {
+				stream, err := cli.GRPCStream(context.Background())
+				if err != nil {
+					t.Errorf("unexpected stream error: %v", err)
+				}
+				go func() {
+					if err := stream.Send(&testsvc.Fields{}); err != nil {
+						t.Errorf("unexpected send error: %v", err)
+					}
+				}()
+			}
+			running.Wait()
+			reg.AssertGauge(MetricRPCActiveRequests, RPCActiveRequestsLabels, c.numReqs)
+			close(chstop)
+			done.Wait()
+			stop()
+			reg.AssertGauge(MetricRPCActiveRequests, RPCActiveRequestsLabels, 0)
+		})
+	}
+}
+
+func noopMethod() testsvc.UnaryFunc {
 	return func(_ context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
 		return &testsvc.Fields{}, nil
 	}
 }
 
-func stringUnaryMethod(str string) testsvc.UnaryFunc {
+func stringMethod(str string) testsvc.UnaryFunc {
 	return func(_ context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
 		return &testsvc.Fields{S: &str}, nil
 	}
 }
 
-func waitUnaryMethod(running, done *sync.WaitGroup, stop chan struct{}) testsvc.UnaryFunc {
+func waitMethod(running, done *sync.WaitGroup, stop chan struct{}) testsvc.UnaryFunc {
 	return func(_ context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
 		running.Done()
 		defer done.Done()
@@ -199,7 +314,7 @@ func waitUnaryMethod(running, done *sync.WaitGroup, stop chan struct{}) testsvc.
 	}
 }
 
-func echoStreamMethod() testsvc.StreamFunc {
+func echoMethod() testsvc.StreamFunc {
 	return func(_ context.Context, stream testsvc.Stream) (err error) {
 		f, err := stream.Recv()
 		if err != nil {
@@ -208,6 +323,18 @@ func echoStreamMethod() testsvc.StreamFunc {
 		if err := stream.Send(f); err != nil {
 			return err
 		}
+		return stream.Close()
+	}
+}
+
+func recvWaitMethod(running, done *sync.WaitGroup, stop chan struct{}) testsvc.StreamFunc {
+	return func(_ context.Context, stream testsvc.Stream) (err error) {
+		running.Done()
+		defer done.Done()
+		if _, err := stream.Recv(); err != nil {
+			return err
+		}
+		<-stop
 		return stream.Close()
 	}
 }

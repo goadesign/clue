@@ -32,8 +32,8 @@ func TestHTTPServerDuration(t *testing.T) {
 			middleware := HTTP("testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
 			cli, stop := testsvc.SetupHTTP(t,
 				testsvc.WithHTTPMiddleware(middleware),
-				testsvc.WithHTTPFunc(noopUnaryMethod()))
-			_, err := cli.Method(context.Background(), &testsvc.Fields{})
+				testsvc.WithHTTPFunc(noopMethod()))
+			_, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{})
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -61,9 +61,9 @@ func TestHTTPRequestSize(t *testing.T) {
 			middleware := HTTP("testsvc", WithRegisterer(reg), WithRequestSizeBuckets(buckets))
 			cli, stop := testsvc.SetupHTTP(t,
 				testsvc.WithHTTPMiddleware(middleware),
-				testsvc.WithHTTPFunc(noopUnaryMethod()))
+				testsvc.WithHTTPFunc(noopMethod()))
 
-			_, err := cli.Method(context.Background(), &testsvc.Fields{S: &c.str})
+			_, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{S: &c.str})
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -91,9 +91,9 @@ func TestHTTPResponseSize(t *testing.T) {
 			middleware := HTTP("testsvc", WithRegisterer(reg), WithResponseSizeBuckets(buckets))
 			cli, stop := testsvc.SetupHTTP(t,
 				testsvc.WithHTTPMiddleware(middleware),
-				testsvc.WithHTTPFunc(stringUnaryMethod(c.str)))
+				testsvc.WithHTTPFunc(stringMethod(c.str)))
 
-			_, err := cli.Method(context.Background(), &testsvc.Fields{})
+			_, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{})
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -123,11 +123,11 @@ func TestHTTPActiveRequests(t *testing.T) {
 			done.Add(c.numReqs)
 			cli, stop := testsvc.SetupHTTP(t,
 				testsvc.WithHTTPMiddleware(middleware),
-				testsvc.WithHTTPFunc(waitUnaryMethod(&running, &done, chstop)))
+				testsvc.WithHTTPFunc(waitMethod(&running, &done, chstop)))
 
 			for i := 0; i < c.numReqs; i++ {
 				go func() {
-					_, err := cli.Method(context.Background(), &testsvc.Fields{})
+					_, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{})
 					if err != nil {
 						t.Errorf("unexpected error: %v", err)
 					}
@@ -138,8 +138,8 @@ func TestHTTPActiveRequests(t *testing.T) {
 			reg.AssertGauge(MetricHTTPActiveRequests, HTTPActiveRequestsLabels, c.numReqs)
 			close(chstop)
 			done.Wait()
-			reg.AssertGauge(MetricHTTPActiveRequests, HTTPActiveRequestsLabels, 0)
 			stop()
+			reg.AssertGauge(MetricHTTPActiveRequests, HTTPActiveRequestsLabels, 0)
 		})
 	}
 }

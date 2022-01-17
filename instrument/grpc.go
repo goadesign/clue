@@ -213,10 +213,13 @@ func StreamServerInterceptor(ctx context.Context, svc string, opts ...Option) gr
 }
 
 func (s *streamWrapper) RecvMsg(m interface{}) error {
+	if err := s.ServerStream.RecvMsg(m); err != nil {
+		return err
+	}
 	if msg, ok := m.(proto.Message); ok {
 		s.reqSizes.With(s.labels).Observe(float64(proto.Size(msg)))
 	}
-	return s.ServerStream.RecvMsg(m)
+	return nil
 }
 
 func (s *streamWrapper) SendMsg(m interface{}) error {
