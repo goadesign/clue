@@ -3,6 +3,7 @@ package instrument
 import (
 	"context"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -30,8 +31,12 @@ const (
 	MetricRPCRequestSize = "rpc_server_request_size_bytes"
 	// MetricRPCResponseSize is the name of the gRPC response size metric_
 	MetricRPCResponseSize = "rpc_server_response_size_bytes"
-	// LabelPeerAddr is the peer host address_
-	LabelPeerAddr = "net_peer_addr"
+	// LabelPeerIP is the peer host ip
+	LabelPeerIP = "net_peer_ip"
+	// LabelPeerPort is the peer host port
+	LabelPeerPort = "net_peer_port"
+	// LabelRPCService is the name of the RPC service label_
+	LabelRPCService = "rpc_service"
 	// LabelRPCMethod is the name of the RPC method label_
 	LabelRPCMethod = "rpc_method"
 	// LabelRPCStatusCode is the name of the RPC status code label_
@@ -40,15 +45,15 @@ const (
 
 var (
 	// RPCLabels is the default set of dynamic metric labels
-	RPCLabels = []string{LabelPeerAddr, LabelRPCMethod, LabelRPCStatusCode}
+	RPCLabels = []string{LabelPeerIP, LabelRPCService, LabelRPCMethod, LabelRPCStatusCode}
 
 	// RPCStreamLabels is the set of dynamic metric labels used for gRPC
 	// streaming request and response size metrics.
-	RPCStreamLabels = []string{LabelPeerAddr, LabelRPCMethod}
+	RPCStreamLabels = []string{LabelPeerIP, LabelRPCService, LabelRPCMethod}
 
 	// RPCActiveRequestsLabels is the set of dynamic labels used for
 	// active gRPC requests metric.
-	RPCActiveRequestsLabels = []string{LabelRPCMethod, LabelPeerAddr}
+	RPCActiveRequestsLabels = []string{LabelRPCService, LabelRPCMethod, LabelPeerIP}
 )
 
 // UnaryServerInterceptor creates a gRPC unary server interceptor that instruments the
@@ -109,9 +114,15 @@ func UnaryServerInterceptor(ctx context.Context, svc string, opts ...Option) grp
 	options.registerer.MustRegister(activeReqs)
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		labels := prometheus.Labels{LabelRPCMethod: info.FullMethod}
+		service, method := parseGRPCFullMethodName(info.FullMethod)
+		labels := prometheus.Labels{LabelRPCMethod: method, LabelRPCService: service}
 		if p, ok := peer.FromContext(ctx); ok {
-			labels[LabelPeerAddr] = p.Addr.String()
+			ip, port := parseAddr(p.Addr.String())
+			labels[LabelPeerIP] = ip
+			labels[LabelPeerPort] = port
+		} else {
+			labels[LabelPeerIP] = ""
+			labels[LabelPeerPort] = ""
 		}
 		activeReqs.With(labels).Add(1)
 		defer activeReqs.With(labels).Sub(1)
@@ -190,11 +201,15 @@ func StreamServerInterceptor(ctx context.Context, svc string, opts ...Option) gr
 	options.registerer.MustRegister(activeReqs)
 
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		labels := prometheus.Labels{LabelRPCMethod: info.FullMethod}
+		service, method := parseGRPCFullMethodName(info.FullMethod)
+		labels := prometheus.Labels{LabelRPCMethod: method, LabelRPCService: service}
 		if p, ok := peer.FromContext(stream.Context()); ok {
-			labels[LabelPeerAddr] = p.Addr.String()
+			ip, port := parseAddr(p.Addr.String())
+			labels[LabelPeerIP] = ip
+			labels[LabelPeerPort] = port
 		} else {
-			labels[LabelPeerAddr] = "unknown" // avoid panic because of inconsistent label cardinality
+			labels[LabelPeerIP] = ""
+			labels[LabelPeerPort] = ""
 		}
 		activeReqs.With(labels).Add(1)
 		defer activeReqs.With(labels).Sub(1)
@@ -227,4 +242,27 @@ func (s *streamWrapper) SendMsg(m interface{}) error {
 		s.respSizes.With(s.labels).Observe(float64(proto.Size(msg)))
 	}
 	return s.ServerStream.SendMsg(m)
+}
+
+func parseAddr(addr string) (ip, port string) {
+	if addr == "" {
+		return "", ""
+	}
+	if addr[0] == ':' {
+		return "", addr[1:]
+	}
+	if idx := strings.LastIndex(addr, ":"); idx > 0 {
+		return addr[:idx], addr[idx+1:]
+	}
+	return addr, ""
+}
+
+func parseGRPCFullMethodName(fullMethodName string) (serviceName, methodName string) {
+	if idx := strings.LastIndex(fullMethodName, "."); idx >= 0 {
+		fullMethodName = fullMethodName[idx+1:]
+	}
+	if idx := strings.LastIndex(fullMethodName, "/"); idx > 0 {
+		return fullMethodName[:idx], fullMethodName[idx+1:]
+	}
+	return fullMethodName, ""
 }

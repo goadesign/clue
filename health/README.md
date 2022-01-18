@@ -57,12 +57,21 @@ Date: Mon, 17 Jan 2022 23:23:20 GMT
 package main
 
 import (
+        "context"
+        "database/sql"
+
        "github.com/crossnokaye/micro/health"
+       "github.com/crossnokaye/micro/log"
+       goahttp "goa.design/goa/v3/http"
+
+        "github.com/repo/services/svc/clients/storage"
+       	httpsvrgen "github.com/repo/services/svc/gen/http/svc/server"
+       	svcgen "github.com/repo/services/svc/gen/svc"
 )
 
 func main() {
         // Initialize the log context
-	ctx := log.With(log.Context(context.Background(), log.WithFormat(format)), "svc", svcgen.ServiceName)
+	ctx := log.With(log.Context(context.Background()), "svc", svcgen.ServiceName)
 
         // Create service clients used by this service
         // The client object must implement the `health.Pinger` interface

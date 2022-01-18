@@ -19,7 +19,7 @@ import (
 )       
 
 func main() {
-        ctx := log.Context(context.Background())
+        ctx := log.Context(context.Background(), "svc", svcgen.ServiceName)
         ctx := log.With(ctx, "foo", "bar")
         log.Print(ctx, "hello world", "baz", "qux")
 }
@@ -31,6 +31,14 @@ application runs in a terminal:
 ```
 INFO[0000] hello world foo=bar baz=qux
 ```
+
+A typical instantiation of the logger for a Goa service looks like this:
+
+```go
+ctx := log.With(log.Context(context.Background()), "svc", svcgen.ServiceName)
+```
+
+Where `svcgen` is the generated Goa service package.
 
 ## Buffering
 

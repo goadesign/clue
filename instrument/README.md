@@ -29,7 +29,7 @@ import (
 
 func main() {
         // Initialize the log context
-	ctx := log.With(log.Context(context.Background(), log.WithFormat(format)), "svc", svcgen.ServiceName)
+	ctx := log.With(log.Context(context.Background()), "svc", svcgen.ServiceName)
         // Create the service (user code)
         svc := svc.New(ctx)
         // Wrap the service with Goa endpoints
