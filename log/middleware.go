@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 
+	"goa.design/goa/v3/middleware"
 	goa "goa.design/goa/v3/pkg"
 )
 
@@ -16,6 +17,9 @@ func SetContext(opts ...LogOption) func(goa.Endpoint) goa.Endpoint {
 	return func(e goa.Endpoint) goa.Endpoint {
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
 			ctx = Context(ctx, opts...)
+			if requestID := ctx.Value(middleware.RequestIDKey); requestID != nil {
+				ctx = With(ctx, "request_id", requestID)
+			}
 			return e(ctx, req)
 		}
 	}

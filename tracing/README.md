@@ -15,10 +15,6 @@ and
 middlewares and adds both the Goa service name and current request ID to the
 span attributes.
 
-The implementation makes use of the 
-[AWS Distro for OpenTelemetry Go SDK](https://github.com/aws-observability/aws-otel-go)
-and is therefore compatible with the AWS X-Ray service.
-
 ## Usage
 
 The following example shows how to use the package. It implements an
@@ -56,7 +52,12 @@ func main() {
 
         // ** Create trace provider **
         collectorAddr := "localhost:6831" // AWS X-Ray collector address
-        provider := tracing.NewTraceProvider(ctx, svcgen.ServiceName, collectorAddr)
+        exporter, err := tracing.NewGRPCSpanExporter(ctx, collectorAddr)
+        if err != nil {
+                log.Error(ctx, "unable to connect to span collector", "err", err)
+                os.Exit(1)
+        }
+        provider := tracing.NewTraceProvider(ctx, svcgen.ServiceName, exporter)
 
         // ** Trace HTTP requests **
         handler := tracing.HTTP(ctx, provider)(mux)

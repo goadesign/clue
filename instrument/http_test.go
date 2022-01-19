@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/crossnokaye/micro/instrument/testsvc"
+	"github.com/crossnokaye/micro/internal/testsvc"
 )
 
 func TestHTTPServerDuration(t *testing.T) {

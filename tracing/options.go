@@ -1,6 +1,10 @@
 package tracing
 
+import sdktrace "go.opentelemetry.io/otel/sdk/trace"
+
 type (
+	SpanExporter = sdktrace.SpanExporter
+
 	samplerOption func(opts *options)
 
 	options struct {

@@ -45,15 +45,15 @@ const (
 
 var (
 	// RPCLabels is the default set of dynamic metric labels
-	RPCLabels = []string{LabelPeerIP, LabelRPCService, LabelRPCMethod, LabelRPCStatusCode}
+	RPCLabels = []string{LabelPeerIP, LabelPeerPort, LabelRPCService, LabelRPCMethod, LabelRPCStatusCode}
 
 	// RPCStreamLabels is the set of dynamic metric labels used for gRPC
 	// streaming request and response size metrics.
-	RPCStreamLabels = []string{LabelPeerIP, LabelRPCService, LabelRPCMethod}
+	RPCStreamLabels = []string{LabelPeerIP, LabelPeerPort, LabelRPCService, LabelRPCMethod}
 
 	// RPCActiveRequestsLabels is the set of dynamic labels used for
 	// active gRPC requests metric.
-	RPCActiveRequestsLabels = []string{LabelRPCService, LabelRPCMethod, LabelPeerIP}
+	RPCActiveRequestsLabels = []string{LabelPeerIP, LabelPeerPort, LabelRPCService, LabelRPCMethod}
 )
 
 // UnaryServerInterceptor creates a gRPC unary server interceptor that instruments the

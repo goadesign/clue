@@ -5,10 +5,13 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
+	"goa.design/goa/v3/middleware"
 )
 
-// HTTP returns a tracing middleware that leverates the AWS Distro for
+// Middleware returns a tracing middleware that leverates the AWS Distro for
 // OpenTelemetry to export traces to AWS X-Ray. It is aware of the Goa
 // RequestID middleware and will use it to propagate the request ID to the
 // trace.
@@ -22,14 +25,34 @@ import (
 //      httpsvr := httpsvrgen.New(endpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)
 //      httpsvrgen.Mount(mux, httpsvr)
 //      provider := tracing.NewTracerProvider(ctx, svcgen.ServiceName, "localhost:6831")
-// 	handler := tracing.HTTP(svcgen.ServiceName, provider)(mux)
+// 	handler := tracing.Middleware(svcgen.ServiceName, provider)(mux)
 // 	http.ListenAndServe(":8080", handler)
 //
-func HTTP(svc string, provider *sdktrace.TracerProvider) func(http.Handler) http.Handler {
+func Middleware(svc string, provider TracerProvider) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
-		return otelhttp.NewHandler(h, svc,
-			otelhttp.WithTracerProvider(provider),
-			otelhttp.WithPropagators(xray.Propagator{}),
-		)
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			h = addRequestIDHTTP(h)
+			h = otelhttp.NewHandler(h, svc,
+				otelhttp.WithTracerProvider(provider),
+				otelhttp.WithPropagators(xray.Propagator{}),
+				otelhttp.WithMeterProvider(metric.NewNoopMeterProvider()), // disable meter, use micro/instrument instead
+			)
+			h.ServeHTTP(w, req)
+		})
 	}
+}
+
+// addRequestIDHTTP is a middleware that adds the request ID to the current span
+// attributes.
+func addRequestIDHTTP(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		requestID := req.Context().Value(middleware.RequestIDKey)
+		if requestID == nil {
+			h.ServeHTTP(w, req)
+			return
+		}
+		span := trace.SpanFromContext(req.Context())
+		span.SetAttributes(attribute.String(AttributeRequestID, requestID.(string)))
+		h.ServeHTTP(w, req)
+	})
 }
