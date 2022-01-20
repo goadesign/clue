@@ -17,11 +17,11 @@ import (
 func TestUnaryServerTrace(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	traceInterceptor := UnaryServerTrace(provider)
+	traceInterceptor := UnaryServerTrace(withProvider(context.Background(), provider))
 	requestIDInterceptor := middleware.UnaryRequestID()
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.ChainUnaryInterceptor(requestIDInterceptor, traceInterceptor)),
-		testsvc.WithUnaryFunc(noopUnaryMethod))
+		testsvc.WithUnaryFunc(addEventUnaryMethod))
 	_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -41,15 +41,28 @@ func TestUnaryServerTrace(t *testing.T) {
 	if !found {
 		t.Errorf("request ID not in span attributes")
 	}
+	events := spans[0].Events
+	if len(events) != 3 {
+		t.Fatalf("got %d events, want 3", len(events))
+	}
+	if events[0].Name != "message" {
+		t.Errorf("got event name %s, want message", events[0].Name)
+	}
+	if events[1].Name != "unary method" {
+		t.Errorf("unexpected event name: %s", events[0].Name)
+	}
+	if events[2].Name != "message" {
+		t.Errorf("got event name %s, want message", events[0].Name)
+	}
 }
 
 func TestUnaryServerTraceNoRequestID(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	traceInterceptor := UnaryServerTrace(provider)
+	traceInterceptor := UnaryServerTrace(withProvider(context.Background(), provider))
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.UnaryInterceptor(traceInterceptor)),
-		testsvc.WithUnaryFunc(noopUnaryMethod))
+		testsvc.WithUnaryFunc(addEventUnaryMethod))
 	_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -64,7 +77,7 @@ func TestUnaryServerTraceNoRequestID(t *testing.T) {
 func TestStreamServerTrace(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	traceInterceptor := StreamServerTrace(provider)
+	traceInterceptor := StreamServerTrace(withProvider(context.Background(), provider))
 	requestIDInterceptor := middleware.StreamRequestID()
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.ChainStreamInterceptor(requestIDInterceptor, traceInterceptor)),
@@ -76,6 +89,7 @@ func TestStreamServerTrace(t *testing.T) {
 	if err := stream.Send(&testsvc.Fields{}); err != nil {
 		t.Errorf("unexpected send error: %v", err)
 	}
+	stream.Recv()
 	stop()
 	spans := exporter.GetSpans()
 	if len(spans) != 1 {
@@ -96,7 +110,7 @@ func TestStreamServerTrace(t *testing.T) {
 func TestStreamServerTraceNoRequestID(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	traceInterceptor := StreamServerTrace(provider)
+	traceInterceptor := StreamServerTrace(withProvider(context.Background(), provider))
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.StreamInterceptor(traceInterceptor)),
 		testsvc.WithStreamFunc(echoMethod))
@@ -107,6 +121,7 @@ func TestStreamServerTraceNoRequestID(t *testing.T) {
 	if err := stream.Send(&testsvc.Fields{}); err != nil {
 		t.Errorf("unexpected send error: %v", err)
 	}
+	stream.Recv()
 	stop()
 	spans := exporter.GetSpans()
 	if len(spans) != 1 {
@@ -118,8 +133,8 @@ func TestUnaryClientTrace(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
 	cli, stop := testsvc.SetupGRPC(t,
-		testsvc.WithDialOptions(grpc.WithUnaryInterceptor(UnaryClientTrace(provider))),
-		testsvc.WithUnaryFunc(noopUnaryMethod))
+		testsvc.WithDialOptions(grpc.WithUnaryInterceptor(UnaryClientTrace(withProvider(context.Background(), provider)))),
+		testsvc.WithUnaryFunc(addEventUnaryMethod))
 	_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -135,7 +150,7 @@ func TestStreamClientTrace(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
 	cli, stop := testsvc.SetupGRPC(t,
-		testsvc.WithDialOptions(grpc.WithStreamInterceptor(StreamClientTrace(provider))),
+		testsvc.WithDialOptions(grpc.WithStreamInterceptor(StreamClientTrace(withProvider(context.Background(), provider)))),
 		testsvc.WithStreamFunc(echoMethod))
 	ctx, cancel := context.WithCancel(context.Background())
 	stream, err := cli.GRPCStream(ctx)
@@ -153,7 +168,8 @@ func TestStreamClientTrace(t *testing.T) {
 	}
 }
 
-func noopUnaryMethod(_ context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
+func addEventUnaryMethod(ctx context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
+	AddEvent(ctx, "unary method")
 	return &testsvc.Fields{}, nil
 }
 

@@ -1,9 +1,13 @@
 package tracing
 
-import "testing"
+import (
+	"testing"
+
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+)
 
 func TestOptions(t *testing.T) {
-	options := newDefaultOptions()
+	options := defaultOptions()
 	if options.maxSamplingRate != 2 {
 		t.Errorf("got %d, want 2", options.maxSamplingRate)
 	}
@@ -12,10 +16,14 @@ func TestOptions(t *testing.T) {
 	}
 	WithMaxSamplingRate(3)(options)
 	if options.maxSamplingRate != 3 {
-		t.Errorf("got %d, want 3", options.maxSamplingRate)
+		t.Errorf("got %d sampling rate, want 3", options.maxSamplingRate)
 	}
 	WithSampleSize(20)(options)
 	if options.sampleSize != 20 {
-		t.Errorf("got %d, want 20", options.sampleSize)
+		t.Errorf("got %d sample size, want 20", options.sampleSize)
+	}
+	withExporter(tracetest.NewInMemoryExporter())(options)
+	if options.exporter == nil {
+		t.Error("got nil exporter, want non-nil")
 	}
 }

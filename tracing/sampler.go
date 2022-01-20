@@ -15,7 +15,7 @@ type sampler struct {
 	sampleSize      int
 }
 
-// AdaptiveSampler computes the interval for sampling for tracing middleware.
+// adaptiveSampler computes the interval for sampling for tracing middleware.
 // it can also be used by non-web go routines to trace internal API calls.
 //
 // maxSamplingRate is the desired maximum sampling rate in requests per second.
@@ -23,7 +23,7 @@ type sampler struct {
 // sampleSize sets the number of requests between two adjustments of the
 // sampling rate when MaxSamplingRate is set. the sample rate cannot be adjusted
 // until the sample size is reached at least once.
-func AdaptiveSampler(maxSamplingRate, sampleSize int) sdktrace.Sampler {
+func adaptiveSampler(maxSamplingRate, sampleSize int) sdktrace.Sampler {
 	return sampler{
 		s:               middleware.NewAdaptiveSampler(maxSamplingRate, sampleSize),
 		maxSamplingRate: maxSamplingRate,

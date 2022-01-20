@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"goa.design/goa/v3/middleware"
@@ -12,53 +11,71 @@ import (
 )
 
 // UnaryServerTrace returns an OpenTelemetry UnaryServerInterceptor configured
-// to export traces to AWS X-Ray.
-func UnaryServerTrace(provider TracerProvider) grpc.UnaryServerInterceptor {
+// to export traces to AWS X-Ray. It panics if the context has not been
+// initialized with Context.
+func UnaryServerTrace(ctx context.Context) grpc.UnaryServerInterceptor {
+	s := ctx.Value(stateKey)
+	if s == nil {
+		panic(errContextMissing)
+	}
 	return func(
-		ctx context.Context,
+		reqctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
+		handler = initTracingContextGRPCUnary(ctx, handler)
 		handler = addRequestIDGRPCUnary(handler)
 		ui := otelgrpc.UnaryServerInterceptor(
-			otelgrpc.WithPropagators(xray.Propagator{}),
-			otelgrpc.WithTracerProvider(provider))
-		return ui(ctx, req, info, handler)
+			otelgrpc.WithTracerProvider(s.(*stateBag).provider))
+		return ui(reqctx, req, info, handler)
 	}
 }
 
 // StreamServerTrace returns an OpenTelemetry StreamServerInterceptor configured
-// to export traces to AWS X-Ray.
-func StreamServerTrace(provider TracerProvider) grpc.StreamServerInterceptor {
+// to export traces to AWS X-Ray. It panics if the context has not been
+// initialized with Context.
+func StreamServerTrace(ctx context.Context) grpc.StreamServerInterceptor {
+	s := ctx.Value(stateKey)
+	if s == nil {
+		panic(errContextMissing)
+	}
 	return func(
 		srv interface{},
 		stream grpc.ServerStream,
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
+		handler = initTracingContextGRPCStream(ctx, handler)
 		handler = addRequestIDGRPCStream(handler)
 		si := otelgrpc.StreamServerInterceptor(
-			otelgrpc.WithPropagators(xray.Propagator{}),
-			otelgrpc.WithTracerProvider(provider))
+			otelgrpc.WithTracerProvider(s.(*stateBag).provider))
 		return si(srv, stream, info, handler)
 	}
 }
 
 // UnaryClientTrace returns an OpenTelemetry UnaryClientInterceptor configured
-// to export traces to AWS X-Ray.
-func UnaryClientTrace(provider TracerProvider) grpc.UnaryClientInterceptor {
+// to export traces to AWS X-Ray. It panics if the context has not been
+// initialized with Context.
+func UnaryClientTrace(ctx context.Context) grpc.UnaryClientInterceptor {
+	s := ctx.Value(stateKey)
+	if s == nil {
+		panic(errContextMissing)
+	}
 	return otelgrpc.UnaryClientInterceptor(
-		otelgrpc.WithPropagators(xray.Propagator{}),
-		otelgrpc.WithTracerProvider(provider))
+		otelgrpc.WithTracerProvider(s.(*stateBag).provider))
 }
 
 // StreamClientTrace returns an OpenTelemetry StreamClientInterceptor configured
-// to export traces to AWS X-Ray.
-func StreamClientTrace(provider TracerProvider) grpc.StreamClientInterceptor {
+// to export traces to AWS X-Ray. It panics if the context has not been
+// initialized with Context.
+func StreamClientTrace(ctx context.Context) grpc.StreamClientInterceptor {
+	s := ctx.Value(stateKey)
+	if s == nil {
+		panic(errContextMissing)
+	}
 	return otelgrpc.StreamClientInterceptor(
-		otelgrpc.WithPropagators(xray.Propagator{}),
-		otelgrpc.WithTracerProvider(provider))
+		otelgrpc.WithTracerProvider(s.(*stateBag).provider))
 }
 
 // addRequestIDGRPCUnary is a middleware that adds the request ID to the current span
@@ -75,6 +92,17 @@ func addRequestIDGRPCUnary(h grpc.UnaryHandler) grpc.UnaryHandler {
 	}
 }
 
+// initTracingContextGRPCUnary is a unary interceptor that initializes the
+// tracing context.
+func initTracingContextGRPCUnary(traceCtx context.Context, h grpc.UnaryHandler) grpc.UnaryHandler {
+	return func(ctx context.Context, req interface{}) (interface{}, error) {
+		s := traceCtx.Value(stateKey).(*stateBag)
+		ctx = withProvider(ctx, s.provider)
+		setActiveSpans(ctx, []trace.Span{trace.SpanFromContext(ctx)})
+		return h(ctx, req)
+	}
+}
+
 // addRequestIDGRPCStream is a middleware that adds the request ID to the current span
 // attributes.
 func addRequestIDGRPCStream(h grpc.StreamHandler) grpc.StreamHandler {
@@ -87,4 +115,24 @@ func addRequestIDGRPCStream(h grpc.StreamHandler) grpc.StreamHandler {
 		span.SetAttributes(attribute.String(AttributeRequestID, requestID.(string)))
 		return h(srv, stream)
 	}
+}
+
+// initTracingContextGRPCStream is a stream interceptor that initializes the
+// tracing context.
+func initTracingContextGRPCStream(traceCtx context.Context, h grpc.StreamHandler) grpc.StreamHandler {
+	return func(srv interface{}, stream grpc.ServerStream) error {
+		s := traceCtx.Value(stateKey).(*stateBag)
+		ctx := withProvider(stream.Context(), s.provider)
+		setActiveSpans(ctx, []trace.Span{trace.SpanFromContext(ctx)})
+		return h(srv, &streamWithContext{stream, ctx})
+	}
+}
+
+type streamWithContext struct {
+	grpc.ServerStream
+	ctx context.Context
+}
+
+func (s *streamWithContext) Context() context.Context {
+	return s.ctx
 }

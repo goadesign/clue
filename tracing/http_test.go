@@ -2,20 +2,23 @@ package tracing
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/crossnokaye/micro/internal/testsvc"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"goa.design/goa/v3/http/middleware"
 )
 
-func TestMiddleware(t *testing.T) {
+func TestHTTP(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
+	ctx := withProvider(context.Background(), provider)
 	cli, stop := testsvc.SetupHTTP(t,
-		testsvc.WithHTTPMiddleware(middleware.RequestID(), Middleware("test", provider)),
-		testsvc.WithHTTPFunc(noopUnaryMethod))
+		testsvc.WithHTTPMiddleware(middleware.RequestID(), HTTP(ctx, "test")),
+		testsvc.WithHTTPFunc(addEventUnaryMethod))
 	if _, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{}); err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -34,14 +37,22 @@ func TestMiddleware(t *testing.T) {
 	if !found {
 		t.Errorf("request ID not in span attributes")
 	}
+	events := spans[0].Events
+	if len(events) != 1 {
+		t.Fatalf("got %d events, want 1", len(events))
+	}
+	if events[0].Name != "unary method" {
+		t.Errorf("unexpected event name: %s", events[0].Name)
+	}
 }
 
-func TestMiddlewareNoRequestID(t *testing.T) {
+func TestHTTPRequestID(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
+	ctx := withProvider(context.Background(), provider)
 	cli, stop := testsvc.SetupHTTP(t,
-		testsvc.WithHTTPMiddleware(Middleware("test", provider)),
-		testsvc.WithHTTPFunc(noopUnaryMethod))
+		testsvc.WithHTTPMiddleware(HTTP(ctx, "test")),
+		testsvc.WithHTTPFunc(addEventUnaryMethod))
 	if _, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{}); err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -49,5 +60,23 @@ func TestMiddlewareNoRequestID(t *testing.T) {
 	spans := exporter.GetSpans()
 	if len(spans) != 1 {
 		t.Fatalf("got %d spans, want 1", len(spans))
+	}
+}
+
+func TestTraceClient(t *testing.T) {
+	exporter := tracetest.NewInMemoryExporter()
+	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
+	ctx := withProvider(context.Background(), provider)
+	c := http.Client{}
+	if c.Transport != nil {
+		t.Errorf("got %T, want nil", c.Transport)
+	}
+	TraceClient(ctx, &c)
+	if c.Transport == nil {
+		t.Errorf("got nil, want %T", c.Transport)
+	}
+	otelt, ok := c.Transport.(*otelhttp.Transport)
+	if !ok {
+		t.Errorf("got %T, want %T", c.Transport, otelt)
 	}
 }
