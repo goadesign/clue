@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/crossnokaye/micro/instrument/testsvc"
+	"github.com/crossnokaye/micro/internal/testsvc"
+	"google.golang.org/grpc"
 )
 
 func TestUnaryServerInterceptorServerDuration(t *testing.T) {
@@ -30,7 +31,7 @@ func TestUnaryServerInterceptorServerDuration(t *testing.T) {
 			reg := NewTestRegistry(t)
 			uinter := UnaryServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
 			cli, stop := testsvc.SetupGRPC(t,
-				testsvc.WithUnaryInterceptor(uinter),
+				testsvc.WithServerOptions(grpc.UnaryInterceptor(uinter)),
 				testsvc.WithUnaryFunc(noopMethod()))
 
 			_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{})
@@ -60,7 +61,7 @@ func TestUnaryServerInterceptorRequestSize(t *testing.T) {
 			reg := NewTestRegistry(t)
 			uinter := UnaryServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithRequestSizeBuckets(buckets))
 			cli, stop := testsvc.SetupGRPC(t,
-				testsvc.WithUnaryInterceptor(uinter),
+				testsvc.WithServerOptions(grpc.UnaryInterceptor(uinter)),
 				testsvc.WithUnaryFunc(noopMethod()))
 
 			_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{S: &c.str})
@@ -90,7 +91,7 @@ func TestUnaryServerInterceptorResponseSize(t *testing.T) {
 			reg := NewTestRegistry(t)
 			uinter := UnaryServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithResponseSizeBuckets(buckets))
 			cli, stop := testsvc.SetupGRPC(t,
-				testsvc.WithUnaryInterceptor(uinter),
+				testsvc.WithServerOptions(grpc.UnaryInterceptor(uinter)),
 				testsvc.WithUnaryFunc(stringMethod(c.str)))
 
 			_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{})
@@ -122,7 +123,7 @@ func TestUnaryServerInterceptorActiveRequests(t *testing.T) {
 			running.Add(c.numReqs)
 			done.Add(c.numReqs)
 			cli, stop := testsvc.SetupGRPC(t,
-				testsvc.WithUnaryInterceptor(uinter),
+				testsvc.WithServerOptions(grpc.UnaryInterceptor(uinter)),
 				testsvc.WithUnaryFunc(waitMethod(&running, &done, chstop)))
 
 			for i := 0; i < c.numReqs; i++ {
@@ -158,7 +159,7 @@ func TestStreamServerInterceptorServerDuration(t *testing.T) {
 			reg := NewTestRegistry(t)
 			sinter := StreamServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
 			cli, stop := testsvc.SetupGRPC(t,
-				testsvc.WithStreamInterceptor(sinter),
+				testsvc.WithServerOptions(grpc.StreamInterceptor(sinter)),
 				testsvc.WithStreamFunc(echoMethod()))
 
 			stream, err := cli.GRPCStream(context.Background())
@@ -194,7 +195,7 @@ func TestStreamServerInterceptorRequestSize(t *testing.T) {
 			reg := NewTestRegistry(t)
 			sinter := StreamServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithRequestSizeBuckets(buckets))
 			cli, stop := testsvc.SetupGRPC(t,
-				testsvc.WithStreamInterceptor(sinter),
+				testsvc.WithServerOptions(grpc.StreamInterceptor(sinter)),
 				testsvc.WithStreamFunc(echoMethod()))
 
 			stream, err := cli.GRPCStream(context.Background())
@@ -230,7 +231,7 @@ func TestStreamServerInterceptorResponseSize(t *testing.T) {
 			reg := NewTestRegistry(t)
 			sinter := StreamServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithResponseSizeBuckets(buckets))
 			cli, stop := testsvc.SetupGRPC(t,
-				testsvc.WithStreamInterceptor(sinter),
+				testsvc.WithServerOptions(grpc.StreamInterceptor(sinter)),
 				testsvc.WithStreamFunc(echoMethod()))
 
 			stream, err := cli.GRPCStream(context.Background())
@@ -268,7 +269,7 @@ func TestStreamServerInterceptorActiveRequests(t *testing.T) {
 			running.Add(c.numReqs)
 			done.Add(c.numReqs)
 			cli, stop := testsvc.SetupGRPC(t,
-				testsvc.WithStreamInterceptor(sinter),
+				testsvc.WithServerOptions(grpc.StreamInterceptor(sinter)),
 				testsvc.WithStreamFunc(recvWaitMethod(&running, &done, chstop)))
 
 			for i := 0; i < c.numReqs; i++ {

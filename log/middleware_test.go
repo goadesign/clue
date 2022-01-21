@@ -3,8 +3,11 @@ package log
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"testing"
 	"time"
+
+	"goa.design/goa/v3/middleware"
 )
 
 func TestSetContext(t *testing.T) {
@@ -16,12 +19,20 @@ func TestSetContext(t *testing.T) {
 		Print(ctx, "hello world", "key1", "value1", "key2", "value2")
 		return nil, nil
 	}
+	ctx := context.WithValue(context.Background(), middleware.RequestIDKey, "request-id")
 	var buf bytes.Buffer
-	endpoint = SetContext(WithOutput(&buf), WithFormat(FormatJSON))(endpoint)
 
-	endpoint(context.Background(), nil)
+	SetContext(WithOutput(&buf), WithFormat(FormatJSON))(endpoint)(ctx, nil)
 
-	if buf.String() != `{"level":"INFO","time":"2022-01-09T20:29:45Z","msg":"hello world","key1":"value1","key2":"value2"}`+"\n" {
-		t.Errorf("got %s, want %s", buf.String(), `{"level":"INFO","time":"2022-01-09T20:29:45Z","msg":"hello world","key1":"value1","key2":"value2"}`)
+	expected := fmt.Sprintf("{%s,%s,%s,%s,%s,%s}\n",
+		`"level":"INFO"`,
+		`"time":"2022-01-09T20:29:45Z"`,
+		`"msg":"hello world"`,
+		`"request_id":"request-id"`,
+		`"key1":"value1"`,
+		`"key2":"value2"`)
+
+	if buf.String() != expected {
+		t.Errorf("got %s, want %s", buf.String(), expected)
 	}
 }

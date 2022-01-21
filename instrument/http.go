@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"goa.design/goa/http/middleware"
+	"goa.design/goa/v3/http/middleware"
 )
 
 // lengthReader is a wrapper around an io.ReadCloser that keeps track of how

@@ -29,4 +29,3 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.out
           flags: micro
-          fail_ci_if_error: true
