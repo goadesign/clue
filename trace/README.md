@@ -33,7 +33,7 @@ import (
        "context"
 
        "github.com/crossnokaye/micro/log"
-       "github.com/crossnokaye/micro/tracing"
+       "github.com/crossnokaye/micro/trace"
        	goahttp "goa.design/goa/v3/http"
 
        "github.com/repo/services/svc"
@@ -61,17 +61,17 @@ func main() {
                 log.Error(ctx, "unable to connect to span collector", "err", err)
                 os.Exit(1)
         }
-        ctx = tracing.Context(ctx, svcgen.ServiceName, conn)
+        ctx = trace.Context(ctx, svcgen.ServiceName, conn)
 
         // ** Trace HTTP requests **
-        handler := tracing.HTTP(ctx, svcgen.ServiceName)(mux)
+        handler := trace.HTTP(ctx, svcgen.ServiceName)(mux)
 
         // Create gRPC server
         grpcsvr := grpcsvrgen.New(endpoints, nil)
 
         // ** Trace gRPC requests **
-        u := tracing.UnaryServerTrace(ctx)
-        s := tracing.StreamServerTrace(ctx)
+        u := trace.UnaryServerTrace(ctx)
+        s := trace.StreamServerTrace(ctx)
         pbsvr := grpc.NewServer(grpc.UnaryInterceptor(u), grpc.StreamInterceptor(s))
 
         // ...
@@ -86,11 +86,11 @@ requests to downstream dependencies.
 For HTTP dependencies the tracing package provides a `TraceClient` function that
 can be used to configure a `http.Client` to trace all requests made through it.
 `TraceClient` does nothing if the current request is not traced or the context
-not initialized with `tracing.Context`.
+not initialized with `trace.Context`.
 
 ```go
 // Create a tracing HTTP client
-doer := tracing.WrapDoer(ctx, http.DefaultClient)
+doer := trace.WrapDoer(ctx, http.DefaultClient)
 ```
 
 For gRPC dependencies the tracing package provides the `UnaryClientTrace` and
@@ -114,16 +114,16 @@ current request is being traced.
 The tracing package also provides a `StartSpan` function that can be used to
 create a new child span. The caller must also call `EndSpan` when the span is
 complete. Both functions do nothing if the current request is not being traced
-or the context has not been initialized with `tracing.Context`.
+or the context has not been initialized with `trace.Context`.
 
 ```go
 func (s *svc) DoSomething(ctx context.Context, req *svcgen.DoSomethingRequest) (*svcgen.DoSomethingResponse, error) {
         // ...
         // Create a child span to measure the time taken to run an intensive
         // operation.
-        ctx = tracing.StartSpan(ctx, "DoSomethingIntense")
+        ctx = trace.StartSpan(ctx, "DoSomethingIntense")
         DoSomethingIntense(ctx)
-        tracing.EndSpan(ctx)
+        trace.EndSpan(ctx)
         // ...
 }
 ```
@@ -159,17 +159,17 @@ and the following attributes to gRPC requests:
 Service method logic can add attributes when creating new spans via the
 `WithAttributes` option. Custom attributes can also be added later on with
 `SetSpanAttributes`.  `SetSpanAttributes` does nothing if the request is not
-traced or the context not initialized with `tracing.Context`.
+traced or the context not initialized with `trace.Context`.
 
 ```go
 // Create a child span with attributes
-ctx = tracing.StartSpan(ctx, "DoSomething", tracing.WithAttributes(
+ctx = trace.StartSpan(ctx, "DoSomething", trace.WithAttributes(
         "key1", "value1",
         "key2", "value2",
 ))
 
 // Add a custom attribute to the current span
-tracing.SetSpanAttributes(ctx, "custom_attribute", "value")
+trace.SetSpanAttributes(ctx, "custom_attribute", "value")
 ```
 
 ### Adding Events
@@ -178,11 +178,11 @@ The `AddEvent` function makes it possible to attach events to a span. Events are
 useful to trace operations that are too fast to have their own span. For
 example, the completion of an asynchronous operation. Attributes can be added to
 the event to add contextual information. `AddEvent` does nothing if the request
-is not traced or the context not initialized with `tracing.Context`.
+is not traced or the context not initialized with `trace.Context`.
 
 ```go
 // Add an event to the current span
-tracing.AddEvent(ctx, "operation completed", "operation_id", operationID, "status", status) 
+trace.AddEvent(ctx, "operation completed", "operation_id", operationID, "status", status) 
 ```
 
 ### Span Status And Error
@@ -192,15 +192,15 @@ and error of a span. The status indicates the success or failure of the
 operation.  The error is used to record the error that occurred if any.  Note
 that recording an error does not automatically change the status of the span.
 The functions do nothing if the request is not traced or the context not
-initialized with `tracing.Context`. The default status of a completed span is
+initialized with `trace.Context`. The default status of a completed span is
 success.
 
 ```go
 // Set the status of the current span to success (default)
-tracing.Succeed(ctx)
+trace.Succeed(ctx)
 
 // Record an error in the current span and set the status to failure
-tracing.RecordError(ctx, err)
-tracing.Fail(ctx, "operation failed")
+trace.RecordError(ctx, err)
+trace.Fail(ctx, "operation failed")
 ```
 

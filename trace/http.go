@@ -1,4 +1,4 @@
-package tracing
+package trace
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 )
 
 // Message printed by panic when using a method with a non-initialized context.
-const errContextMissing = "context not initialized for tracing, use tracing.Context to set it up"
+const errContextMissing = "context not initialized for tracing, use trace.Context to set it up"
 
 // HTTP returns a tracing middleware that uses a parent based sampler (i.e.
 // traces if the parent request traces) and an adaptive root sampler (i.e.  when
@@ -32,9 +32,9 @@ const errContextMissing = "context not initialized for tracing, use tracing.Cont
 //          os.Exit(1)
 //      }
 //      // Initialize context for tracing
-//      ctx := tracing.Context(ctx, svcgen.ServiceName, conn)
+//      ctx := trace.Context(ctx, svcgen.ServiceName, conn)
 //      // Mount middleware
-// 	handler := tracing.HTTP(ctx, svcgen.ServiceName)(mux)
+// 	handler := trace.HTTP(ctx, svcgen.ServiceName)(mux)
 //
 func HTTP(ctx context.Context, svc string) func(http.Handler) http.Handler {
 	s := ctx.Value(stateKey)
@@ -55,9 +55,9 @@ func HTTP(ctx context.Context, svc string) func(http.Handler) http.Handler {
 	}
 }
 
-// Trace returns a roundtripper that wraps t and creates spans for each request.
+// Client returns a roundtripper that wraps t and creates spans for each request.
 // It panics if the context hasn't been initialized with Context.
-func Trace(ctx context.Context, t http.RoundTripper) http.RoundTripper {
+func Client(ctx context.Context, t http.RoundTripper) http.RoundTripper {
 	s := ctx.Value(stateKey)
 	if s == nil {
 		panic(errContextMissing)

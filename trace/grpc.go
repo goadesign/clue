@@ -1,4 +1,4 @@
-package tracing
+package trace
 
 import (
 	"context"
@@ -10,10 +10,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-// UnaryServerTrace returns an OpenTelemetry UnaryServerInterceptor configured
+// UnaryServerInterceptor returns an OpenTelemetry UnaryServerInterceptor configured
 // to export traces to AWS X-Ray. It panics if the context has not been
 // initialized with Context.
-func UnaryServerTrace(ctx context.Context) grpc.UnaryServerInterceptor {
+func UnaryServerInterceptor(ctx context.Context) grpc.UnaryServerInterceptor {
 	s := ctx.Value(stateKey)
 	if s == nil {
 		panic(errContextMissing)
@@ -32,10 +32,10 @@ func UnaryServerTrace(ctx context.Context) grpc.UnaryServerInterceptor {
 	}
 }
 
-// StreamServerTrace returns an OpenTelemetry StreamServerInterceptor configured
+// StreamServerInterceptor returns an OpenTelemetry StreamServerInterceptor configured
 // to export traces to AWS X-Ray. It panics if the context has not been
 // initialized with Context.
-func StreamServerTrace(ctx context.Context) grpc.StreamServerInterceptor {
+func StreamServerInterceptor(ctx context.Context) grpc.StreamServerInterceptor {
 	s := ctx.Value(stateKey)
 	if s == nil {
 		panic(errContextMissing)
@@ -54,10 +54,10 @@ func StreamServerTrace(ctx context.Context) grpc.StreamServerInterceptor {
 	}
 }
 
-// UnaryClientTrace returns an OpenTelemetry UnaryClientInterceptor configured
+// UnaryClientInterceptor returns an OpenTelemetry UnaryClientInterceptor configured
 // to export traces to AWS X-Ray. It panics if the context has not been
 // initialized with Context.
-func UnaryClientTrace(ctx context.Context) grpc.UnaryClientInterceptor {
+func UnaryClientInterceptor(ctx context.Context) grpc.UnaryClientInterceptor {
 	s := ctx.Value(stateKey)
 	if s == nil {
 		panic(errContextMissing)
@@ -66,10 +66,10 @@ func UnaryClientTrace(ctx context.Context) grpc.UnaryClientInterceptor {
 		otelgrpc.WithTracerProvider(s.(*stateBag).provider))
 }
 
-// StreamClientTrace returns an OpenTelemetry StreamClientInterceptor configured
+// StreamClientInterceptor returns an OpenTelemetry StreamClientInterceptor configured
 // to export traces to AWS X-Ray. It panics if the context has not been
 // initialized with Context.
-func StreamClientTrace(ctx context.Context) grpc.StreamClientInterceptor {
+func StreamClientInterceptor(ctx context.Context) grpc.StreamClientInterceptor {
 	s := ctx.Value(stateKey)
 	if s == nil {
 		panic(errContextMissing)

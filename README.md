@@ -16,7 +16,7 @@ following topics:
   services to expose a health check endpoint.
 * Dependency mocks: the [mock](mock/) package provides a way to mock
   downstream dependencies for testing.
-* Tracing: the [tracing](tracing/) package conforms to the
+* Tracing: the [trace](trace/) package conforms to the
   [OpenTelemetry](https://opentelemetry.io/) specification and implements a
   [Goa](https://goa.design) compatible library to trace requests.
 

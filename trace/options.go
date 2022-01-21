@@ -1,4 +1,4 @@
-package tracing
+package trace
 
 import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"

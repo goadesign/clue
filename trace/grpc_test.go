@@ -1,4 +1,4 @@
-package tracing
+package trace
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 func TestUnaryServerTrace(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	traceInterceptor := UnaryServerTrace(withProvider(context.Background(), provider))
+	traceInterceptor := UnaryServerInterceptor(withProvider(context.Background(), provider))
 	requestIDInterceptor := middleware.UnaryRequestID()
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.ChainUnaryInterceptor(requestIDInterceptor, traceInterceptor)),
@@ -59,7 +59,7 @@ func TestUnaryServerTrace(t *testing.T) {
 func TestUnaryServerTraceNoRequestID(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	traceInterceptor := UnaryServerTrace(withProvider(context.Background(), provider))
+	traceInterceptor := UnaryServerInterceptor(withProvider(context.Background(), provider))
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.UnaryInterceptor(traceInterceptor)),
 		testsvc.WithUnaryFunc(addEventUnaryMethod))
@@ -77,7 +77,7 @@ func TestUnaryServerTraceNoRequestID(t *testing.T) {
 func TestStreamServerTrace(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	traceInterceptor := StreamServerTrace(withProvider(context.Background(), provider))
+	traceInterceptor := StreamServerInterceptor(withProvider(context.Background(), provider))
 	requestIDInterceptor := middleware.StreamRequestID()
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.ChainStreamInterceptor(requestIDInterceptor, traceInterceptor)),
@@ -110,7 +110,7 @@ func TestStreamServerTrace(t *testing.T) {
 func TestStreamServerTraceNoRequestID(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	traceInterceptor := StreamServerTrace(withProvider(context.Background(), provider))
+	traceInterceptor := StreamServerInterceptor(withProvider(context.Background(), provider))
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.StreamInterceptor(traceInterceptor)),
 		testsvc.WithStreamFunc(echoMethod))
@@ -133,7 +133,7 @@ func TestUnaryClientTrace(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
 	cli, stop := testsvc.SetupGRPC(t,
-		testsvc.WithDialOptions(grpc.WithUnaryInterceptor(UnaryClientTrace(withProvider(context.Background(), provider)))),
+		testsvc.WithDialOptions(grpc.WithUnaryInterceptor(UnaryClientInterceptor(withProvider(context.Background(), provider)))),
 		testsvc.WithUnaryFunc(addEventUnaryMethod))
 	_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{})
 	if err != nil {
@@ -150,7 +150,7 @@ func TestStreamClientTrace(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
 	cli, stop := testsvc.SetupGRPC(t,
-		testsvc.WithDialOptions(grpc.WithStreamInterceptor(StreamClientTrace(withProvider(context.Background(), provider)))),
+		testsvc.WithDialOptions(grpc.WithStreamInterceptor(StreamClientInterceptor(withProvider(context.Background(), provider)))),
 		testsvc.WithStreamFunc(echoMethod))
 	ctx, cancel := context.WithCancel(context.Background())
 	stream, err := cli.GRPCStream(ctx)
