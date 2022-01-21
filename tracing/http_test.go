@@ -63,18 +63,11 @@ func TestHTTPRequestID(t *testing.T) {
 	}
 }
 
-func TestTraceClient(t *testing.T) {
+func TestTrace(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
 	ctx := withProvider(context.Background(), provider)
-	c := http.Client{}
-	if c.Transport != nil {
-		t.Errorf("got %T, want nil", c.Transport)
-	}
-	TraceClient(ctx, &c)
-	if c.Transport == nil {
-		t.Errorf("got nil, want %T", c.Transport)
-	}
+	c := http.Client{Transport: Trace(ctx, http.DefaultTransport)}
 	otelt, ok := c.Transport.(*otelhttp.Transport)
 	if !ok {
 		t.Errorf("got %T, want %T", c.Transport, otelt)

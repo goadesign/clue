@@ -55,14 +55,14 @@ func HTTP(ctx context.Context, svc string) func(http.Handler) http.Handler {
 	}
 }
 
-// TraceClient configures a HTTP client so that it creates spans for each
-// request. It panics if the context hasn't been initialized with Context.
-func TraceClient(ctx context.Context, c *http.Client) {
+// Trace returns a roundtripper that wraps t and creates spans for each request.
+// It panics if the context hasn't been initialized with Context.
+func Trace(ctx context.Context, t http.RoundTripper) http.RoundTripper {
 	s := ctx.Value(stateKey)
 	if s == nil {
 		panic(errContextMissing)
 	}
-	c.Transport = otelhttp.NewTransport(c.Transport,
+	return otelhttp.NewTransport(t,
 		otelhttp.WithTracerProvider(s.(*stateBag).provider),
 		otelhttp.WithMeterProvider(metric.NewNoopMeterProvider()))
 }
