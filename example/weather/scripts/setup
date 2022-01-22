@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -e
+
+GIT_ROOT=$(git rev-parse --show-toplevel)
+pushd ${GIT_ROOT}/example/weather
+
+source ./scripts/utils/common.sh
+
+proto_pkg="protobuf-compiler"
+
+if is_mac; then
+  proto_pkg="protobuf"
+fi
+
+check_required_cmd "protoc" $proto_pkg
+
+if [[ "$CI" == "" ]]; then
+  check_required_cmd "tmux"
+fi
+
+go mod download
+go install honnef.co/go/tools/cmd/staticcheck@latest
+go install goa.design/goa/v3/...@v3
+go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1
+go install github.com/DarthSim/overmind/v2@latest
+
+./scripts/build
+
+popd

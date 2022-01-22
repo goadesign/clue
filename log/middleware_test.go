@@ -19,10 +19,11 @@ func TestSetContext(t *testing.T) {
 		Print(ctx, "hello world", "key1", "value1", "key2", "value2")
 		return nil, nil
 	}
-	ctx := context.WithValue(context.Background(), middleware.RequestIDKey, "request-id")
 	var buf bytes.Buffer
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+	ctx = context.WithValue(ctx, middleware.RequestIDKey, "request-id")
 
-	SetContext(WithOutput(&buf), WithFormat(FormatJSON))(endpoint)(ctx, nil)
+	SetContext(ctx)(endpoint)(context.Background(), nil)
 
 	expected := fmt.Sprintf("{%s,%s,%s,%s,%s,%s}\n",
 		`"level":"INFO"`,

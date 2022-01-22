@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -e
+
+echo "Starting services..."
+
+GIT_ROOT=$(git rev-parse --show-toplevel)
+pushd ${GIT_ROOT}/example/weather
+
+source ./scripts/utils/common.sh
+
+docker-compose up -d
+
+overmind start
+
+popd
