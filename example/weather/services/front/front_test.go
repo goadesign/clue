@@ -114,11 +114,11 @@ func getLocationInUSFunc(t *testing.T) locator.GetLocationFunc {
 			return nil, nil
 		}
 		return &locator.WorldLocation{
-			Lat:        testLocation.Lat,
-			Long:       testLocation.Long,
-			City:       testLocation.City,
-			RegionCode: testLocation.State,
-			Country:    "US",
+			Lat:     testLocation.Lat,
+			Long:    testLocation.Long,
+			City:    testLocation.City,
+			Region:  testLocation.State,
+			Country: "US",
 		}, nil
 	}
 }
@@ -130,11 +130,11 @@ func getLocationNotInUSFunc(t *testing.T) locator.GetLocationFunc {
 			return nil, nil
 		}
 		return &locator.WorldLocation{
-			Lat:        testLocation.Lat,
-			Long:       testLocation.Long,
-			City:       testLocation.City,
-			RegionCode: testLocation.State,
-			Country:    "NOT US",
+			Lat:     testLocation.Lat,
+			Long:    testLocation.Long,
+			City:    testLocation.City,
+			Region:  testLocation.State,
+			Country: "NOT US",
 		}, nil
 	}
 }

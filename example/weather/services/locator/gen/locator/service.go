@@ -5,7 +5,7 @@
 // Command:
 // $ goa gen
 // github.com/crossnokaye/micro/example/weather/services/locator/design -o
-// example/weather/services/locator
+// services/locator
 
 package locator
 
@@ -38,7 +38,7 @@ type WorldLocation struct {
 	// City
 	City string
 	// State, region etc.
-	RegionCode string
+	Region string
 	// Country
 	Country string
 }

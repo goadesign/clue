@@ -10,17 +10,17 @@ import (
 
 func TestGetIPLocation(t *testing.T) {
 	var (
-		testLat        = 37.4224764
-		testLong       = -122.0842499
-		testCity       = "Mountain View"
-		testRegionCode = "CA"
-		testCountry    = "US"
+		testLat     = 37.4224764
+		testLong    = -122.0842499
+		testCity    = "Mountain View"
+		testRegion  = "CA"
+		testCountry = "United States"
 	)
 	// Create mock call sequence with first successful call returning an IP
 	// location then failing.
 	ipc := ipapi.NewMock(t)
 	ipc.AddGetLocationFunc(func(ctx context.Context, ip string) (*ipapi.WorldLocation, error) {
-		return &ipapi.WorldLocation{testLat, testLong, testCity, testRegionCode, testCountry}, nil
+		return &ipapi.WorldLocation{testLat, testLong, testCity, testRegion, testCountry}, nil
 	})
 	ipc.AddGetLocationFunc(func(ctx context.Context, ip string) (*ipapi.WorldLocation, error) {
 		return nil, fmt.Errorf("test failure")
@@ -43,8 +43,8 @@ func TestGetIPLocation(t *testing.T) {
 	if l.City != testCity {
 		t.Errorf("got city %q, expected %q", l.City, testCity)
 	}
-	if l.RegionCode != testRegionCode {
-		t.Errorf("got region code %q, expected %q", l.RegionCode, testRegionCode)
+	if l.Region != testRegion {
+		t.Errorf("got region code %q, expected %q", l.Region, testRegion)
 	}
 
 	// Call service, second call should fail.

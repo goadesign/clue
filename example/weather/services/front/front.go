@@ -28,7 +28,7 @@ func (s *Service) Forecast(ctx context.Context, ip string) (*genfront.Forecast2,
 	if err != nil {
 		return nil, err
 	}
-	if l.Country != "US" {
+	if l.Country != "United States" {
 		return nil, genfront.MakeNotUsa(fmt.Errorf("IP not in the US (%s)", l.Country))
 	}
 	f, err := s.fc.GetForecast(ctx, l.Lat, l.Long)
@@ -39,7 +39,7 @@ func (s *Service) Forecast(ctx context.Context, ip string) (*genfront.Forecast2,
 		Lat:   l.Lat,
 		Long:  l.Long,
 		City:  l.City,
-		State: l.RegionCode,
+		State: l.Region,
 	}
 	ps := make([]*genfront.Period, len(f.Periods))
 	for i, p := range f.Periods {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	weathergov "github.com/crossnokaye/micro/example/weather/services/forecast/clients/weather"
+	"github.com/crossnokaye/micro/example/weather/services/forecast/clients/weathergov"
 	genforecast "github.com/crossnokaye/micro/example/weather/services/forecast/gen/forecast"
 )
 

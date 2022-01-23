@@ -25,8 +25,8 @@ type (
 		Long float64
 		// City is the city of the location.
 		City string
-		// RegionCode is the region/state of the location.
-		RegionCode string
+		// Region is the region/state of the location.
+		Region string
 		// Country is the country of the location.
 		Country string
 	}

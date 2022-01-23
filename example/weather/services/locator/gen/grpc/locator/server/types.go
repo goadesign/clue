@@ -5,7 +5,7 @@
 // Command:
 // $ goa gen
 // github.com/crossnokaye/micro/example/weather/services/locator/design -o
-// example/weather/services/locator
+// services/locator
 
 package server
 
@@ -25,11 +25,11 @@ func NewGetLocationPayload(message *locatorpb.GetLocationRequest) string {
 // "get_location" endpoint of the "locator" service.
 func NewGetLocationResponse(result *locator.WorldLocation) *locatorpb.GetLocationResponse {
 	message := &locatorpb.GetLocationResponse{
-		Lat:        result.Lat,
-		Long:       result.Long,
-		City:       result.City,
-		RegionCode: result.RegionCode,
-		Country:    result.Country,
+		Lat:     result.Lat,
+		Long:    result.Long,
+		City:    result.City,
+		Region:  result.Region,
+		Country: result.Country,
 	}
 	return message
 }

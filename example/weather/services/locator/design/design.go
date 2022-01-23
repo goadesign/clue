@@ -33,11 +33,11 @@ var WorldLocation = Type("WorldLocation", func() {
 	Field(3, "city", String, "City", func() {
 		Example("San Francisco")
 	})
-	Field(4, "region_code", String, "State, region etc.", func() {
+	Field(4, "region", String, "State, region etc.", func() {
 		Example("CA")
 	})
 	Field(5, "country", String, "Country", func() {
 		Example("USA")
 	})
-	Required("lat", "long", "city", "region_code", "country")
+	Required("lat", "long", "city", "region", "country")
 })

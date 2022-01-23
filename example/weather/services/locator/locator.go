@@ -27,6 +27,7 @@ func (s *Service) GetLocation(ctx context.Context, ip string) (*genlocator.World
 	if err != nil {
 		return nil, err
 	}
+	log.Debug(ctx, "GetLocation", "ip", ip, "lat", l.Lat, "long", l.Long, "city", l.City, "region", l.Region, "country", l.Country)
 	lval := genlocator.WorldLocation(*l)
 	return &lval, nil
 }

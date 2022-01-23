@@ -4,7 +4,7 @@
 //
 // Command:
 // $ goa gen github.com/crossnokaye/micro/example/weather/services/front/design
-// -o example/weather/services/front
+// -o services/front
 
 package front
 

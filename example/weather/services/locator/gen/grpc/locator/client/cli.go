@@ -5,7 +5,7 @@
 // Command:
 // $ goa gen
 // github.com/crossnokaye/micro/example/weather/services/locator/design -o
-// example/weather/services/locator
+// services/locator
 
 package client
 

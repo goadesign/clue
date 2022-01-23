@@ -23,7 +23,7 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"github.com/crossnokaye/micro/example/weather/services/forecast"
-	weathergov "github.com/crossnokaye/micro/example/weather/services/forecast/clients/weather"
+	"github.com/crossnokaye/micro/example/weather/services/forecast/clients/weathergov"
 	genforecast "github.com/crossnokaye/micro/example/weather/services/forecast/gen/forecast"
 	genpb "github.com/crossnokaye/micro/example/weather/services/forecast/gen/grpc/forecast/pb"
 	gengrpc "github.com/crossnokaye/micro/example/weather/services/forecast/gen/grpc/forecast/server"

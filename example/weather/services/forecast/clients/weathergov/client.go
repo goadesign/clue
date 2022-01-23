@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -171,8 +172,12 @@ func (c *client) doWithRetries(req *http.Request) (*http.Response, error) {
 		retries++
 	}
 	if resp.StatusCode != http.StatusOK {
+		msg, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			msg = []byte("unknown error")
+		}
 		resp.Body.Close()
-		return nil, fmt.Errorf("unexpected response status code %d", resp.StatusCode)
+		return nil, fmt.Errorf("unexpected response status code %d (%s)", resp.StatusCode, string(msg))
 	}
 	return resp, nil
 }
