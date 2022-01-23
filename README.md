@@ -22,12 +22,10 @@ following topics:
 
 Consult the package-specific READMEs for more information.
 
-TBD:
-- [x] Logging
-- [x] Metrics
-- [x] Health checks
-- [x] Dependency mocks
-- [ ] Tracing
+## Example
+
+The repository contains a [fully functional example](example/weather)
+comprised of three instrumented Goa microservices.
 
 ## Importing Private Repositories
 
