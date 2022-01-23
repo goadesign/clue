@@ -10,7 +10,7 @@ import (
 	"goa.design/goa/v3/middleware"
 )
 
-func TestSetContext(t *testing.T) {
+func TestInit(t *testing.T) {
 	now := timeNow
 	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
 	defer func() { timeNow = now }()
@@ -23,7 +23,7 @@ func TestSetContext(t *testing.T) {
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
 	requestIDCtx := context.WithValue(context.Background(), middleware.RequestIDKey, "request-id")
 
-	SetContext(ctx)(endpoint)(requestIDCtx, nil)
+	Init(ctx)(endpoint)(requestIDCtx, nil)
 
 	expected := fmt.Sprintf("{%s,%s,%s,%s,%s,%s}\n",
 		`"level":"INFO"`,

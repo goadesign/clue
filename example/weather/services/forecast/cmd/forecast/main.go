@@ -68,7 +68,7 @@ func main() {
 	// 4. Create service & endpoints
 	svc := forecast.New(wc)
 	endpoints := genforecast.NewEndpoints(svc)
-	endpoints.Use(log.SetContext(ctx))
+	endpoints.Use(log.Init(ctx))
 
 	// 5. Create transport
 	server := gengrpc.New(endpoints, nil)
@@ -91,6 +91,7 @@ func main() {
 	check := log.HTTP(ctx)(health.Handler(health.NewChecker(wc)))
 	http.Handle("/healthz", check)
 	http.Handle("/livez", check)
+	http.Handle("/metrics", instrument.Handler(ctx))
 	httpsvr := &http.Server{Addr: *httpListenAddr}
 
 	// 7. Start gRPC and HTTP servers

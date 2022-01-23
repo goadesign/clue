@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+
+GIT_ROOT=$(git rev-parse --show-toplevel)
+pushd ${GIT_ROOT}/example/weather
+
+echo "Starting diagram editor..."
+
+mdl serve github.com/crossnokaye/micro/example/weather/diagram -dir diagram -port 8085 front
+
+popd

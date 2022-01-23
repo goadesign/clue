@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/crossnokaye/micro/health"
+	"github.com/crossnokaye/micro/instrument"
 	"github.com/crossnokaye/micro/log"
 	"github.com/crossnokaye/micro/trace"
 	goahttp "goa.design/goa/v3/http"
@@ -63,14 +64,16 @@ func main() {
 
 	// 3. Create clients
 	lcc, err := grpc.DialContext(ctx, *locatorAddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(trace.UnaryClientInterceptor(ctx)))
 	if err != nil {
 		log.Error(ctx, "failed to connect to locator", "err", err)
 		os.Exit(1)
 	}
 	lc := locator.New(lcc)
 	fcc, err := grpc.DialContext(ctx, *forecastAddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(trace.UnaryClientInterceptor(ctx)))
 	if err != nil {
 		log.Error(ctx, "failed to connect to forecast", "err", err)
 		os.Exit(1)
@@ -80,7 +83,7 @@ func main() {
 	// 4. Create service & endpoints
 	svc := front.New(fc, lc)
 	endpoints := genfront.NewEndpoints(svc)
-	endpoints.Use(log.SetContext(ctx))
+	endpoints.Use(log.Init(ctx))
 
 	// 5. Create transport
 	mux := goahttp.NewMuxer()
@@ -88,6 +91,8 @@ func main() {
 	genhttp.Mount(mux, server)
 	handler := goahttpmiddleware.Log(log.Adapt(ctx))(mux)
 	handler = goahttpmiddleware.RequestID()(handler)
+	handler = trace.HTTP(ctx, genfront.ServiceName)(handler)
+	handler = instrument.HTTP(genfront.ServiceName)(handler)
 	l := &http.Server{Addr: *httpListenAddr, Handler: handler}
 	for _, m := range server.Mounts {
 		log.Print(ctx, "mount", "method", m.Method, "verb", m.Verb, "path", m.Pattern)
@@ -100,6 +105,7 @@ func main() {
 	check = log.HTTP(ctx)(check).(http.HandlerFunc)
 	mux.Handle("GET", "/healthz", check)
 	mux.Handle("GET", "/livez", check)
+	mux.Handle("GET", "/metrics", instrument.Handler(ctx).(http.HandlerFunc))
 
 	// 7. Start HTTP server
 	errc := make(chan error)

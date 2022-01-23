@@ -13,7 +13,7 @@ func HTTP(logCtx context.Context) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		l := logCtx.Value(ctxLogger)
 		if l == nil {
-			panic("log.SetContext called without log.Context")
+			panic("log.HTTP called without log.Context")
 		}
 		logger := l.(*logger)
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
