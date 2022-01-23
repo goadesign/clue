@@ -118,7 +118,7 @@ func getLocationInUSFunc(t *testing.T) locator.GetLocationFunc {
 			Long:    testLocation.Long,
 			City:    testLocation.City,
 			Region:  testLocation.State,
-			Country: "US",
+			Country: "United States",
 		}, nil
 	}
 }
