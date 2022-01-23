@@ -4,7 +4,7 @@ services:
     image: "otel/opentelemetry-collector:latest"
     container_name: "weather-collector"
     ports:
-      - "55681:55681"
+      - "4317:4317"
     volumes:
       - ${PWD}/config/otel-local-config.yaml:/otel-local-config.yaml
 

@@ -33,7 +33,7 @@ func main() {
 		forecastHealthAddr = flag.String("forecast-health", ":8081", "Forecast service health-check address")
 		locatorAddr        = flag.String("locator", ":8082", "Locator service address")
 		locatorHealthAddr  = flag.String("locator-health", ":8083", "Locator service health-check address")
-		collectorAddr      = flag.String("coladdr", ":55681", "OpenTelemetry remote collector address")
+		collectorAddr      = flag.String("coladdr", ":4317", "OpenTelemetry remote collector address")
 		debug              = flag.Bool("debug", false, "Enable debug logs")
 	)
 	flag.Parse()
@@ -46,12 +46,15 @@ func main() {
 	}
 
 	// 2. Setup tracing
+	log.Debug(ctx, "connecting to OpenTelemetry collector...", "addr", *collectorAddr)
 	conn, err := grpc.DialContext(ctx, *collectorAddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock())
 	if err != nil {
 		log.Error(ctx, "failed to connect to OpenTelementry collector", "err", err)
 		os.Exit(1)
 	}
+	log.Debug(ctx, "connected to OpenTelemetry collector", "addr", *collectorAddr)
 	ctx, err = trace.Context(ctx, genfront.ServiceName, conn)
 	if err != nil {
 		log.Error(ctx, "failed to initialize tracing", "err", err)

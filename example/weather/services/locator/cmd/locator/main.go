@@ -33,7 +33,7 @@ func main() {
 	var (
 		grpcListenAddr = flag.String("grpc", ":8082", "gRPC listen address")
 		httpListenAddr = flag.String("http", ":8083", "HTTP listen address (health checks)")
-		collectorAddr  = flag.String("coladdr", ":55681", "OpenTelemetry remote collector address")
+		collectorAddr  = flag.String("coladdr", ":4317", "OpenTelemetry remote collector address")
 		debug          = flag.Bool("debug", false, "Enable debug logs")
 	)
 	flag.Parse()
@@ -46,12 +46,15 @@ func main() {
 	}
 
 	// 2. Setup tracing
+	log.Debug(ctx, "connecting to OpenTelemetry collector...", "addr", *collectorAddr)
 	conn, err := grpc.DialContext(ctx, *collectorAddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock())
 	if err != nil {
 		log.Error(ctx, "failed to connect to OpenTelementry collector", "err", err)
 		os.Exit(1)
 	}
+	log.Debug(ctx, "connected to OpenTelemetry collector", "addr", *collectorAddr)
 	ctx, err = trace.Context(ctx, genlocator.ServiceName, conn)
 	if err != nil {
 		log.Error(ctx, "failed to initialize tracing", "err", err)

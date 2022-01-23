@@ -1,3 +1,3 @@
-forecast: bin/forecast
+forecast: bin/forecast -debug
 locator: bin/locator -debug
-front: bin/front
+front: bin/front -debug
