@@ -85,7 +85,7 @@ func main() {
 	}
 
 	// 6. Start health check
-	check := health.Handler(health.NewChecker(wc))
+	check := log.HTTP(ctx)(health.Handler(health.NewChecker(wc)))
 	http.Handle("/healthz", check)
 	http.Handle("/livez", check)
 	httpsvr := &http.Server{Addr: *httpListenAddr}

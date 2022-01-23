@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/crossnokaye/micro/log"
 )
 
 type (
@@ -62,6 +64,7 @@ func (c *checker) Check(ctx context.Context) (*Health, error) {
 		if err != nil {
 			res.Status[dep.Name()] = "NOT OK"
 			healthy = false
+			log.Error(ctx, "ping failed", "target", dep.Name(), "err", err)
 		}
 	}
 	var err error
