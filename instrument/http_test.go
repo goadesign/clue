@@ -157,13 +157,20 @@ func TestLengthReader(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			r := strings.NewReader(c.str)
-			lr := &lengthReader{Source: io.NopCloser(r)}
+			ctx, lr := newLengthReader(io.NopCloser(r), context.Background())
 			n, err := lr.Read(make([]byte, 100))
 			if err != nil && err != io.EOF {
 				t.Errorf("unexpected error: %v", err)
 			}
 			if n != c.expectedSize {
 				t.Errorf("expected %d bytes, got %d", c.expectedSize, n)
+			}
+			length := ctx.Value(ctxReqLen)
+			if length == nil {
+				t.Fatal("expected length to be set in context")
+			}
+			if *(length.(*int)) != c.expectedSize {
+				t.Errorf("expected %d bytes, got %d", c.expectedSize, *(length.(*int)))
 			}
 			err = lr.Close()
 			if err != nil {
