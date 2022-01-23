@@ -48,7 +48,7 @@ The three services make use of the
 is initialized with the key / value pair `svc`:`<name of service>`, for example:
 
 ```go
-ctx := log.With(context.Background(), log.String("svc", genfront.ServiceName))
+ctx := log.With(log.Context(context.Background()), "svc", genfront.ServiceName)
 ```
 
 Each service also uses the endpoint middleware to initialize the log context for
@@ -160,7 +160,7 @@ check := log.HTTP(ctx)(health.Handler(health.NewChecker(wc)))
 ```
 
 The front service also uses the `health.NewPinger` function to create a health
-checker for the `forecast` and `location` services which both expose `/livez`
+checker for the `forecast` and `location` services which both expose a `/livez`
 HTTP endpoint:
 
 ```go
@@ -267,3 +267,6 @@ fmock := forecast.NewMock(t)
 fmock.AddGetForecastFunc(c.forecastFunc) // Mock the forecast service.
 s := New(fmock, lmock) // Create front service instance for testing
 ```
+
+The `mock` package is also used to create mocks for web services (`ip-api.com`
+and `weather.gov`) in the `location` and `forecast` services.
