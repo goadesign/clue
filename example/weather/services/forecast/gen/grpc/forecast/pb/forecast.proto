@@ -1,0 +1,60 @@
+// Code generated with goa v3.5.4, DO NOT EDIT.
+//
+// Forecast protocol buffer definition
+//
+// Command:
+// $ goa gen
+// github.com/crossnokaye/micro/example/weather/services/forecast/design -o
+// services/forecast
+
+syntax = "proto3";
+
+package forecast;
+
+option go_package = "/forecastpb";
+
+// Service that provides weather forecasts
+service Forecast {
+	// Retrieve weather forecast for a given location
+	rpc Forecast (ForecastRequest) returns (ForecastResponse);
+}
+
+message ForecastRequest {
+	// Latitude
+	double lat = 1;
+	// Longitude
+	double long = 2;
+}
+
+message ForecastResponse {
+	// Forecast location
+	Location location = 1;
+	// Weather forecast periods
+	repeated Period periods = 2;
+}
+// Geographical location
+message Location {
+	// Latitude
+	double lat = 1;
+	// Longitude
+	double long = 2;
+	// City
+	string city = 3;
+	// State
+	string state = 4;
+}
+// Weather forecast period
+message Period {
+	// Period name
+	string name = 1;
+	// Start time
+	string start_time = 2;
+	// End time
+	string end_time = 3;
+	// Temperature
+	sint32 temperature = 4;
+	// Temperature unit
+	string temperature_unit = 5;
+	// Summary
+	string summary = 6;
+}

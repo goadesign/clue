@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -e
+
+GIT_ROOT=$(git rev-parse --show-toplevel)
+GIT_COMMIT=$(git rev-list -1 HEAD)
+pushd ${GIT_ROOT}/example/weather
+
+echo "Rebuilding services..."
+
+mkdir -p bin
+
+for svc in forecast locator front; do
+  go build -o bin/${svc} -ldflags "-X github.com/crossnokaye/caiso/health.GitCommit=$GIT_COMMIT" github.com/crossnokaye/micro/example/weather/services/${svc}/cmd/${svc}
+done
+
+popd

@@ -1,0 +1,5 @@
+example/weather/services/forecast/cmd/forecast/forecast
+example/weather/services/locator/cmd/locator/locator
+example/weather/services/front/cmd/front/front
+example/weather/.overmind.sock
+example/weather/bin/*

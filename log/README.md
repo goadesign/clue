@@ -257,9 +257,8 @@ INFO: hello world
 
 ### Endpoint Log Context
 
-The `SetContext` endpoint middleware initializes the method context with a
-logger configured with the given options so that the method business logic may
-log messages. Usage example:
+The `Init` middleware initializes the method context with the logger defined in
+the given context:
 
 - in `main.go`:
 
@@ -273,7 +272,7 @@ endpoints := service.NewEndpoints(svc)
 // ...
 
 // Mount the endpoint middleware
-endpoints.Use(log.SetContext())
+endpoints.Use(log.Init(ctx))
 
 // Rest of usual Goa setup code
 // ...
@@ -289,6 +288,24 @@ func (s *Service) Get(ctx context.Context, p *GetPayload) (res *GetResult, err e
         // ...
 }
 ```
+
+### HTTP Handler Log Context
+
+The `log` package also includes a HTTP middleware that initializes the request
+context with the logger configured in the given context:
+
+```go
+handler = log.HTTP(ctx)(handler)
+```
+
+This is especially useful when mounting health check endpoints which do not use
+Goa endpoints and thus cannot be initialized with `Init`:
+
+```go
+check := log.HTTP(ctx)(health.Handler(health.NewChecker(dep1, dep2, ...)))
+```
+
+where `dep1`, `dep2` etc. are dependency clients that implement `health.Pinger`.
 
 ### Request Logging
 

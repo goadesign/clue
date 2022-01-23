@@ -1,0 +1,3 @@
+forecast: bin/forecast -debug
+locator: bin/locator -debug
+front: bin/front -debug
