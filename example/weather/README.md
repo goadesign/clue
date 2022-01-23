@@ -37,7 +37,7 @@ curl http://localhost:8084/forecast/8.8.8.8
 
 ## System Architecture
 
-![System Architecture](./diagram/Weather System Architecture.svg)
+![System Architecture](./diagram/Weather%20System%20Architecture.svg)
 
 ## Instrumentation
 
