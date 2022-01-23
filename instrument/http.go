@@ -1,6 +1,7 @@
 package instrument
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"strconv"
@@ -10,12 +11,20 @@ import (
 	"goa.design/goa/v3/http/middleware"
 )
 
-// lengthReader is a wrapper around an io.ReadCloser that keeps track of how
-// much data has been read.
-type lengthReader struct {
-	Source io.ReadCloser
-	Length int
-}
+type (
+	// lengthReader is a wrapper around an io.ReadCloser that keeps track of how
+	// much data has been read.
+	lengthReader struct {
+		Source io.ReadCloser
+		ctx    context.Context
+	}
+
+	// Private type used to define context keys.
+	ctxKey int
+)
+
+// Context key used to capture request length.
+const ctxReqLen ctxKey = iota + 1
 
 const (
 	// MetricHTTPDuration is the name of the HTTP duration metric.
@@ -106,33 +115,49 @@ func HTTP(svc string, opts ...Option) func(http.Handler) http.Handler {
 	options.registerer.MustRegister(activeReqs)
 
 	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			labels := prometheus.Labels{
-				LabelHTTPVerb: r.Method,
-				LabelHTTPHost: r.Host,
-				LabelHTTPPath: r.URL.Path,
+				LabelHTTPVerb: req.Method,
+				LabelHTTPHost: req.Host,
+				LabelHTTPPath: req.URL.Path,
 			}
 			activeReqs.With(labels).Add(1)
 			defer activeReqs.With(labels).Sub(1)
 
 			now := time.Now()
 			rw := middleware.CaptureResponse(w)
-			r.Body = &lengthReader{Source: r.Body}
+			ctx, body := newLengthReader(req.Body, req.Context())
+			req.Body = body
+			req = req.WithContext(ctx)
 
-			h.ServeHTTP(rw, r)
+			h.ServeHTTP(rw, req)
 
 			labels[LabelHTTPStatusCode] = strconv.Itoa(rw.StatusCode)
 
+			reqLength := req.Context().Value(ctxReqLen).(*int)
 			durations.With(labels).Observe(float64(timeSince(now).Milliseconds()))
-			reqSizes.With(labels).Observe(float64(r.Body.(*lengthReader).Length))
+			reqSizes.With(labels).Observe(float64(*reqLength))
 			respSizes.With(labels).Observe(float64(rw.ContentLength))
 		})
 	}
 }
 
+// So we have to do a little dance to get the length of the request body.  We
+// can't just simply wrap the body and sum up the length on each read because
+// otel sets its own wrapper which means we can't cast the request back after
+// the call to the next handler. We thus store the computed length in the
+// context instead.
+func newLengthReader(body io.ReadCloser, ctx context.Context) (context.Context, *lengthReader) {
+	reqLen := 0
+	ctx = context.WithValue(ctx, ctxReqLen, &reqLen)
+	return ctx, &lengthReader{body, ctx}
+}
+
 func (r *lengthReader) Read(b []byte) (int, error) {
 	n, err := r.Source.Read(b)
-	r.Length += n
+	l := r.ctx.Value(ctxReqLen).(*int)
+	*l += n
+
 	return n, err
 }
 
@@ -142,7 +167,8 @@ func (r *lengthReader) Close() error {
 	var err error
 	for err == nil {
 		n, err = r.Source.Read(buf[:])
-		r.Length += n
+		l := r.ctx.Value(ctxReqLen).(*int)
+		*l += n
 	}
 	closeerr := r.Source.Close()
 	if err != nil && err != io.EOF {
