@@ -5,7 +5,7 @@
 
 ## Overview
 
-Package `tracing` provides request tracing functionality that follows the
+Package `trace` provides request tracing functionality that follows the
 [OpenTelemetry](https://opentelemetry.io/) specification. The package is
 designed to be used in conjunction with [Goa](https://goa.design/). In
 particular it is aware of the Goa RequestID
@@ -80,10 +80,10 @@ func main() {
 
 ### Making Requests to Downstream Dependencies
 
-For tracing to work appropriately the tracing package must be used when making
-requests to downstream dependencies. 
+For tracing to work appropriately all clients to downstream dependencies must be
+configured using the appropriate trace package function. 
 
-For HTTP dependencies the tracing package provides a `TraceClient` function that
+For HTTP dependencies the trace package provides a `TraceClient` function that
 can be used to configure a `http.Client` to trace all requests made through it.
 `TraceClient` does nothing if the current request is not traced or the context
 not initialized with `trace.Context`.
@@ -93,7 +93,7 @@ not initialized with `trace.Context`.
 doer := trace.WrapDoer(ctx, http.DefaultClient)
 ```
 
-For gRPC dependencies the tracing package provides the `UnaryClientTrace` and
+For gRPC dependencies the trace package provides the `UnaryClientTrace` and
 `StreamClientTrace` interceptors that can be used when making gRPC calls. These
 functions will create a span for the current request if it is traced. Example:
 
@@ -107,11 +107,11 @@ conn, err := grpc.Dial(url, grpc.WithStreamInterceptor(StreamClientTrace(ctx)))
 
 ### Creating Additional Spans
 
-Once configured the tracing package will automatically create spans for a sample
-of incoming requests. The function `IsTraced` can be used to determine if the
+Once configured the trace package automatically creates spans for a sample of
+incoming requests. The function `IsTraced` can be used to determine if the
 current request is being traced.
 
-The tracing package also provides a `StartSpan` function that can be used to
+The trace package also provides a `StartSpan` function that can be used to
 create a new child span. The caller must also call `EndSpan` when the span is
 complete. Both functions do nothing if the current request is not being traced
 or the context has not been initialized with `trace.Context`.
