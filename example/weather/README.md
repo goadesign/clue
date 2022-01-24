@@ -11,6 +11,8 @@ services:
   information for a given IP. It makes requests to the `location` service
   followed by the `forecast` service to collect the information.
 
+![System Architecture](./diagram/Weather%20System%20Services.svg)
+
 ## Running the Example
 
 The following should get you going:
@@ -50,10 +52,6 @@ front      | DEBG[0003] svc=front requestID=aZtVOM7L traceID=fcb9bb474db0b095923
   pane and select `Tempo` in the top dropdown. Enter the trace ID and voila:
 
 ![Tempo Screenshot](./images/tempo.png)
-
-## System Architecture
-
-![System Architecture](./diagram/Weather%20System%20Services.svg)
 
 ## Instrumentation
 
@@ -300,3 +298,9 @@ s := New(fmock, lmock) // Create front service instance for testing
 
 The `mock` package is also used to create mocks for web services (`ip-api.com`
 and `weather.gov`) in the `location` and `forecast` services.
+
+## Bug
+
+A bug was intentionally left in the code to demonstrate how useful
+instrumentation can be, can you find it? If you do, let me know and I'll buy you
+a drink.
