@@ -7,7 +7,7 @@ pushd ${GIT_ROOT}/example/weather
 
 echo "Generating Goa code..."
 
-for svc in front forecast locator; do
+for svc in front forecaster locator; do
   goa gen github.com/crossnokaye/micro/example/weather/services/${svc}/design -o services/${svc}
 done
 

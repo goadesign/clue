@@ -26,12 +26,6 @@ func TestContext(t *testing.T) {
 	if st.provider == nil {
 		t.Error("expected provider in tracing context")
 	}
-	if st.tracer == nil {
-		t.Error("expected tracer in tracing context")
-	}
-	if len(st.spans) != 0 {
-		t.Errorf("expected no span, got %d", len(st.spans))
-	}
 }
 
 func TestIsTraced(t *testing.T) {
@@ -48,6 +42,7 @@ func TestIsTraced(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	ctx = withTracing(ctx, context.Background())
 	ctx = StartSpan(ctx, "test")
 	if !IsTraced(ctx) {
 		t.Error("expected traced")

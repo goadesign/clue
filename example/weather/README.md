@@ -51,17 +51,31 @@ is initialized with the key / value pair `svc`:`<name of service>`, for example:
 ctx := log.With(log.Context(context.Background()), "svc", genfront.ServiceName)
 ```
 
-Each service also uses the endpoint middleware to initialize the log context for
+The `front` service uses the HTTP middleware to initialize the log context for
 for every request:
 
 ```go
-endpoints.Use(log.Init(ctx))
+handler = log.HTTP(ctx)(handler)
 ```
 
-Finally, health check HTTP endpoints use the log HTTP middleware to log errors:
+The health check HTTP endpoints also use the log HTTP middleware to log errors:
 
 ```go
 check := log.HTTP(ctx)(health.Handler(health.NewChecker(location, forecast)))
+```
+
+The gRPC services (`locator` and `forecast`) use the gRPC intercetor returned by
+`log.UnaryServerInterceptor` to initialize the log context for every request:
+
+```go
+grpcsvr := grpc.NewServer(
+	grpcmiddleware.WithUnaryServerChain(
+		goagrpcmiddleware.UnaryRequestID(),
+		log.UnaryServerInterceptor(ctx),
+		goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
+		instrument.UnaryServerInterceptor(ctx, genforecast.ServiceName),
+		trace.UnaryServerInterceptor(ctx),
+	))
 ```
 
 ### Tracing

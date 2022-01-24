@@ -2,6 +2,9 @@
 
 set -e
 
+mkdir -p /tmp/cortex/rule
+mkdir -p /tmp/tempo
+
 echo "Starting services..."
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
@@ -9,7 +12,7 @@ pushd ${GIT_ROOT}/example/weather
 
 source ./scripts/utils/common.sh
 
-docker-compose up -d
+docker-compose -f docker-compose/docker-compose-grafana.yaml up -d 
 
 overmind start
 

@@ -67,9 +67,16 @@ func IsTraced(ctx context.Context) bool {
 	return span.IsRecording() && span.SpanContext().IsSampled()
 }
 
-// withProvider returns a new context with the given state.
+// withProvider stores the tracer provider in the context.
 func withProvider(ctx context.Context, provider *sdktrace.TracerProvider) context.Context {
+	return context.WithValue(ctx, stateKey, &stateBag{provider: provider})
+}
+
+// withTracing initializes the tracing context, ctx must have been initialized
+// with withProvider and the request must be traced by otel.
+func withTracing(traceCtx, ctx context.Context) context.Context {
+	provider := traceCtx.Value(stateKey).(*stateBag).provider
 	tracer := provider.Tracer(InstrumentationLibraryName)
-	state := &stateBag{provider, tracer, nil}
-	return context.WithValue(ctx, stateKey, state)
+	spans := []trace.Span{trace.SpanFromContext(ctx)}
+	return context.WithValue(ctx, stateKey, &stateBag{provider, tracer, spans})
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/crossnokaye/micro/example/weather/services/front/clients/forecast"
+	"github.com/crossnokaye/micro/example/weather/services/front/clients/forecaster"
 	"github.com/crossnokaye/micro/example/weather/services/front/clients/locator"
 	genfront "github.com/crossnokaye/micro/example/weather/services/front/gen/front"
 )
@@ -14,7 +14,7 @@ func TestForecast(t *testing.T) {
 	cases := []struct {
 		name         string
 		locationFunc locator.GetLocationFunc
-		forecastFunc forecast.GetForecastFunc
+		forecastFunc forecaster.GetForecastFunc
 
 		expectedResult *genfront.Forecast2
 		expectedError  error
@@ -28,7 +28,7 @@ func TestForecast(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			lmock := locator.NewMock(t)
 			lmock.AddGetLocationFunc(c.locationFunc)
-			fmock := forecast.NewMock(t)
+			fmock := forecaster.NewMock(t)
 			fmock.AddGetForecastFunc(c.forecastFunc)
 			s := New(fmock, lmock)
 			result, err := s.Forecast(context.Background(), testIP)
@@ -149,24 +149,24 @@ func getLocationErrorFunc(t *testing.T) locator.GetLocationFunc {
 	}
 }
 
-func getForecastFunc(t *testing.T) forecast.GetForecastFunc {
-	return func(ctx context.Context, lat float64, long float64) (*forecast.Forecast, error) {
+func getForecastFunc(t *testing.T) forecaster.GetForecastFunc {
+	return func(ctx context.Context, lat float64, long float64) (*forecaster.Forecast, error) {
 		if lat != testLocation.Lat || long != testLocation.Long {
 			t.Errorf("GetForecast: expected (%f, %f), got (%f, %f)", testLocation.Lat, testLocation.Long, lat, long)
 			return nil, nil
 		}
-		lval := forecast.Location(*testForecast.Location)
-		ps := make([]*forecast.Period, len(testForecast.Periods))
+		lval := forecaster.Location(*testForecast.Location)
+		ps := make([]*forecaster.Period, len(testForecast.Periods))
 		for i, p := range testForecast.Periods {
-			pval := forecast.Period(*p)
+			pval := forecaster.Period(*p)
 			ps[i] = &pval
 		}
-		return &forecast.Forecast{Location: &lval, Periods: ps}, nil
+		return &forecaster.Forecast{Location: &lval, Periods: ps}, nil
 	}
 }
 
-func getForecastErrorFunc(t *testing.T) forecast.GetForecastFunc {
-	return func(ctx context.Context, lat float64, long float64) (*forecast.Forecast, error) {
+func getForecastErrorFunc(t *testing.T) forecaster.GetForecastFunc {
+	return func(ctx context.Context, lat float64, long float64) (*forecaster.Forecast, error) {
 		return nil, errForecast
 	}
 }

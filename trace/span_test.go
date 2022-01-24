@@ -28,6 +28,7 @@ func TestStartEndSpan(t *testing.T) {
 	ctx, exporter := newTestTracingContext()
 
 	// Create span
+	ctx = withTracing(ctx, context.Background())
 	ctx = StartSpan(ctx, "span")
 	if !trace.SpanFromContext(ctx).SpanContext().IsValid() {
 		t.Error("expected valid span")
@@ -57,7 +58,7 @@ func TestStartEndSpan(t *testing.T) {
 func TestChildSpan(t *testing.T) {
 	// Setup
 	ctx, exporter := newTestTracingContext()
-	// defer parentSpan.End()
+	ctx = withTracing(ctx, context.Background())
 
 	// Create spans
 	ctx = StartSpan(ctx, "parent")
@@ -105,6 +106,7 @@ func TestSetSpanAttributes(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			// Setup
 			ctx, exporter := newTestTracingContext()
+			ctx = withTracing(ctx, context.Background())
 
 			// Create span and set attributes
 			ctx = StartSpan(ctx, "span")
@@ -142,6 +144,7 @@ func TestAddEventNoContext(t *testing.T) {
 func TestAddEvent(t *testing.T) {
 	// Setup
 	ctx, exporter := newTestTracingContext()
+	ctx = withTracing(ctx, context.Background())
 
 	// Create span and add event
 	ctx = StartSpan(ctx, "span")
@@ -177,6 +180,7 @@ func TestFailNoContext(t *testing.T) {
 func TestFail(t *testing.T) {
 	// Setup
 	ctx, exporter := newTestTracingContext()
+	ctx = withTracing(ctx, context.Background())
 
 	// Create span and set status
 	ctx = StartSpan(ctx, "span")
@@ -203,6 +207,7 @@ func TestSucceedNoContext(t *testing.T) {
 func TestSucceed(t *testing.T) {
 	// Setup
 	ctx, exporter := newTestTracingContext()
+	ctx = withTracing(ctx, context.Background())
 
 	// Create span and set status
 	ctx = StartSpan(ctx, "span")
@@ -227,6 +232,7 @@ func TestRecordErrorNoContext(t *testing.T) {
 func TestRecordError(t *testing.T) {
 	// Setup
 	ctx, exporter := newTestTracingContext()
+	ctx = withTracing(ctx, context.Background())
 
 	// Create span and add event
 	ctx = StartSpan(ctx, "span")
@@ -263,6 +269,7 @@ func TestTraceIDNoContext(t *testing.T) {
 func TestTraceID(t *testing.T) {
 	// Setup
 	ctx, _ := newTestTracingContext()
+	ctx = withTracing(ctx, context.Background())
 
 	// Create span and validate
 	ctx = StartSpan(ctx, "span")
@@ -282,6 +289,7 @@ func TestSpanIDNoContext(t *testing.T) {
 func TestSpanID(t *testing.T) {
 	// Setup
 	ctx, _ := newTestTracingContext()
+	ctx = withTracing(ctx, context.Background())
 
 	// Create span and add event
 	ctx = StartSpan(ctx, "span")
@@ -298,14 +306,15 @@ func TestSetActiveSpansNoContext(t *testing.T) {
 func TestActiveSpans(t *testing.T) {
 	// Setup
 	ctx, _ := newTestTracingContext()
+	ctx = withTracing(ctx, context.Background())
 
 	// Create out-of-state span
 	ctx, span := ctx.Value(stateKey).(*stateBag).tracer.Start(ctx, "span")
 
 	// Make sure it's not in state
 	spans := activeSpans(ctx)
-	if len(spans) != 0 {
-		t.Fatalf("got %d active spans, expected 0", len(spans))
+	if len(spans) != 1 {
+		t.Fatalf("got %d active spans, expected 1", len(spans))
 	}
 
 	// Manually add it to state

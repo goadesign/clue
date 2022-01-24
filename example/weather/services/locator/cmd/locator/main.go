@@ -68,13 +68,13 @@ func main() {
 	// 4. Create service & endpoints
 	svc := locator.New(ipc)
 	endpoints := genlocator.NewEndpoints(svc)
-	endpoints.Use(log.Init(ctx))
 
 	// 5. Create transport
 	server := gengrpc.New(endpoints, nil)
 	grpcsvr := grpc.NewServer(
 		grpcmiddleware.WithUnaryServerChain(
 			goagrpcmiddleware.UnaryRequestID(),
+			log.UnaryServerInterceptor(ctx),
 			goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
 			trace.UnaryServerInterceptor(ctx),
 			instrument.UnaryServerInterceptor(ctx, genlocator.ServiceName),

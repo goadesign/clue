@@ -21,7 +21,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/crossnokaye/micro/example/weather/services/front"
-	"github.com/crossnokaye/micro/example/weather/services/front/clients/forecast"
+	"github.com/crossnokaye/micro/example/weather/services/front/clients/forecaster"
 	"github.com/crossnokaye/micro/example/weather/services/front/clients/locator"
 	genfront "github.com/crossnokaye/micro/example/weather/services/front/gen/front"
 	genhttp "github.com/crossnokaye/micro/example/weather/services/front/gen/http/front/server"
@@ -78,21 +78,21 @@ func main() {
 		log.Error(ctx, "failed to connect to forecast", "err", err)
 		os.Exit(1)
 	}
-	fc := forecast.New(fcc)
+	fc := forecaster.New(fcc)
 
 	// 4. Create service & endpoints
 	svc := front.New(fc, lc)
 	endpoints := genfront.NewEndpoints(svc)
-	endpoints.Use(log.Init(ctx))
 
 	// 5. Create transport
 	mux := goahttp.NewMuxer()
 	server := genhttp.New(endpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)
 	genhttp.Mount(mux, server)
-	handler := goahttpmiddleware.Log(log.Adapt(ctx))(mux)
-	handler = goahttpmiddleware.RequestID()(handler)
-	handler = trace.HTTP(ctx, genfront.ServiceName)(handler)
+	handler := trace.HTTP(ctx, genfront.ServiceName)(mux)
 	handler = instrument.HTTP(genfront.ServiceName)(handler)
+	handler = goahttpmiddleware.Log(log.Adapt(ctx))(handler)
+	handler = log.HTTP(ctx)(handler)
+	handler = goahttpmiddleware.RequestID()(handler)
 	l := &http.Server{Addr: *httpListenAddr, Handler: handler}
 	for _, m := range server.Mounts {
 		log.Print(ctx, "mount", "method", m.Method, "verb", m.Verb, "path", m.Pattern)

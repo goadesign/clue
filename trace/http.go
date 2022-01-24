@@ -4,9 +4,11 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/crossnokaye/micro/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"goa.design/goa/v3/middleware"
 )
@@ -47,9 +49,8 @@ func HTTP(ctx context.Context, svc string) func(http.Handler) http.Handler {
 			h = addRequestIDHTTP(h)
 			h = otelhttp.NewHandler(h, svc,
 				otelhttp.WithTracerProvider(s.(*stateBag).provider),
-				// disable meter, use micro/instrument instead
 				otelhttp.WithMeterProvider(metric.NewNoopMeterProvider()),
-			)
+				otelhttp.WithPropagators(propagation.TraceContext{}))
 			h.ServeHTTP(w, req)
 		})
 	}
@@ -64,7 +65,8 @@ func Client(ctx context.Context, t http.RoundTripper) http.RoundTripper {
 	}
 	return otelhttp.NewTransport(t,
 		otelhttp.WithTracerProvider(s.(*stateBag).provider),
-		otelhttp.WithMeterProvider(metric.NewNoopMeterProvider()))
+		otelhttp.WithMeterProvider(metric.NewNoopMeterProvider()),
+		otelhttp.WithPropagators(propagation.TraceContext{}))
 }
 
 // addRequestIDHTTP is a middleware that adds the request ID to the current span
@@ -84,11 +86,13 @@ func addRequestIDHTTP(h http.Handler) http.Handler {
 
 // initTracingContext is a middleware that adds the tracing state to the request
 // context.
-func initTracingContext(ctx context.Context, h http.Handler) http.Handler {
+func initTracingContext(traceCtx context.Context, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		s := ctx.Value(stateKey).(*stateBag)
-		ctx := withProvider(req.Context(), s.provider)
-		setActiveSpans(ctx, []trace.Span{trace.SpanFromContext(req.Context())})
-		h.ServeHTTP(w, req.WithContext(ctx))
+		ctx := req.Context()
+		if IsTraced(ctx) {
+			req = req.WithContext(withTracing(traceCtx, ctx))
+			log.Debug(ctx, "", "traceID", trace.SpanFromContext(ctx).SpanContext().TraceID())
+		}
+		h.ServeHTTP(w, req)
 	})
 }

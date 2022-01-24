@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/crossnokaye/micro/example/weather/services/front/clients/forecast"
+	"github.com/crossnokaye/micro/example/weather/services/front/clients/forecaster"
 	"github.com/crossnokaye/micro/example/weather/services/front/clients/locator"
 	genfront "github.com/crossnokaye/micro/example/weather/services/front/gen/front"
 )
@@ -12,19 +12,19 @@ import (
 type (
 	// Service is the front service implementation.
 	Service struct {
-		fc forecast.Client
+		fc forecaster.Client
 		lc locator.Client
 	}
 )
 
 // New instantiates a new front service.
-func New(fc forecast.Client, lc locator.Client) *Service {
+func New(fc forecaster.Client, lc locator.Client) *Service {
 	return &Service{fc: fc, lc: lc}
 }
 
 // Forecast returns the forecast for the location at the given IP.
 func (s *Service) Forecast(ctx context.Context, ip string) (*genfront.Forecast2, error) {
-	l, err := s.lc.GetLocation(context.Background(), ip)
+	l, err := s.lc.GetLocation(ctx, ip)
 	if err != nil {
 		return nil, err
 	}
