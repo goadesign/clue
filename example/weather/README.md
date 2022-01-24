@@ -22,9 +22,9 @@ scripts/server
 
 `scripts/setup` download build dependencies and compiles the services.
 `scripts/server` runs the services using
-[overmind](https://github.com/DarthSim/overmind). `scripts/server` also takes
-care of starting the OpenTelemetry collector used to ship traces (via
-`docker-compose`).
+[overmind](https://github.com/DarthSim/overmind). `scripts/server` also starts
+`docker-compose` with a configuration that runs the Grafana agent, cortex, tempo
+and dashboard locally.
 
 ### Making a Request
 
@@ -34,6 +34,22 @@ service using the `curl` command:
 ```bash
 curl http://localhost:8084/forecast/8.8.8.8
 ```
+
+### Looking at Traces
+
+To analyze traces:
+
+* Retrieve the front service trace ID from its logs, for example:
+
+```
+front      | DEBG[0003] svc=front requestID=aZtVOM7L traceID=fcb9bb474db0b095923b110b7c1cdcab
+```
+
+* Open the Grafana dashboard running on
+  [http://localhost:3000](http://localhost:3000), click on `Explore` in the left
+  pane and select `Tempo` in the top dropdown. Enter the trace ID and voila:
+
+![Tempo Screenshot](./images/tempo.png)
 
 ## System Architecture
 

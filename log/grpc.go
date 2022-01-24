@@ -24,7 +24,7 @@ func UnaryServerInterceptor(logCtx context.Context) grpc.UnaryServerInterceptor 
 	) (interface{}, error) {
 		ctx = context.WithValue(ctx, ctxLogger, logger)
 		if reqID := ctx.Value(middleware.RequestIDKey); reqID != nil {
-			ctx = With(ctx, "request_id", reqID)
+			ctx = With(ctx, "requestID", reqID)
 		}
 		return handler(ctx, req)
 	}
@@ -47,7 +47,7 @@ func StreamServerInterceptor(logCtx context.Context) grpc.StreamServerIntercepto
 	) error {
 		ctx := context.WithValue(stream.Context(), ctxLogger, logger)
 		if reqID := ctx.Value(middleware.RequestIDKey); reqID != nil {
-			ctx = With(ctx, "request_id", reqID)
+			ctx = With(ctx, "requestID", reqID)
 		}
 		return handler(srv, &streamWithContext{stream, ctx})
 	}

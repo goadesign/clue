@@ -29,7 +29,7 @@ const (
 
 	// AttributeRequestID is the name of the span attribute that contains the
 	// request ID.
-	AttributeRequestID = "request_id"
+	AttributeRequestID = "request.id"
 )
 
 const (

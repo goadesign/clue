@@ -35,7 +35,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 		`"level":"INFO"`,
 		`"time":"2022-01-09T20:29:45Z"`,
 		`"msg":"hello world"`,
-		`"request_id":`,
+		`"requestID":`,
 		*f.S,
 		`"key1":"value1"`,
 		`"key2":"value2"`)
@@ -75,7 +75,7 @@ func TestStreamServerTrace(t *testing.T) {
 		`"level":"INFO"`,
 		`"time":"2022-01-09T20:29:45Z"`,
 		`"msg":"hello world"`,
-		`"request_id":`,
+		`"requestID":`,
 		reqID,
 		`"key1":"value1"`,
 		`"key2":"value2"`)
