@@ -29,13 +29,13 @@ import (
 
 func main() {
 	var (
-		httpListenAddr     = flag.String("http", ":8084", "HTTP listen address (health checks)")
-		forecastAddr       = flag.String("forecast", ":8080", "Forecast service address")
-		forecastHealthAddr = flag.String("forecast-health", ":8081", "Forecast service health-check address")
-		locatorAddr        = flag.String("locator", ":8082", "Locator service address")
-		locatorHealthAddr  = flag.String("locator-health", ":8083", "Locator service health-check address")
-		collectorAddr      = flag.String("coladdr", ":4317", "OpenTelemetry remote collector address")
-		debug              = flag.Bool("debug", false, "Enable debug logs")
+		httpListenAddr       = flag.String("http", ":8084", "HTTP listen address (health checks)")
+		forecasterAddr       = flag.String("forecaster", ":8080", "Forecaster service address")
+		forecasterHealthAddr = flag.String("forecaster-health", ":8081", "Forecaster service health-check address")
+		locatorAddr          = flag.String("locator", ":8082", "Locator service address")
+		locatorHealthAddr    = flag.String("locator-health", ":8083", "Locator service health-check address")
+		collectorAddr        = flag.String("coladdr", ":4317", "OpenTelemetry remote collector address")
+		debug                = flag.Bool("debug", false, "Enable debug logs")
 	)
 	flag.Parse()
 
@@ -71,7 +71,7 @@ func main() {
 		os.Exit(1)
 	}
 	lc := locator.New(lcc)
-	fcc, err := grpc.DialContext(ctx, *forecastAddr,
+	fcc, err := grpc.DialContext(ctx, *forecasterAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(trace.UnaryClientInterceptor(ctx)))
 	if err != nil {
@@ -101,7 +101,7 @@ func main() {
 	// 6. Mount health check
 	check := health.Handler(health.NewChecker(
 		health.NewPinger("locator", "http", *locatorHealthAddr),
-		health.NewPinger("forecast", "http", *forecastHealthAddr)))
+		health.NewPinger("forecaster", "http", *forecasterHealthAddr)))
 	check = log.HTTP(ctx)(check).(http.HandlerFunc)
 	mux.Handle("GET", "/healthz", check)
 	mux.Handle("GET", "/livez", check)

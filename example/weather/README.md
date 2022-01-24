@@ -5,11 +5,11 @@ services:
 
 * The `location` service makes requests to the `ip-api.com` web API to retrieve
   IP location information.
-* The `forecast` service makes requests to the `weather.gov` web API to retrieve
+* The `forecaster` service makes requests to the `weather.gov` web API to retrieve
   weather forecast information.
 * The `front` service exposes a public HTTP API that returns weather forecast
   information for a given IP. It makes requests to the `location` service
-  followed by the `forecast` service to collect the information.
+  followed by the `forecaster` service to collect the information.
 
 ![System Architecture](./diagram/Weather%20System%20Services.svg)
 
@@ -75,17 +75,17 @@ handler = log.HTTP(ctx)(handler)
 The health check HTTP endpoints also use the log HTTP middleware to log errors:
 
 ```go
-check := log.HTTP(ctx)(health.Handler(health.NewChecker(location, forecast)))
+check = log.HTTP(ctx)(check).(http.HandlerFunc)
 ```
 
-The gRPC services (`locator` and `forecast`) use the gRPC intercetor returned by
+The gRPC services (`locator` and `forecaster`) use the gRPC intercetor returned by
 `log.UnaryServerInterceptor` to initialize the log context for every request:
 
 ```go
 grpcsvr := grpc.NewServer(
 	grpcmiddleware.WithUnaryServerChain(
 		goagrpcmiddleware.UnaryRequestID(),
-		log.UnaryServerInterceptor(ctx),
+		log.UnaryServerInterceptor(ctx), // <--
 		goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
 		instrument.UnaryServerInterceptor(ctx, genforecast.ServiceName),
 		trace.UnaryServerInterceptor(ctx),
@@ -94,13 +94,13 @@ grpcsvr := grpc.NewServer(
 
 ### Tracing
 
-The example runs an [OpenTelemetry](https://opentelemetry.io/) collector that is
-configured to listen to gRPC requests.  The collector is run in docker using an
-official image and the configuration file `config/otel-local-config.yaml`.
+The example runs a [Grafana agent](https://grafana.com/docs/grafana-cloud/agent/)
+configured to listen to OLTP gRPC requests. The agent forwards the traces to
+the [Tempo](https://grafana.com/docs/tempo/latest/) service also running locally.
 
 Each service uses the
 [trace](https://github.com/crossnokaye/micro/tree/main/trace) package to ship
-traces to the collector:
+traces to the agent:
 
 ```go
 conn, err := grpc.DialContext(ctx, *collectorAddr,
@@ -116,9 +116,10 @@ request:
 grpcsvr := grpc.NewServer(
 	grpcmiddleware.WithUnaryServerChain(
 		goagrpcmiddleware.UnaryRequestID(),
+		log.UnaryServerInterceptor(ctx),
 		goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
-		trace.UnaryServerInterceptor(ctx),
-		instrument.UnaryServerInterceptor(ctx, genlocator.ServiceName),
+		instrument.UnaryServerInterceptor(ctx, genforecast.ServiceName),
+		trace.UnaryServerInterceptor(ctx), // <--
 	))
 ```
 
@@ -153,9 +154,10 @@ The gRPC services are instrumented with the `instrument.UnaryServerInterceptor` 
 grpcsvr := grpc.NewServer(
 	grpcmiddleware.WithUnaryServerChain(
 		goagrpcmiddleware.UnaryRequestID(),
+		log.UnaryServerInterceptor(ctx),
 		goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
+		instrument.UnaryServerInterceptor(ctx, genforecast.ServiceName), // <--
 		trace.UnaryServerInterceptor(ctx),
-		instrument.UnaryServerInterceptor(ctx, genlocator.ServiceName),
 	))
 ```
 
@@ -188,13 +190,13 @@ check := log.HTTP(ctx)(health.Handler(health.NewChecker(wc)))
 ```
 
 The front service also uses the `health.NewPinger` function to create a health
-checker for the `forecast` and `location` services which both expose a `/livez`
-HTTP endpoint:
+checker for the `forecaster` and `location` services which both expose a
+`/livez` HTTP endpoint:
 
 ```go
 check := health.Handler(health.NewChecker(
 	health.NewPinger("locator", "http", *locatorHealthAddr),
-	health.NewPinger("forecast", "http", *forecastHealthAddr)))
+	health.NewPinger("forecaster", "http", *forecasterHealthAddr)))
 ```
 
 The health check handler is wrapped with the log HTTP middleware so that errors
@@ -217,7 +219,7 @@ http.Handle("/livez", check)
 
 ### Client Mocks
 
-The `front` service define clients for both the `locator` and `forecast`
+The `front` service define clients for both the `locator` and `forecaster`
 services under the `clients` directory. Each client is defined via a
 `Client` interface, for example:
 
@@ -291,16 +293,16 @@ configure the mock client:
 ```go
 lmock := locator.NewMock(t)
 lmock.AddGetLocationFunc(c.locationFunc) // Mock the locator service.
-fmock := forecast.NewMock(t)
+fmock := forecaster.NewMock(t)
 fmock.AddGetForecastFunc(c.forecastFunc) // Mock the forecast service.
 s := New(fmock, lmock) // Create front service instance for testing
 ```
 
 The `mock` package is also used to create mocks for web services (`ip-api.com`
-and `weather.gov`) in the `location` and `forecast` services.
+and `weather.gov`) in the `location` and `forecaster` services.
 
 ## Bug
 
 A bug was intentionally left in the code to demonstrate how useful
 instrumentation can be, can you find it? If you do, let me know and I'll buy you
-a drink.
+a drink🍹.
