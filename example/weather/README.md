@@ -148,7 +148,19 @@ lcc, err := grpc.DialContext(ctx, *locatorAddr,
 
 ### Metrics
 
-The gRPC services are instrumented with the `instrument.UnaryServerInterceptor` interceptor:
+The `instrument` package provides a set of instrumentation middleware that
+collects metrics from HTTP and gRPC servers and sends them to the
+[Tempo](https://grafana.com/docs/tempo/latest/) service.
+
+First the context is initialized with the service name and optional
+instrumentation options:
+
+```go
+ctx := instrument.Context(ctx, genfront.ServiceName)
+```
+
+The gRPC services are instrumented with the `instrument.UnaryServerInterceptor`
+interceptor:
 
 ```go
 grpcsvr := grpc.NewServer(
@@ -156,7 +168,7 @@ grpcsvr := grpc.NewServer(
 		goagrpcmiddleware.UnaryRequestID(),
 		log.UnaryServerInterceptor(ctx),
 		goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
-		instrument.UnaryServerInterceptor(ctx, genforecast.ServiceName), // <--
+		instrument.UnaryServerInterceptor(ctx), // <--
 		trace.UnaryServerInterceptor(ctx),
 	))
 ```
