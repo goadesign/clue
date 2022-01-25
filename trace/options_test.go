@@ -22,6 +22,10 @@ func TestOptions(t *testing.T) {
 	if options.sampleSize != 20 {
 		t.Errorf("got %d sample size, want 20", options.sampleSize)
 	}
+	WithDisabled()(options)
+	if !options.disabled {
+		t.Error("expected disabled to be true")
+	}
 	withExporter(tracetest.NewInMemoryExporter())(options)
 	if options.exporter == nil {
 		t.Error("got nil exporter, want non-nil")

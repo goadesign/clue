@@ -9,6 +9,7 @@ type (
 		maxSamplingRate int
 		sampleSize      int
 		exporter        sdktrace.SpanExporter
+		disabled        bool
 	}
 
 	// TraceOption is a function that configures a provider.
@@ -35,6 +36,13 @@ func WithMaxSamplingRate(rate int) TraceOption {
 func WithSampleSize(size int) TraceOption {
 	return func(opts *options) {
 		opts.sampleSize = size
+	}
+}
+
+// WithDisabled disables tracing, not for use in production.
+func WithDisabled() TraceOption {
+	return func(opts *options) {
+		opts.disabled = true
 	}
 }
 

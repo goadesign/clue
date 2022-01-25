@@ -18,7 +18,7 @@ type (
 	// stateBag tracks the provider, tracer and active span sequence for a request.
 	stateBag struct {
 		svc      string
-		provider *sdktrace.TracerProvider
+		provider trace.TracerProvider
 		tracer   trace.Tracer
 		spans    []trace.Span
 	}
@@ -45,6 +45,10 @@ func Context(ctx context.Context, svc string, conn *grpc.ClientConn, opts ...Tra
 		o(options)
 	}
 
+	if options.disabled {
+		return withProvider(ctx, trace.NewNoopTracerProvider(), svc), nil
+	}
+
 	res := resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceNameKey.String(svc))
 	rootSampler := adaptiveSampler(options.maxSamplingRate, options.sampleSize)
 	if options.exporter == nil {
@@ -69,7 +73,7 @@ func IsTraced(ctx context.Context) bool {
 }
 
 // withProvider stores the tracer provider in the context.
-func withProvider(ctx context.Context, provider *sdktrace.TracerProvider, svc string) context.Context {
+func withProvider(ctx context.Context, provider trace.TracerProvider, svc string) context.Context {
 	return context.WithValue(ctx, stateKey, &stateBag{provider: provider, svc: svc})
 }
 

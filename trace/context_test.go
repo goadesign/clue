@@ -28,6 +28,28 @@ func TestContext(t *testing.T) {
 	}
 }
 
+func TestDisabled(t *testing.T) {
+	ctx, err := Context(context.Background(), "test", nil, WithDisabled())
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := ctx.Value(stateKey)
+	if s == nil {
+		t.Fatal("expected state in context")
+	}
+	st, ok := s.(*stateBag)
+	if !ok {
+		t.Fatalf("got %T, expected *stateBag", s)
+	}
+	if st.provider == nil {
+		t.Error("expected provider in tracing context")
+	}
+	_, span := st.provider.Tracer("test").Start(ctx, "test")
+	if span.IsRecording() {
+		t.Error("expected span to be disabled")
+	}
+}
+
 func TestIsTraced(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	ctx, err := Context(context.Background(), "test", nil,
