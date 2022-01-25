@@ -127,7 +127,7 @@ The front service uses the `trace.HTTP` middleware to create a span for each
 request:
 
 ```go
-handler = trace.HTTP(ctx, genfront.ServiceName)(handler)
+handler = trace.HTTP(ctx)(handler)
 ```
 
 HTTP dependency clients use the `trace.Client` middleware to create spans for
@@ -156,7 +156,7 @@ First the context is initialized with the service name and optional
 instrumentation options:
 
 ```go
-ctx := instrument.Context(ctx, genfront.ServiceName)
+ctx = instrument.Context(ctx, genfront.ServiceName)
 ```
 
 The gRPC services are instrumented with the `instrument.UnaryServerInterceptor`
@@ -176,7 +176,7 @@ grpcsvr := grpc.NewServer(
 The front service is instrumented with the `instrument.HTTP` middleware:
 
 ```go
-handler = instrument.HTTP(genfront.ServiceName)(handler)
+handler = instrument.HTTP(ctx)(handler)
 ```
 
 All the services run a HTTP server that exposes a Prometheus metrics endpoint at

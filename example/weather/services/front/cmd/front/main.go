@@ -96,7 +96,7 @@ func main() {
 	mux := goahttp.NewMuxer()
 	server := genhttp.New(endpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)
 	genhttp.Mount(mux, server)
-	handler := trace.HTTP(ctx, genfront.ServiceName)(mux)
+	handler := trace.HTTP(ctx)(mux)
 	handler = instrument.HTTP(ctx)(handler)
 	handler = goahttpmiddleware.Log(log.Adapt(ctx))(handler)
 	handler = log.HTTP(ctx)(handler)

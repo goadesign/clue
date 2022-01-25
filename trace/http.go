@@ -36,9 +36,9 @@ const errContextMissing = "context not initialized for tracing, use trace.Contex
 //      // Initialize context for tracing
 //      ctx := trace.Context(ctx, svcgen.ServiceName, conn)
 //      // Mount middleware
-// 	handler := trace.HTTP(ctx, svcgen.ServiceName)(mux)
+// 	handler := trace.HTTP(ctx)(mux)
 //
-func HTTP(ctx context.Context, svc string) func(http.Handler) http.Handler {
+func HTTP(ctx context.Context) func(http.Handler) http.Handler {
 	s := ctx.Value(stateKey)
 	if s == nil {
 		panic(errContextMissing)
@@ -46,7 +46,7 @@ func HTTP(ctx context.Context, svc string) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		h = initTracingContext(ctx, h)
 		h = addRequestIDHTTP(h)
-		return otelhttp.NewHandler(h, svc,
+		return otelhttp.NewHandler(h, s.(*stateBag).svc,
 			otelhttp.WithTracerProvider(s.(*stateBag).provider),
 			otelhttp.WithMeterProvider(metric.NewNoopMeterProvider()),
 			otelhttp.WithPropagators(propagation.TraceContext{}))

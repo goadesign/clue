@@ -64,7 +64,7 @@ func main() {
         ctx = trace.Context(ctx, svcgen.ServiceName, conn)
 
         // ** Trace HTTP requests **
-        handler := trace.HTTP(ctx, svcgen.ServiceName)(mux)
+        handler := trace.HTTP(ctx)(mux)
 
         // Create gRPC server
         grpcsvr := grpcsvrgen.New(endpoints, nil)

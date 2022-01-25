@@ -40,15 +40,18 @@ func main() {
         httpsvr := httpsvrgen.New(endpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)
         httpsvrgen.Mount(mux, httpsvr)
 
+        // ** Initialize context for instrumentation **
+        ctx = instrument.Context(ctx, svcgen.ServiceName)
+
         // ** Instrument HTTP endpoints **
-        handler := instrument.HTTP(svcgen.ServiceName)(mux)
+        handler := instrument.HTTP(ctx)(mux)
 
         // Create gRPC server
         grpcsvr := grpcsvrgen.New(endpoints, nil)
 
         // ** Instrument gRPC endpoints **
-        unaryInterceptor := instrument.UnaryServerInterceptor(ctx, svcgen.ServiceName)
-        streamInterceptor := instrument.StreamServerInterceptor(ctx, svcgen.ServiceName)
+        unaryInterceptor := instrument.UnaryServerInterceptor(ctx)
+        streamInterceptor := instrument.StreamServerInterceptor(ctx)
         pbsvr := grpc.NewServer(grpc.UnaryInterceptor(unaryInterceptor), grpc.StreamInterceptor(streamInterceptor))
 
         // ** Mount the /metrics handler used by Prometheus to scrape metrics **
@@ -60,7 +63,7 @@ func main() {
 
 The `instrument` functions used to instrument the service are:
 
-* `HTTP`: creates a middlware that instruments an HTTP handler.
+* `HTTP`: creates a middleware that instruments an HTTP handler.
 * `UnaryServerInterceptor`: creates an interceptor that instruments gRPC unary server methods.
 * `StreamServerInterceptor`: creates an interceptor that instruments gRPC stream server methods.
 * `Handler`: creates a HTTP handler that exposes Prometheus metrics.
@@ -113,15 +116,16 @@ have the following additional labels:
 ## Configuration
 
 ### Histogram Buckets
+
 The histogram buckets can be specified using the `WithDurationBuckets`,
-`WithRequestSizeBuckets` and `WithResponseSizeBuckets` options:
+`WithRequestSizeBuckets` and `WithResponseSizeBuckets` options of the `Context`
+function:
 
 ```go
-err := instrument.HTTP(svc.ServiceName,
+ctx = instrument.Context(ctx, svc.ServiceName,
         instrument.WithDurationBuckets([]float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10}),
         instrument.WithRequestSizeBuckets([]float64{1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024}),
-        instrument.WithResponseSizeBuckets([]float64{1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024}),
-        )(mux)
+        instrument.WithResponseSizeBuckets([]float64{1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024}))
 ```
 
 The default bucket upper boundaries are:
@@ -136,7 +140,7 @@ metrics and serve them. A user configured registerer can be specified when
 creating the metrics via `WithRegisterer`:
 
 ```go
-err := instrument.HTTP(svc.ServiceName, instrument.WithRegisterer(registerer))(mux)
+ctx = instrument.Context(ctx, svc.ServiceName, instrument.WithRegisterer(registerer))(mux)
 ```
 
 A user configured gatherer (used to collect the metrics) and registerer (used to
@@ -144,5 +148,5 @@ register metrics for the `/metrics` endpoint) can be specified when creating the
 metrics handler via `WithGatherer` and `WithHandlerRegisterer` respectively:
 
 ```go
-err := instrument.Handler(ctx, instrument.WithGatherer(gatherer), instrument.WithHandlerRegisterer(registerer))
+handler = instrument.Handler(ctx, instrument.WithGatherer(gatherer), instrument.WithHandlerRegisterer(registerer))
 ```
