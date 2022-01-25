@@ -83,14 +83,13 @@ func main() {
 For tracing to work appropriately all clients to downstream dependencies must be
 configured using the appropriate trace package function. 
 
-For HTTP dependencies the trace package provides a `TraceClient` function that
-can be used to configure a `http.Client` to trace all requests made through it.
-`TraceClient` does nothing if the current request is not traced or the context
-not initialized with `trace.Context`.
+For HTTP dependencies the trace package provides a `Client` function that can be
+used to configure a `http.RoundTripper` to trace all requests made through it.
+`Client` panics if the context hasn't be initialized with `trace.Context`.
 
 ```go
 // Create a tracing HTTP client
-doer := trace.WrapDoer(ctx, http.DefaultClient)
+c := &http.Client{Transport: trace.Client(ctx, http.DefaultTransport)}
 ```
 
 For gRPC dependencies the trace package provides the `UnaryClientTrace` and
