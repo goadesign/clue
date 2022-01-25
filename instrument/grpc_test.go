@@ -29,7 +29,8 @@ func TestUnaryServerInterceptorServerDuration(t *testing.T) {
 			timeSince = func(time.Time) time.Duration { return c.d }
 
 			reg := NewTestRegistry(t)
-			uinter := UnaryServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
+			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
+			uinter := UnaryServerInterceptor(ctx)
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithServerOptions(grpc.UnaryInterceptor(uinter)),
 				testsvc.WithUnaryFunc(noopMethod()))
@@ -40,7 +41,7 @@ func TestUnaryServerInterceptorServerDuration(t *testing.T) {
 			}
 
 			stop()
-			reg.AssertHistogram(MetricRPCDuration, RPCLabels, 1, c.expectedBucketCounts)
+			reg.AssertHistogram(metricRPCDuration, rpcLabels, 1, c.expectedBucketCounts)
 		})
 	}
 }
@@ -59,7 +60,8 @@ func TestUnaryServerInterceptorRequestSize(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			reg := NewTestRegistry(t)
-			uinter := UnaryServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithRequestSizeBuckets(buckets))
+			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg), WithRequestSizeBuckets(buckets))
+			uinter := UnaryServerInterceptor(ctx)
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithServerOptions(grpc.UnaryInterceptor(uinter)),
 				testsvc.WithUnaryFunc(noopMethod()))
@@ -70,7 +72,7 @@ func TestUnaryServerInterceptorRequestSize(t *testing.T) {
 			}
 
 			stop()
-			reg.AssertHistogram(MetricRPCRequestSize, RPCLabels, 1, c.expectedBucketCounts)
+			reg.AssertHistogram(metricRPCRequestSize, rpcLabels, 1, c.expectedBucketCounts)
 		})
 	}
 }
@@ -89,7 +91,8 @@ func TestUnaryServerInterceptorResponseSize(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			reg := NewTestRegistry(t)
-			uinter := UnaryServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithResponseSizeBuckets(buckets))
+			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg), WithResponseSizeBuckets(buckets))
+			uinter := UnaryServerInterceptor(ctx)
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithServerOptions(grpc.UnaryInterceptor(uinter)),
 				testsvc.WithUnaryFunc(stringMethod(c.str)))
@@ -100,7 +103,7 @@ func TestUnaryServerInterceptorResponseSize(t *testing.T) {
 			}
 
 			stop()
-			reg.AssertHistogram(MetricRPCResponseSize, RPCLabels, 1, c.expectedBucketCounts)
+			reg.AssertHistogram(metricRPCResponseSize, rpcLabels, 1, c.expectedBucketCounts)
 		})
 	}
 }
@@ -117,7 +120,8 @@ func TestUnaryServerInterceptorActiveRequests(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			reg := NewTestRegistry(t)
-			uinter := UnaryServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg))
+			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg))
+			uinter := UnaryServerInterceptor(ctx)
 			chstop := make(chan struct{})
 			var running, done sync.WaitGroup
 			running.Add(c.numReqs)
@@ -131,7 +135,7 @@ func TestUnaryServerInterceptorActiveRequests(t *testing.T) {
 			}
 
 			running.Wait()
-			reg.AssertGauge(MetricRPCActiveRequests, RPCActiveRequestsLabels, c.numReqs)
+			reg.AssertGauge(metricRPCActiveRequests, rpcNoCodeLabels, c.numReqs)
 			close(chstop)
 			done.Wait()
 			stop()
@@ -157,7 +161,8 @@ func TestStreamServerInterceptorServerDuration(t *testing.T) {
 			timeSince = func(time.Time) time.Duration { return c.d }
 
 			reg := NewTestRegistry(t)
-			sinter := StreamServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
+			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
+			sinter := StreamServerInterceptor(ctx)
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithServerOptions(grpc.StreamInterceptor(sinter)),
 				testsvc.WithStreamFunc(echoMethod()))
@@ -174,12 +179,12 @@ func TestStreamServerInterceptorServerDuration(t *testing.T) {
 			}
 
 			stop()
-			reg.AssertHistogram(MetricRPCDuration, RPCLabels, 1, c.expectedBucketCounts)
+			reg.AssertHistogram(metricRPCDuration, rpcLabels, 1, c.expectedBucketCounts)
 		})
 	}
 }
 
-func TestStreamServerInterceptorRequestSize(t *testing.T) {
+func TestStreamServerInterceptorMessageSize(t *testing.T) {
 	buckets := []float64{10, 110}
 	cases := []struct {
 		name                 string
@@ -193,7 +198,8 @@ func TestStreamServerInterceptorRequestSize(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			reg := NewTestRegistry(t)
-			sinter := StreamServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithRequestSizeBuckets(buckets))
+			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg), WithRequestSizeBuckets(buckets))
+			sinter := StreamServerInterceptor(ctx)
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithServerOptions(grpc.StreamInterceptor(sinter)),
 				testsvc.WithStreamFunc(echoMethod()))
@@ -210,7 +216,7 @@ func TestStreamServerInterceptorRequestSize(t *testing.T) {
 			}
 
 			stop()
-			reg.AssertHistogram(MetricRPCRequestSize, RPCStreamLabels, 1, c.expectedBucketCounts)
+			reg.AssertHistogram(metricRPCStreamMessageSize, rpcNoCodeLabels, 1, c.expectedBucketCounts)
 		})
 	}
 }
@@ -229,7 +235,8 @@ func TestStreamServerInterceptorResponseSize(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			reg := NewTestRegistry(t)
-			sinter := StreamServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg), WithResponseSizeBuckets(buckets))
+			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg), WithResponseSizeBuckets(buckets))
+			sinter := StreamServerInterceptor(ctx)
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithServerOptions(grpc.StreamInterceptor(sinter)),
 				testsvc.WithStreamFunc(echoMethod()))
@@ -246,7 +253,7 @@ func TestStreamServerInterceptorResponseSize(t *testing.T) {
 			}
 
 			stop()
-			reg.AssertHistogram(MetricRPCResponseSize, RPCStreamLabels, 1, c.expectedBucketCounts)
+			reg.AssertHistogram(metricRPCStreamResponseSize, rpcNoCodeLabels, 1, c.expectedBucketCounts)
 		})
 	}
 }
@@ -263,7 +270,8 @@ func TestStreamServerInterceptorActiveRequests(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			reg := NewTestRegistry(t)
-			sinter := StreamServerInterceptor(context.Background(), "testsvc", WithRegisterer(reg))
+			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg))
+			sinter := StreamServerInterceptor(ctx)
 			chstop := make(chan struct{})
 			var running, done sync.WaitGroup
 			running.Add(c.numReqs)
@@ -284,7 +292,7 @@ func TestStreamServerInterceptorActiveRequests(t *testing.T) {
 				}()
 			}
 			running.Wait()
-			reg.AssertGauge(MetricRPCActiveRequests, RPCActiveRequestsLabels, c.numReqs)
+			reg.AssertGauge(metricRPCActiveRequests, rpcNoCodeLabels, c.numReqs)
 			close(chstop)
 			done.Wait()
 			stop()

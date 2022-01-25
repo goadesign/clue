@@ -29,7 +29,8 @@ func TestHTTPServerDuration(t *testing.T) {
 			timeSince = func(time.Time) time.Duration { return c.d }
 
 			reg := NewTestRegistry(t)
-			middleware := HTTP("testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
+			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
+			middleware := HTTP(ctx)
 			cli, stop := testsvc.SetupHTTP(t,
 				testsvc.WithHTTPMiddleware(middleware),
 				testsvc.WithHTTPFunc(noopMethod()))
@@ -39,7 +40,7 @@ func TestHTTPServerDuration(t *testing.T) {
 			}
 
 			stop()
-			reg.AssertHistogram(MetricHTTPDuration, HTTPLabels, 1, c.expectedBucketCounts)
+			reg.AssertHistogram(metricHTTPDuration, httpLabels, 1, c.expectedBucketCounts)
 		})
 	}
 }
@@ -58,7 +59,8 @@ func TestHTTPRequestSize(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			reg := NewTestRegistry(t)
-			middleware := HTTP("testsvc", WithRegisterer(reg), WithRequestSizeBuckets(buckets))
+			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg), WithRequestSizeBuckets(buckets))
+			middleware := HTTP(ctx)
 			cli, stop := testsvc.SetupHTTP(t,
 				testsvc.WithHTTPMiddleware(middleware),
 				testsvc.WithHTTPFunc(noopMethod()))
@@ -69,7 +71,7 @@ func TestHTTPRequestSize(t *testing.T) {
 			}
 
 			stop()
-			reg.AssertHistogram(MetricHTTPRequestSize, HTTPLabels, 1, c.expectedBucketCounts)
+			reg.AssertHistogram(metricHTTPRequestSize, httpLabels, 1, c.expectedBucketCounts)
 		})
 	}
 }
@@ -88,7 +90,8 @@ func TestHTTPResponseSize(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			reg := NewTestRegistry(t)
-			middleware := HTTP("testsvc", WithRegisterer(reg), WithResponseSizeBuckets(buckets))
+			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg), WithResponseSizeBuckets(buckets))
+			middleware := HTTP(ctx)
 			cli, stop := testsvc.SetupHTTP(t,
 				testsvc.WithHTTPMiddleware(middleware),
 				testsvc.WithHTTPFunc(stringMethod(c.str)))
@@ -99,7 +102,7 @@ func TestHTTPResponseSize(t *testing.T) {
 			}
 
 			stop()
-			reg.AssertHistogram(MetricHTTPResponseSize, HTTPLabels, 1, c.expectedBucketCounts)
+			reg.AssertHistogram(metricHTTPResponseSize, httpLabels, 1, c.expectedBucketCounts)
 		})
 	}
 }
@@ -116,7 +119,8 @@ func TestHTTPActiveRequests(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			reg := NewTestRegistry(t)
-			middleware := HTTP("testsvc", WithRegisterer(reg))
+			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg))
+			middleware := HTTP(ctx)
 			chstop := make(chan struct{})
 			var running, done sync.WaitGroup
 			running.Add(c.numReqs)
@@ -135,7 +139,7 @@ func TestHTTPActiveRequests(t *testing.T) {
 			}
 
 			running.Wait()
-			reg.AssertGauge(MetricHTTPActiveRequests, HTTPActiveRequestsLabels, c.numReqs)
+			reg.AssertGauge(metricHTTPActiveRequests, httpActiveRequestsLabels, c.numReqs)
 			close(chstop)
 			done.Wait()
 			stop()

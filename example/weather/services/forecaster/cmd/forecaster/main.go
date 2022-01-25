@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
-	forecast "github.com/crossnokaye/micro/example/weather/services/forecaster"
+	"github.com/crossnokaye/micro/example/weather/services/forecaster"
 	"github.com/crossnokaye/micro/example/weather/services/forecaster/clients/weathergov"
 	genforecaster "github.com/crossnokaye/micro/example/weather/services/forecaster/gen/forecaster"
 	genpb "github.com/crossnokaye/micro/example/weather/services/forecaster/gen/grpc/forecaster/pb"
@@ -31,52 +31,60 @@ import (
 
 func main() {
 	var (
-		grpcListenAddr = flag.String("grpc", ":8080", "gRPC listen address")
-		httpListenAddr = flag.String("http", ":8081", "HTTP listen address (health checks)")
-		collectorAddr  = flag.String("coladdr", ":4317", "OpenTelemetry remote collector address")
-		debug          = flag.Bool("debug", false, "Enable debug logs")
+		grpcaddr  = flag.String("grpc-addr", ":8080", "gRPC listen address")
+		httpaddr  = flag.String("http-addr", ":8081", "HTTP listen address (health checks)")
+		agentaddr = flag.String("agent-addr", ":4317", "Grafana agent listen address")
+		debug     = flag.Bool("debug", false, "Enable debug logs")
 	)
 	flag.Parse()
 
 	// 1. Create logger
-	ctx := log.With(log.Context(context.Background()), "svc", genforecaster.ServiceName)
+	format := log.FormatJSON
+	if log.IsTerminal() {
+		format = log.FormatTerminal
+	}
+	ctx := log.Context(context.Background(), log.WithFormat(format))
+	ctx = log.With(ctx, "svc", genforecaster.ServiceName)
 	if *debug {
 		ctx = log.Context(ctx, log.WithDebug())
 		log.Debug(ctx, "debug logs enabled")
 	}
 
 	// 2. Setup tracing
-	log.Debug(ctx, "connecting to OpenTelemetry collector...", "addr", *collectorAddr)
-	conn, err := grpc.DialContext(ctx, *collectorAddr,
+	log.Debug(ctx, "connecting to Grafana agent...", "addr", *agentaddr)
+	conn, err := grpc.DialContext(ctx, *agentaddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock())
 	if err != nil {
-		log.Error(ctx, "failed to connect to OpenTelementry collector", "err", err)
+		log.Error(ctx, "failed to connect to Grafana agent", "err", err)
 		os.Exit(1)
 	}
-	log.Debug(ctx, "connected to OpenTelemetry collector", "addr", *collectorAddr)
+	log.Debug(ctx, "connected to Grafana agent", "addr", *agentaddr)
 	ctx, err = trace.Context(ctx, genforecaster.ServiceName, conn)
 	if err != nil {
 		log.Error(ctx, "failed to initialize tracing", "err", err)
 		os.Exit(1)
 	}
 
-	// 3. Create clients
+	// 3. Setup instrumentation
+	ctx = instrument.Context(ctx, genforecaster.ServiceName)
+
+	// 4. Create clients
 	c := &http.Client{Transport: trace.Client(ctx, http.DefaultTransport)}
 	wc := weathergov.New(c)
 
-	// 4. Create service & endpoints
-	svc := forecast.New(wc)
+	// 5. Create service & endpoints
+	svc := forecaster.New(wc)
 	endpoints := genforecaster.NewEndpoints(svc)
 
-	// 5. Create transport
+	// 6. Create transport
 	server := gengrpc.New(endpoints, nil)
 	grpcsvr := grpc.NewServer(
 		grpcmiddleware.WithUnaryServerChain(
 			goagrpcmiddleware.UnaryRequestID(),
 			log.UnaryServerInterceptor(ctx),
 			goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
-			instrument.UnaryServerInterceptor(ctx, genforecaster.ServiceName),
+			instrument.UnaryServerInterceptor(ctx),
 			trace.UnaryServerInterceptor(ctx),
 		))
 	genpb.RegisterForecasterServer(grpcsvr, server)
@@ -87,14 +95,14 @@ func main() {
 		}
 	}
 
-	// 6. Start health check
+	// 7. Start health check
 	check := log.HTTP(ctx)(health.Handler(health.NewChecker(wc)))
 	http.Handle("/healthz", check)
 	http.Handle("/livez", check)
 	http.Handle("/metrics", instrument.Handler(ctx))
-	httpsvr := &http.Server{Addr: *httpListenAddr}
+	httpsvr := &http.Server{Addr: *httpaddr}
 
-	// 7. Start gRPC and HTTP servers
+	// 8. Start gRPC and HTTP servers
 	errc := make(chan error)
 	go func() {
 		c := make(chan os.Signal, 1)
@@ -109,18 +117,18 @@ func main() {
 		defer wg.Done()
 
 		go func() {
-			log.Print(ctx, "HTTP server listening", "addr", *httpListenAddr)
+			log.Print(ctx, "HTTP server listening", "addr", *httpaddr)
 			errc <- httpsvr.ListenAndServe()
 		}()
 
 		var l net.Listener
 		go func() {
 			var err error
-			l, err = net.Listen("tcp", *grpcListenAddr)
+			l, err = net.Listen("tcp", *grpcaddr)
 			if err != nil {
 				errc <- err
 			}
-			log.Print(ctx, "gRPC server listening", "addr", *grpcListenAddr)
+			log.Print(ctx, "gRPC server listening", "addr", *grpcaddr)
 			errc <- grpcsvr.Serve(l)
 		}()
 

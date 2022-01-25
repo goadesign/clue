@@ -95,6 +95,8 @@ metrics:
 * `rpc_server_active_requests`: UpDownCounter of active unary and stream requests.
 * `rpc_server_request_size`: Histogram of message sizes in bytes, per message for streaming RPCs.
 * `rpc_server_response_size`: Histogram of response sizes in bytes, per message for streaming RPCs.
+* `rpc_server_stream_message_size`: Histogram of message sizes in bytes, per message for streaming RPCs.
+* `rpc_server_stream_response_size`: Histogram of repsonse sizes in bytes, per message for streaming RPCs.
 
 All the metrics have the following labels:
 
@@ -102,9 +104,9 @@ All the metrics have the following labels:
 * `net_peer.addr`: The peer address.
 * `rpc_method`: Full name of RPC method.
 
-All the metrics but `rpc_server_active_requests` for both unary and streaming
-gRPC methods and `rpc_server_request_size` and `rpc_server_response_size` for
-streaming methods also have the following additional labels:
+All the metrics but `rpc_server_active_requests`,
+`rpc_server_stream_message_size` and `rpc_rpc_server_stream_response_size` also
+have the following additional labels:
 
 * `rpc_status_code`: The response status code.
 
