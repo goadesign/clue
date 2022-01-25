@@ -15,9 +15,9 @@ import (
 func TestHTTP(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	ctx := withProvider(context.Background(), provider)
+	ctx := withProvider(context.Background(), provider, "test")
 	cli, stop := testsvc.SetupHTTP(t,
-		testsvc.WithHTTPMiddleware(middleware.RequestID(), HTTP(ctx, "test")),
+		testsvc.WithHTTPMiddleware(middleware.RequestID(), HTTP(ctx)),
 		testsvc.WithHTTPFunc(addEventUnaryMethod))
 	if _, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{}); err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -49,9 +49,9 @@ func TestHTTP(t *testing.T) {
 func TestHTTPRequestID(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	ctx := withProvider(context.Background(), provider)
+	ctx := withProvider(context.Background(), provider, "test")
 	cli, stop := testsvc.SetupHTTP(t,
-		testsvc.WithHTTPMiddleware(HTTP(ctx, "test")),
+		testsvc.WithHTTPMiddleware(HTTP(ctx)),
 		testsvc.WithHTTPFunc(addEventUnaryMethod))
 	if _, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{}); err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -66,7 +66,7 @@ func TestHTTPRequestID(t *testing.T) {
 func TestTrace(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	ctx := withProvider(context.Background(), provider)
+	ctx := withProvider(context.Background(), provider, "test")
 	c := http.Client{Transport: Client(ctx, http.DefaultTransport)}
 	otelt, ok := c.Transport.(*otelhttp.Transport)
 	if !ok {

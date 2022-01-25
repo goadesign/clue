@@ -15,7 +15,7 @@ import (
 func newTestTracingContext() (context.Context, *tracetest.InMemoryExporter) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	ctx := withProvider(context.Background(), provider)
+	ctx := withProvider(context.Background(), provider, "test")
 	return ctx, exporter
 }
 
