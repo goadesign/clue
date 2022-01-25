@@ -44,15 +44,12 @@ func HTTP(ctx context.Context, svc string) func(http.Handler) http.Handler {
 		panic(errContextMissing)
 	}
 	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			h = initTracingContext(ctx, h)
-			h = addRequestIDHTTP(h)
-			h = otelhttp.NewHandler(h, svc,
-				otelhttp.WithTracerProvider(s.(*stateBag).provider),
-				otelhttp.WithMeterProvider(metric.NewNoopMeterProvider()),
-				otelhttp.WithPropagators(propagation.TraceContext{}))
-			h.ServeHTTP(w, req)
-		})
+		h = initTracingContext(ctx, h)
+		h = addRequestIDHTTP(h)
+		return otelhttp.NewHandler(h, svc,
+			otelhttp.WithTracerProvider(s.(*stateBag).provider),
+			otelhttp.WithMeterProvider(metric.NewNoopMeterProvider()),
+			otelhttp.WithPropagators(propagation.TraceContext{}))
 	}
 }
 

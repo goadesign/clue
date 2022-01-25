@@ -12,6 +12,15 @@ pushd ${GIT_ROOT}/example/weather
 
 source ./scripts/utils/common.sh
 
+# ugh, host-gateway does not work on WSL because it points to the Windows
+# host, not the WSL host. Instead in this case we need to use the WSL
+# subsystem IP.
+if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
+    export HOST_GATEWAY=$(hostname -I)
+else
+    export HOST_GATEWAY='host-gateway'
+fi
+
 docker-compose -f docker-compose/docker-compose-grafana.yaml up -d 
 
 overmind start

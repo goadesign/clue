@@ -13,6 +13,8 @@ services:
       - "12345:12345"
     depends_on:
       - tempo
+    extra_hosts:
+      - "host.docker.internal:${HOST_GATEWAY}"
 
   loki:
     image: grafana/loki:2.2.1
