@@ -37,7 +37,7 @@ func newMock(t *testing.T) *mock {
 // the mock package to replay a sequence of calls.
 func (m *mock) GetPrices(ctx context.Context, first, last time.Time, nodeID string) ([]*Price, error) {
         if f := m.Next("GetPrices"); f != nil { // Get the next mock in the sequence (or the permanent mock)
-                return f.(func(ctx, time.Time, time.Time, string))(ctx, first, last, nodeID)
+                return f.(func(ctx, time.Time, time.Time, string) ([]*Price, error))(ctx, first, last, nodeID)
         }
         m.t.Error("unexpected GetPrices call")
 }
