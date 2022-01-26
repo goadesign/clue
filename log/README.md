@@ -20,7 +20,7 @@ import (
 
 func main() {
         ctx := log.Context(context.Background(), "svc", svcgen.ServiceName)
-        ctx := log.With(ctx, "foo", "bar")
+        ctx = log.With(ctx, "foo", "bar")
         log.Print(ctx, "hello world", "baz", "qux")
 }
 ```
