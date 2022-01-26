@@ -101,19 +101,20 @@ func main() {
 	handler = goahttpmiddleware.Log(log.Adapt(ctx))(handler)
 	handler = log.HTTP(ctx)(handler)
 	handler = goahttpmiddleware.RequestID()(handler)
-	l := &http.Server{Addr: *httpaddr, Handler: handler}
 	for _, m := range server.Mounts {
 		log.Print(ctx, "mount", "method", m.Method, "verb", m.Verb, "path", m.Pattern)
 	}
 
-	// 6. Mount health check
+	// 6. Mount health check & metrics on separate handler (to avoid logging, etc.)
 	check := health.Handler(health.NewChecker(
 		health.NewPinger("locator", "http", *locatorHealthAddr),
 		health.NewPinger("forecaster", "http", *forecasterHealthAddr)))
 	check = log.HTTP(ctx)(check).(http.HandlerFunc)
-	mux.Handle("GET", "/healthz", check)
-	mux.Handle("GET", "/livez", check)
-	mux.Handle("GET", "/metrics", instrument.Handler(ctx).(http.HandlerFunc))
+	http.Handle("/healthz", check)
+	http.Handle("/livez", check)
+	http.Handle("/metrics", instrument.Handler(ctx).(http.HandlerFunc))
+	http.Handle("/", handler)
+	l := &http.Server{Addr: *httpaddr}
 
 	// 7. Start HTTP server
 	errc := make(chan error)
