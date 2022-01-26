@@ -1,5 +1,7 @@
 package mock
 
+import "sync"
+
 type (
 	// Mock implementation of a service client.
 	Mock struct {
@@ -7,6 +9,7 @@ type (
 		seqs    map[string][]interface{}
 		indices []*index
 		pos     int
+		lock    sync.Mutex
 	}
 
 	// index identifies a mock in a sequence.
@@ -29,6 +32,9 @@ func New() *Mock {
 // there is no sequence or the sequence has been fully consumed, and there is
 // no permanent mock.
 func (m *Mock) Next(name string) interface{} {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	if m.pos < len(m.indices) && len(m.seqs[name]) > 0 {
 		idx := m.indices[m.pos]
 		if idx.name != name || idx.pos >= len(m.seqs[name]) {
@@ -49,16 +55,25 @@ func (m *Mock) Next(name string) interface{} {
 
 // Add adds f to the mock sequence.
 func (m *Mock) Add(name string, f interface{}) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	m.indices = append(m.indices, &index{name, len(m.seqs[name])})
 	m.seqs[name] = append(m.seqs[name], f)
 }
 
 // Set a permanent mock for the function with the given name.
 func (m *Mock) Set(name string, f interface{}) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	m.funcs[name] = f
 }
 
 // HasMore returns true if the mock sequence isn't fully consumed.
 func (m *Mock) HasMore() bool {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	return m.pos < len(m.indices)
 }
