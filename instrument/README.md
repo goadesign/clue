@@ -73,7 +73,7 @@ The `instrument` functions used to instrument the service are:
 The middleware returned by the `HTTP` function creates the following metrics:
 
 * `http_server_duration`: Histogram of HTTP request durations in milliseconds.
-* `http_server_active_requests`: UpDownCounter of active HTTP requests.
+* `http_server_active_requests`: Gauge of active HTTP requests.
 * `http_server_request_size`: Histogram of HTTP request sizes in bytes.
 * `http_server_response_size`: Histogram of HTTP response sizes in bytes.
 
@@ -95,11 +95,11 @@ The `UnaryInterceptor` and `StreamInterceptor` functions create the following
 metrics:
 
 * `rpc_server_duration`: Histogram of unary request durations in milliseconds.
-* `rpc_server_active_requests`: UpDownCounter of active unary and stream requests.
+* `rpc_server_active_requests`: Gauge of active unary and stream requests.
 * `rpc_server_request_size`: Histogram of message sizes in bytes, per message for streaming RPCs.
 * `rpc_server_response_size`: Histogram of response sizes in bytes, per message for streaming RPCs.
 * `rpc_server_stream_message_size`: Histogram of message sizes in bytes, per message for streaming RPCs.
-* `rpc_server_stream_response_size`: Histogram of repsonse sizes in bytes, per message for streaming RPCs.
+* `rpc_server_stream_response_size`: Histogram of response sizes in bytes, per message for streaming RPCs.
 
 All the metrics have the following labels:
 
