@@ -1,0 +1,18 @@
+server:
+  http_listen_port: 3200
+  graceful_shutdown_timeout: 10s
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+  log_received_traces: true
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /tmp/tempo/traces
+    wal:
+      path: /tmp/tempo/wal

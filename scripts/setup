@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -e
+
+GIT_ROOT=$(git rev-parse --show-toplevel)
+pushd ${GIT_ROOT}
+
+source ./scripts/utils/common.sh
+
+if [[ "$CI" == "" ]]; then
+  check_required_cmd "tmux"
+fi
+
+go mod download
+go install honnef.co/go/tools/cmd/staticcheck@latest
+
+popd

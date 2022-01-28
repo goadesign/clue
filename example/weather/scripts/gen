@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -e
+
+GIT_ROOT=$(git rev-parse --show-toplevel)
+pushd ${GIT_ROOT}/example/weather
+
+echo "Generating Goa code..."
+
+for svc in front forecaster locator; do
+  goa gen github.com/goadesign/clue/example/weather/services/${svc}/design -o services/${svc}
+done
+
+popd

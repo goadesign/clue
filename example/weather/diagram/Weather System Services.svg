@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="graph" width="2236.935302734375" height="1119.5379638671875"><script type="application/json"><![CDATA[{
+  "name": "Weather System Services",
+  "description": "Weather software system architecture diagram",
+  "elements": [
+    {
+      "id": "10ildwv",
+      "tags": "Element,Container,Service"
+    },
+    {
+      "id": "1kv338l",
+      "tags": "Element,Container,Service"
+    },
+    {
+      "id": "1lbw446",
+      "tags": "Element,Software System,External",
+      "location": "External"
+    },
+    {
+      "id": "1nxutzh",
+      "tags": "Element,Container,Service"
+    },
+    {
+      "id": "1qbyk9e",
+      "tags": "Element,Person"
+    },
+    {
+      "id": "x1b8s1",
+      "tags": "Element,Software System,External",
+      "location": "External"
+    }
+  ],
+  "layout": {
+    "10ildwv": {
+      "x": 1478.7700402362204,
+      "y": 250
+    },
+    "1kv338l": {
+      "x": 1478.7700402362204,
+      "y": 887.0379733634816
+    },
+    "1lbw446": {
+      "x": 2066.9350882980207,
+      "y": 250
+    },
+    "1nxutzh": {
+      "x": 891.0800788938536,
+      "y": 586.7723452734867
+    },
+    "1qbyk9e": {
+      "x": 250,
+      "y": 586.7723452734867
+    },
+    "x1b8s1": {
+      "x": 2066.9350882980207,
+      "y": 887.0379733634816
+    }
+  }
+}]]></script>
+<defs>
+	<marker id="arrow" viewBox="0 0 5 5" refX="4" refY="2.5" markerWidth="5" markerHeight="5" orient="auto" markerUnits="strokeWidth">
+		<path fill="#aaa" stroke-width="1" stroke="none" d="M0,0 L5,2.5 L0,5 Z" class="arrowHead"></path>
+	</marker>
+	<g id="icon-circle" transform="translate(0,-12)" class="icon">
+		<circle cx="7" cy="7" r="7"></circle>
+	</g>
+	<g id="icon-cube" transform="translate(0, -14)" class="icon">
+		<path d="M 5 0 h 10 v 10 l -5 5 h -10 v -10 l 5 -5 M 0 5 h 10 v 10 M 15 0 l -5 5"></path>
+	</g>
+	<filter id="shadow">
+		<feDropShadow dx="3" dy="3" stdDeviation="5" flood-color="#00000030" flood-opacity="1"></feDropShadow>
+	</filter>
+</defs><g class="zoom" transform="scale(1)"><g class="groups"><g class="group"><rect x="716.0800788938536" y="75" rx="0" ry="0" width="937.6899613423668" height="1024.5379733634816" fill="rgba(0, 0, 0, 0.02)" stroke="#666" stroke-width="3" stroke-dasharray="4"></rect><text x="741.0800788938536" y="1077.5379733634816" fill="#666" font-size="22px" cursor="default">Weather Software System</text></g></g><g class="edges"><g class="edge" id="1869qua" data-from="1nxutzh" data-to="1kv338l"><rect x="1084.938243158787" y="706.4051593184842" rx="0" ry="0" width="199.9736328125" height="61" fill="none" stroke="none"></rect><text x="0" y="706.4051593184842" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="1184.925059565037" dy="24px" font-size="22px" font-weight="normal">Retrieves weather</tspan><tspan x="1184.925059565037" dy="24px" font-size="22px" font-weight="normal">forecasts from</tspan></text><path marker-end="url(#arrow)" class="edge" d="M1041.0800788938536,663.4111296260761 L1125.229436276547,706.4051593184842 M1244.6206828535271,767.4051593184842 L1328.7700402362204,810.3991890108922" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path></g><g class="edge" id="1aom9mm" data-from="10ildwv" data-to="1lbw446"><rect x="1671.9775642671207" y="231.5" rx="0" ry="0" width="201.75" height="37" fill="none" stroke="none"></rect><text x="0" y="231.5" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="1772.8525642671207" dy="24px" font-size="22px" font-weight="normal">Makes requests to</tspan></text><path marker-end="url(#arrow)" class="edge" d="M1628.7700402362204,250 L1671.9775642671207,250 M1873.7275642671207,250 L1916.9350882980207,250" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path></g><g class="edge" id="1crempw" data-from="1qbyk9e" data-to="1nxutzh"><rect x="469.6650394469268" y="568.2723452734867" rx="0" ry="0" width="201.75" height="37" fill="none" stroke="none"></rect><text x="0" y="568.2723452734867" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="570.5400394469268" dy="24px" font-size="22px" font-weight="normal">Makes requests to</tspan></text><path marker-end="url(#arrow)" class="edge" d="M400,586.7723452734867 L469.6650394469268,586.7723452734867 M671.4150394469268,586.7723452734867 L741.0800788938536,586.7723452734867" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path></g><g class="edge" id="1es9jc" data-from="1kv338l" data-to="x1b8s1"><rect x="1671.9775642671207" y="868.5379733634816" rx="0" ry="0" width="201.75" height="37" fill="none" stroke="none"></rect><text x="0" y="868.5379733634816" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="1772.8525642671207" dy="24px" font-size="22px" font-weight="normal">Makes requests to</tspan></text><path marker-end="url(#arrow)" class="edge" d="M1628.7700402362204,887.0379733634816 L1671.9775642671207,887.0379733634816 M1873.7275642671207,887.0379733634816 L1916.9350882980207,887.0379733634816" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path></g><g class="edge" id="1oqekpv" data-from="1nxutzh" data-to="10ildwv"><rect x="1110.9531853279764" y="387.88617263674337" rx="0" ry="0" width="147.9437484741211" height="61" fill="none" stroke="none"></rect><text x="0" y="387.88617263674337" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="1184.925059565037" dy="24px" font-size="22px" font-weight="normal">Retrieves IP</tspan><tspan x="1184.925059565037" dy="24px" font-size="22px" font-weight="normal">location from</tspan></text><path marker-end="url(#arrow)" class="edge" d="M1041.0800788938536,500.8157097787479 L1131.7005473017573,448.88617263674337 M1238.1495718283168,387.88617263674337 L1328.7700402362204,335.9566354947389" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path></g></g><g class="nodes"><g class="node" id="10ildwv" transform="translate(1478.7700402362204,250)"><rect rx="3" ry="3" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="#e6e6ea" stroke="#2ab7ca" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></rect><g transform="translate(0,-70)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Location Service</tspan></text><text x="0" y="48" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Service: Go and Goa]</text><text x="0" y="68" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Leverages ip-api.com to</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">locate IP addresses.</tspan></text></g></g><g class="node" id="1kv338l" transform="translate(1478.7700402362204,887.0379733634816)"><rect rx="3" ry="3" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="#e6e6ea" stroke="#2ab7ca" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></rect><g transform="translate(0,-82)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Forecast Service</tspan></text><text x="0" y="48" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Service: Go and Goa]</text><text x="0" y="68" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Leverages weather.gov to</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">retrieve weather forecasts</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">for US based locations.</tspan></text></g></g><g class="node" id="1lbw446" transform="translate(2066.9350882980207,250)"><rect rx="37.5" ry="37.5" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="#eae6e6" stroke="#cab72a" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></rect><g transform="translate(0,-70)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">ip-api.com</tspan></text><text x="0" y="48" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[External]</text><text x="0" y="68" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Provides IP geolocation</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">information.</tspan></text></g></g><g class="node" id="1nxutzh" transform="translate(891.0800788938536,586.7723452734867)"><rect rx="3" ry="3" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="#e6e6ea" stroke="#2ab7ca" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></rect><g transform="translate(0,-70)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Front Service</tspan></text><text x="0" y="48" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Service: Go and Goa]</text><text x="0" y="68" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Retrieves weather</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">forecasts for a given IP.</tspan></text></g></g><g class="node" id="1qbyk9e" transform="translate(250,586.7723452734867)" label-offset-y="120"><path d="M 114,100 A150,150 0,0,0 0 150
+		L27.272727272727273,300 L272.72727272727275,300 L300,150
+		A150,150 0,0,0 186 100 
+		A50,50 0,1,0 114 100" transform="translate(-150,-150)" class="nodeBorder" fill="#e6e6ea" stroke="#f75c03" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></path><g transform="translate(0,-130)"><text x="0" y="120" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">User</tspan></text><text x="0" y="168" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Person]</text><text x="0" y="188" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">A client of the weather</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">system.</tspan></text></g></g><g class="node" id="x1b8s1" transform="translate(2066.9350882980207,887.0379733634816)"><rect rx="37.5" ry="37.5" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="#eae6e6" stroke="#cab72a" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></rect><g transform="translate(0,-70)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">weather.gov</tspan></text><text x="0" y="48" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[External]</text><text x="0" y="68" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Provides weather</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">forecasts for US locations.</tspan></text></g></g></g></g></svg>
