@@ -1,4 +1,4 @@
-package instrument
+package metrics
 
 import (
 	"context"
@@ -22,8 +22,8 @@ type (
 	}
 )
 
-// UnaryServerInterceptor creates a gRPC unary server interceptor that instruments the
-// requests. The context must have been initialized with instrument.Context. The
+// UnaryServerInterceptor creates a gRPC unary server interceptor that metricss the
+// requests. The context must have been initialized with metrics.Context. The
 // returned interceptor adds the following metrics:
 //
 //    * `grpc.server.duration`: Histogram of request durations in milliseconds.
@@ -81,7 +81,7 @@ func UnaryServerInterceptor(ctx context.Context) grpc.UnaryServerInterceptor {
 	}
 }
 
-// StreamServerInterceptor creates a gRPC stream server interceptor that instruments the
+// StreamServerInterceptor creates a gRPC stream server interceptor that metricss the
 // requests. The context must have been initialized with Context. The returned
 // interceptor adds the following metrics:
 //

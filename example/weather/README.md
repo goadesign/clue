@@ -198,7 +198,7 @@ mux.Handle("GET", "/metrics", instrument.Handler(ctx).(http.HandlerFunc))
 Health checks are implemented using the `health` package, for example:
 
 ```go
-check := log.HTTP(ctx)(health.Handler(health.NewChecker(wc)))
+check := health.Handler(health.NewChecker(wc))
 ```
 
 The front service also uses the `health.NewPinger` function to create a health
@@ -211,22 +211,21 @@ check := health.Handler(health.NewChecker(
 	health.NewPinger("forecaster", "http", *forecasterHealthAddr)))
 ```
 
-The health check handler is wrapped with the log HTTP middleware so that errors
-may be logged:
-
-```go
-check = log.HTTP(ctx)(check).(http.HandlerFunc)
-```
-
-The health check handler is mounted on the Goa mux or on the native `http` mux
-if the service uses gRPC (and thus does not use the Goa mux):
-
-```go
-mux.Handle("GET", "/livez", check)
-```
+The health check and metric handlers are mounted on a separate HTTP handler (the
+global `http` standard library handler) to avoid logging, tracing and otherwise
+instrumenting the correspinding requests.
 
 ```go
 http.Handle("/livez", check)
+http.Handle("/metrics", instrument.Handler(ctx))
+```
+
+The service HTTP handler created by Goa - if any - is mounted onto the global
+handler under the root path so that all HTTP requests other than heath checks
+and metrics are passed to it:
+
+```go
+http.Handle("/", handler)
 ```
 
 ### Client Mocks
@@ -316,5 +315,5 @@ and `weather.gov`) in the `location` and `forecaster` services.
 ## Bug
 
 A bug was intentionally left in the code to demonstrate how useful
-instrumentation can be, can you find it? If you do, let me know and I'll buy you
-a drink🍹.
+instrumentation can be, can you find it? If you do let us know on
+the Gophers slack [Goa channel](https://gophers.slack.com/messages/goa/)!

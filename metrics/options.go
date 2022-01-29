@@ -1,12 +1,12 @@
-package instrument
+package metrics
 
 import "github.com/prometheus/client_golang/prometheus"
 
 type (
-	// Option is a function that configures the instrumentation.
+	// Option is a function that configures the metricsation.
 	Option func(*options)
 
-	// options contains the configuration for the instrumentation.
+	// options contains the configuration for the metricsation.
 	options struct {
 		// durationBuckets is the buckets for the request duration histogram.
 		durationBuckets []float64

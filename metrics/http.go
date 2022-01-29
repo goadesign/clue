@@ -1,4 +1,4 @@
-package instrument
+package metrics
 
 import (
 	"context"
@@ -23,7 +23,7 @@ type (
 // Be kind to tests
 var timeSince = time.Since
 
-// HTTP returns a middlware that instruments requests. The context must have
+// HTTP returns a middlware that metricss requests. The context must have
 // been initialized with Context. HTTP collects the following metrics:
 //
 //    * `http.server.duration`: Histogram of request durations in milliseconds.

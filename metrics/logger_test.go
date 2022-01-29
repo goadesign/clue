@@ -1,4 +1,4 @@
-package instrument
+package metrics
 
 import (
 	"bytes"

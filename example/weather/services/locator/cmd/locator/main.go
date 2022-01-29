@@ -14,8 +14,8 @@ import (
 
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"goa.design/clue/health"
-	"goa.design/clue/instrument"
 	"goa.design/clue/log"
+	"goa.design/clue/metrics"
 	"goa.design/clue/trace"
 	goagrpcmiddleware "goa.design/goa/v3/grpc/middleware"
 	"google.golang.org/grpc"
@@ -67,7 +67,7 @@ func main() {
 	}
 
 	// 3. Setup instrumentation
-	ctx = instrument.Context(ctx, genlocator.ServiceName)
+	ctx = metrics.Context(ctx, genlocator.ServiceName)
 
 	// 4. Create clients
 	c := &http.Client{Transport: trace.Client(ctx, http.DefaultTransport)}
@@ -85,7 +85,7 @@ func main() {
 			log.UnaryServerInterceptor(ctx),
 			goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
 			trace.UnaryServerInterceptor(ctx),
-			instrument.UnaryServerInterceptor(ctx),
+			metrics.UnaryServerInterceptor(ctx),
 		))
 	genpb.RegisterLocatorServer(grpcsvr, server)
 	reflection.Register(grpcsvr)
@@ -99,7 +99,7 @@ func main() {
 	check := log.HTTP(ctx)(health.Handler(health.NewChecker(ipc)))
 	http.Handle("/healthz", check)
 	http.Handle("/livez", check)
-	http.Handle("/metrics", instrument.Handler(ctx))
+	http.Handle("/metrics", metrics.Handler(ctx))
 	httpsvr := &http.Server{Addr: *httpaddr}
 
 	// 8. Start gRPC and HTTP servers

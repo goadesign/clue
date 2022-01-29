@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"goa.design/clue/health"
-	"goa.design/clue/instrument"
 	"goa.design/clue/log"
+	"goa.design/clue/metrics"
 	"goa.design/clue/trace"
 	goahttp "goa.design/goa/v3/http"
 	goahttpmiddleware "goa.design/goa/v3/http/middleware"
@@ -68,7 +68,7 @@ func main() {
 	}
 
 	// 3. Setup instrumentation
-	ctx = instrument.Context(ctx, genfront.ServiceName)
+	ctx = metrics.Context(ctx, genfront.ServiceName)
 
 	// 3. Create clients
 	lcc, err := grpc.DialContext(ctx, *locatorAddr,
@@ -97,7 +97,7 @@ func main() {
 	server := genhttp.New(endpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)
 	genhttp.Mount(mux, server)
 	handler := trace.HTTP(ctx)(mux)
-	handler = instrument.HTTP(ctx)(handler)
+	handler = metrics.HTTP(ctx)(handler)
 	handler = goahttpmiddleware.Log(log.Adapt(ctx))(handler)
 	handler = log.HTTP(ctx)(handler)
 	handler = goahttpmiddleware.RequestID()(handler)
@@ -112,7 +112,7 @@ func main() {
 	check = log.HTTP(ctx)(check).(http.HandlerFunc)
 	http.Handle("/healthz", check)
 	http.Handle("/livez", check)
-	http.Handle("/metrics", instrument.Handler(ctx).(http.HandlerFunc))
+	http.Handle("/metrics", metrics.Handler(ctx).(http.HandlerFunc))
 	http.Handle("/", handler)
 	l := &http.Server{Addr: *httpaddr}
 

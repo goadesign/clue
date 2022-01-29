@@ -5,7 +5,7 @@ import (
 )
 
 var _ = API("itest", func() {
-	Description("instrument test service")
+	Description("metrics test service")
 })
 
 var _ = Service("test", func() {

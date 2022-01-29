@@ -5,23 +5,29 @@
 
 ## Overview
 
-This repository contains microservice instrumentation packages covering the
-following topics:
+`clue` provides a set of Go packages for instrumenting microservices. The
+emphasis is on simplicity and ease of use. Although not a requirement, `clue`
+works best when used in microservices written using
+[Goa](https://github.com/goadesign/goa).
+
+`clue` covers the following topics:
 
 * Logging: the [log](log/) package provides a context-based logging API that
   intelligently selects what to log.
-* Metrics: the [instrument](instrument/) package makes it possible for Goa
+* Metrics: the [instrument](instrument/) package makes it possible for
   services to expose a Prometheus compatible `/metrics` HTTP endpoint.
 * Health checks: the [health](health/) package provides a simple way for
   services to expose a health check endpoint.
 * Dependency mocks: the [mock](mock/) package provides a way to mock
   downstream dependencies for testing.
-* Tracing: the [trace](trace/) package conforms to the
+* Tracing: the [trace](trace/) package conforms to theV
   [OpenTelemetry](https://opentelemetry.io/) specification to trace requests.
 
-Consult the package-specific READMEs for more information.
+The [weather](example/weather) example illustrates how to use `clue` to
+instrument a system of Goa microservices. The example comes with a set of
+scripts that can be used to compile and start the system as well as a complete
+Grafana stack to query metrics and traces. See the
+[README](example/weather/README.md) for more information.
 
-## Example
+## Contributing
 
-The repository contains a [fully functional example](example/weather)
-comprised of three instrumented Goa microservices.

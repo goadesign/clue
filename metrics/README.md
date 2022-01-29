@@ -1,10 +1,10 @@
-# instrument: Auto Metrics
+# metrics: Auto Metrics
 
 [![Build Status](https://github.com/goadesign/clue/workflows/CI/badge.svg?branch=main&event=push)](https://github.com/goadesign/clue/actions?query=branch%3Amain+event%3Apush)
 
 ## Overview
 
-Package `instrument` provides a convenient way to add Prometheus metrics to Goa
+Package `metrics` provides a convenient way to add Prometheus metrics to Goa
 services. The following example shows how to use the package. It implements an
 illustrative `main` function for a fictional service `svc` implemented in the
 package `github.com/repo/services/svc`. The service is assumed to expose both
@@ -16,7 +16,7 @@ package main
 import (
         "context"
 
-        "github.com/goadesign/clue/instrument"
+        "github.com/goadesign/clue/metrics"
         "github.com/goadesign/clue/log"
        	goahttp "goa.design/goa/v3/http"
 
@@ -39,32 +39,32 @@ func main() {
         httpsvr := httpsvrgen.New(endpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)
         httpsvrgen.Mount(mux, httpsvr)
 
-        // ** Initialize context for instrumentation **
-        ctx = instrument.Context(ctx, svcgen.ServiceName)
+        // ** Initialize context for metrics **
+        ctx = metrics.Context(ctx, svcgen.ServiceName)
 
-        // ** Instrument HTTP endpoints **
-        handler := instrument.HTTP(ctx)(mux)
+        // ** metrics HTTP endpoints **
+        handler := metrics.HTTP(ctx)(mux)
 
         // Create gRPC server
         grpcsvr := grpcsvrgen.New(endpoints, nil)
 
-        // ** Instrument gRPC endpoints **
-        unaryInterceptor := instrument.UnaryServerInterceptor(ctx)
-        streamInterceptor := instrument.StreamServerInterceptor(ctx)
+        // ** metrics gRPC endpoints **
+        unaryInterceptor := metrics.UnaryServerInterceptor(ctx)
+        streamInterceptor := metrics.StreamServerInterceptor(ctx)
         pbsvr := grpc.NewServer(grpc.UnaryInterceptor(unaryInterceptor), grpc.StreamInterceptor(streamInterceptor))
 
         // ** Mount the /metrics handler used by Prometheus to scrape metrics **
-        mux.Handle("GET", "/metrics", instrument.Handler())
+        mux.Handle("GET", "/metrics", metrics.Handler())
 
         // .... Start the servers ....
 }
 ```
 
-The `instrument` functions used to instrument the service are:
+The `metrics` functions used to instrument the service are:
 
-* `HTTP`: creates a middleware that instruments an HTTP handler.
-* `UnaryServerInterceptor`: creates an interceptor that instruments gRPC unary server methods.
-* `StreamServerInterceptor`: creates an interceptor that instruments gRPC stream server methods.
+* `HTTP`: creates a middleware that metricss an HTTP handler.
+* `UnaryServerInterceptor`: creates an interceptor that metricss gRPC unary server methods.
+* `StreamServerInterceptor`: creates an interceptor that metricss gRPC stream server methods.
 * `Handler`: creates a HTTP handler that exposes Prometheus metrics.
 
 ## HTTP Metrics
@@ -121,10 +121,10 @@ The histogram buckets can be specified using the `WithDurationBuckets`,
 function:
 
 ```go
-ctx = instrument.Context(ctx, svc.ServiceName,
-        instrument.WithDurationBuckets([]float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10}),
-        instrument.WithRequestSizeBuckets([]float64{1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024}),
-        instrument.WithResponseSizeBuckets([]float64{1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024}))
+ctx = metrics.Context(ctx, svc.ServiceName,
+        metrics.WithDurationBuckets([]float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10}),
+        metrics.WithRequestSizeBuckets([]float64{1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024}),
+        metrics.WithResponseSizeBuckets([]float64{1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024}))
 ```
 
 The default bucket upper boundaries are:
@@ -134,12 +134,12 @@ The default bucket upper boundaries are:
 
 ### Prometheus Registry
 
-By default `instrument` uses the global Prometheus registry to create the
+By default `metrics` uses the global Prometheus registry to create the
 metrics and serve them. A user configured registerer can be specified when
 creating the metrics via `WithRegisterer`:
 
 ```go
-ctx = instrument.Context(ctx, svc.ServiceName, instrument.WithRegisterer(registerer))(mux)
+ctx = metrics.Context(ctx, svc.ServiceName, metrics.WithRegisterer(registerer))(mux)
 ```
 
 A user configured gatherer (used to collect the metrics) and registerer (used to
@@ -147,5 +147,5 @@ register metrics for the `/metrics` endpoint) can be specified when creating the
 metrics handler via `WithGatherer` and `WithHandlerRegisterer` respectively:
 
 ```go
-handler = instrument.Handler(ctx, instrument.WithGatherer(gatherer), instrument.WithHandlerRegisterer(registerer))
+handler = metrics.Handler(ctx, metrics.WithGatherer(gatherer), metrics.WithHandlerRegisterer(registerer))
 ```
