@@ -31,3 +31,4 @@ Grafana stack to query metrics and traces. See the
 
 ## Contributing
 
+See [Contributing](CONTRIBUTING.md)
