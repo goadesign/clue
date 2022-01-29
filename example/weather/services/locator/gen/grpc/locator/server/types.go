@@ -3,15 +3,14 @@
 // locator gRPC server types
 //
 // Command:
-// $ goa gen
-// github.com/goadesign/clue/example/weather/services/locator/design -o
+// $ goa gen goa.design/clue/example/weather/services/locator/design -o
 // services/locator
 
 package server
 
 import (
-	locatorpb "github.com/goadesign/clue/example/weather/services/locator/gen/grpc/locator/pb"
-	locator "github.com/goadesign/clue/example/weather/services/locator/gen/locator"
+	locatorpb "goa.design/clue/example/weather/services/locator/gen/grpc/locator/pb"
+	locator "goa.design/clue/example/weather/services/locator/gen/locator"
 )
 
 // NewGetLocationPayload builds the payload of the "get_location" endpoint of

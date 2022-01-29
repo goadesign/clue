@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/goadesign/clue/example/weather/services/locator/clients/ipapi"
+	"goa.design/clue/example/weather/services/locator/clients/ipapi"
 )
 
 func TestGetIPLocation(t *testing.T) {

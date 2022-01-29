@@ -3,15 +3,15 @@
 // test gRPC client
 //
 // Command:
-// $ goa gen github.com/goadesign/clue/internal/testsvc/design
+// $ goa gen goa.design/clue/internal/testsvc/design
 
 package client
 
 import (
 	"context"
 
-	testpb "github.com/goadesign/clue/internal/testsvc/gen/grpc/test/pb"
-	test "github.com/goadesign/clue/internal/testsvc/gen/test"
+	testpb "goa.design/clue/internal/testsvc/gen/grpc/test/pb"
+	test "goa.design/clue/internal/testsvc/gen/test"
 	goagrpc "goa.design/goa/v3/grpc"
 	goa "goa.design/goa/v3/pkg"
 	"google.golang.org/grpc"

@@ -4,12 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/goadesign/clue/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
+	"goa.design/clue/log"
 	"goa.design/goa/v3/middleware"
 )
 

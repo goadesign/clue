@@ -3,11 +3,11 @@ package trace
 import (
 	"context"
 
-	"github.com/goadesign/clue/log"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
+	"goa.design/clue/log"
 	"goa.design/goa/v3/middleware"
 	"google.golang.org/grpc"
 )

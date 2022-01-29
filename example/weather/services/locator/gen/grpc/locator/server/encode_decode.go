@@ -3,8 +3,7 @@
 // locator gRPC server encoders and decoders
 //
 // Command:
-// $ goa gen
-// github.com/goadesign/clue/example/weather/services/locator/design -o
+// $ goa gen goa.design/clue/example/weather/services/locator/design -o
 // services/locator
 
 package server
@@ -12,8 +11,8 @@ package server
 import (
 	"context"
 
-	locatorpb "github.com/goadesign/clue/example/weather/services/locator/gen/grpc/locator/pb"
-	locator "github.com/goadesign/clue/example/weather/services/locator/gen/locator"
+	locatorpb "goa.design/clue/example/weather/services/locator/gen/grpc/locator/pb"
+	locator "goa.design/clue/example/weather/services/locator/gen/locator"
 	goagrpc "goa.design/goa/v3/grpc"
 	"google.golang.org/grpc/metadata"
 )

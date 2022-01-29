@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/goadesign/clue/log"
 	dto "github.com/prometheus/client_model/go"
+	"goa.design/clue/log"
 )
 
 func TestHandler(t *testing.T) {

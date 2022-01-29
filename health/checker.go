@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/goadesign/clue/log"
+	"goa.design/clue/log"
 )
 
 type (

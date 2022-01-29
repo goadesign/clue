@@ -3,8 +3,7 @@
 // Forecaster gRPC client CLI support package
 //
 // Command:
-// $ goa gen
-// github.com/goadesign/clue/example/weather/services/forecaster/design -o
+// $ goa gen goa.design/clue/example/weather/services/forecaster/design -o
 // services/forecaster
 
 package client
@@ -13,8 +12,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	forecaster "github.com/goadesign/clue/example/weather/services/forecaster/gen/forecaster"
-	forecasterpb "github.com/goadesign/clue/example/weather/services/forecaster/gen/grpc/forecaster/pb"
+	forecaster "goa.design/clue/example/weather/services/forecaster/gen/forecaster"
+	forecasterpb "goa.design/clue/example/weather/services/forecaster/gen/grpc/forecaster/pb"
 )
 
 // BuildForecastPayload builds the payload for the Forecaster forecast endpoint

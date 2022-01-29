@@ -3,7 +3,7 @@ package testsvc
 import (
 	"context"
 
-	"github.com/goadesign/clue/internal/testsvc/gen/test"
+	"goa.design/clue/internal/testsvc/gen/test"
 )
 
 type (

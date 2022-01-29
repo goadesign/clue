@@ -3,8 +3,8 @@
 // front HTTP server encoders and decoders
 //
 // Command:
-// $ goa gen github.com/goadesign/clue/example/weather/services/front/design
-// -o services/front
+// $ goa gen goa.design/clue/example/weather/services/front/design -o
+// services/front
 
 package server
 
@@ -12,7 +12,7 @@ import (
 	"context"
 	"net/http"
 
-	front "github.com/goadesign/clue/example/weather/services/front/gen/front"
+	front "goa.design/clue/example/weather/services/front/gen/front"
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
 )

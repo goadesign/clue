@@ -1,4 +1,4 @@
-module github.com/goadesign/clue
+module goa.design/clue
 
 go 1.17
 

@@ -3,8 +3,7 @@
 // locator service
 //
 // Command:
-// $ goa gen
-// github.com/goadesign/clue/example/weather/services/locator/design -o
+// $ goa gen goa.design/clue/example/weather/services/locator/design -o
 // services/locator
 
 package locator

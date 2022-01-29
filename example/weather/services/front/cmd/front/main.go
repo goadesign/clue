@@ -11,20 +11,20 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/goadesign/clue/health"
-	"github.com/goadesign/clue/instrument"
-	"github.com/goadesign/clue/log"
-	"github.com/goadesign/clue/trace"
+	"goa.design/clue/health"
+	"goa.design/clue/instrument"
+	"goa.design/clue/log"
+	"goa.design/clue/trace"
 	goahttp "goa.design/goa/v3/http"
 	goahttpmiddleware "goa.design/goa/v3/http/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/goadesign/clue/example/weather/services/front"
-	"github.com/goadesign/clue/example/weather/services/front/clients/forecaster"
-	"github.com/goadesign/clue/example/weather/services/front/clients/locator"
-	genfront "github.com/goadesign/clue/example/weather/services/front/gen/front"
-	genhttp "github.com/goadesign/clue/example/weather/services/front/gen/http/front/server"
+	"goa.design/clue/example/weather/services/front"
+	"goa.design/clue/example/weather/services/front/clients/forecaster"
+	"goa.design/clue/example/weather/services/front/clients/locator"
+	genfront "goa.design/clue/example/weather/services/front/gen/front"
+	genhttp "goa.design/clue/example/weather/services/front/gen/http/front/server"
 )
 
 func main() {

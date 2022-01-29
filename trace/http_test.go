@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/goadesign/clue/internal/testsvc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	"goa.design/clue/internal/testsvc"
 	"goa.design/goa/v3/http/middleware"
 )
 

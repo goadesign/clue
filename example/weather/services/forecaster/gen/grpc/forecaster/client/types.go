@@ -3,15 +3,14 @@
 // Forecaster gRPC client types
 //
 // Command:
-// $ goa gen
-// github.com/goadesign/clue/example/weather/services/forecaster/design -o
+// $ goa gen goa.design/clue/example/weather/services/forecaster/design -o
 // services/forecaster
 
 package client
 
 import (
-	forecaster "github.com/goadesign/clue/example/weather/services/forecaster/gen/forecaster"
-	forecasterpb "github.com/goadesign/clue/example/weather/services/forecaster/gen/grpc/forecaster/pb"
+	forecaster "goa.design/clue/example/weather/services/forecaster/gen/forecaster"
+	forecasterpb "goa.design/clue/example/weather/services/forecaster/gen/grpc/forecaster/pb"
 	goa "goa.design/goa/v3/pkg"
 )
 

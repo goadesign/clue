@@ -3,8 +3,7 @@
 // locator gRPC client
 //
 // Command:
-// $ goa gen
-// github.com/goadesign/clue/example/weather/services/locator/design -o
+// $ goa gen goa.design/clue/example/weather/services/locator/design -o
 // services/locator
 
 package client
@@ -12,7 +11,7 @@ package client
 import (
 	"context"
 
-	locatorpb "github.com/goadesign/clue/example/weather/services/locator/gen/grpc/locator/pb"
+	locatorpb "goa.design/clue/example/weather/services/locator/gen/grpc/locator/pb"
 	goagrpc "goa.design/goa/v3/grpc"
 	goa "goa.design/goa/v3/pkg"
 	"google.golang.org/grpc"

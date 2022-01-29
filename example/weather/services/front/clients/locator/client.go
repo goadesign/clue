@@ -6,8 +6,8 @@ import (
 	goa "goa.design/goa/v3/pkg"
 	"google.golang.org/grpc"
 
-	genclient "github.com/goadesign/clue/example/weather/services/locator/gen/grpc/locator/client"
-	genlocator "github.com/goadesign/clue/example/weather/services/locator/gen/locator"
+	genclient "goa.design/clue/example/weather/services/locator/gen/grpc/locator/client"
+	genlocator "goa.design/clue/example/weather/services/locator/gen/locator"
 )
 
 type (

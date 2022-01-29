@@ -3,8 +3,8 @@
 // HTTP request path constructors for the front service.
 //
 // Command:
-// $ goa gen github.com/goadesign/clue/example/weather/services/front/design
-// -o services/front
+// $ goa gen goa.design/clue/example/weather/services/front/design -o
+// services/front
 
 package client
 

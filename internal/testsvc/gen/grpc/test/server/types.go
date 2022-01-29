@@ -3,13 +3,13 @@
 // test gRPC server types
 //
 // Command:
-// $ goa gen github.com/goadesign/clue/internal/testsvc/design
+// $ goa gen goa.design/clue/internal/testsvc/design
 
 package server
 
 import (
-	testpb "github.com/goadesign/clue/internal/testsvc/gen/grpc/test/pb"
-	test "github.com/goadesign/clue/internal/testsvc/gen/test"
+	testpb "goa.design/clue/internal/testsvc/gen/grpc/test/pb"
+	test "goa.design/clue/internal/testsvc/gen/test"
 )
 
 // NewGrpcMethodPayload builds the payload of the "grpc_method" endpoint of the

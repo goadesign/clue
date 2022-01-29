@@ -3,8 +3,7 @@
 // locator gRPC client CLI support package
 //
 // Command:
-// $ goa gen
-// github.com/goadesign/clue/example/weather/services/locator/design -o
+// $ goa gen goa.design/clue/example/weather/services/locator/design -o
 // services/locator
 
 package client
@@ -13,7 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	locatorpb "github.com/goadesign/clue/example/weather/services/locator/gen/grpc/locator/pb"
+	locatorpb "goa.design/clue/example/weather/services/locator/gen/grpc/locator/pb"
 )
 
 // BuildGetLocationPayload builds the payload for the locator get_location

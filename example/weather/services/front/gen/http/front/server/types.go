@@ -3,13 +3,13 @@
 // front HTTP server types
 //
 // Command:
-// $ goa gen github.com/goadesign/clue/example/weather/services/front/design
-// -o services/front
+// $ goa gen goa.design/clue/example/weather/services/front/design -o
+// services/front
 
 package server
 
 import (
-	front "github.com/goadesign/clue/example/weather/services/front/gen/front"
+	front "goa.design/clue/example/weather/services/front/gen/front"
 	goa "goa.design/goa/v3/pkg"
 )
 

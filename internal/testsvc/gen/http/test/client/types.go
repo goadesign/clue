@@ -3,12 +3,12 @@
 // test HTTP client types
 //
 // Command:
-// $ goa gen github.com/goadesign/clue/internal/testsvc/design
+// $ goa gen goa.design/clue/internal/testsvc/design
 
 package client
 
 import (
-	test "github.com/goadesign/clue/internal/testsvc/gen/test"
+	test "goa.design/clue/internal/testsvc/gen/test"
 )
 
 // HTTPMethodRequestBody is the type of the "test" service "http_method"

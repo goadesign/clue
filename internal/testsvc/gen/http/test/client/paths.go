@@ -3,7 +3,7 @@
 // HTTP request path constructors for the test service.
 //
 // Command:
-// $ goa gen github.com/goadesign/clue/internal/testsvc/design
+// $ goa gen goa.design/clue/internal/testsvc/design
 
 package client
 

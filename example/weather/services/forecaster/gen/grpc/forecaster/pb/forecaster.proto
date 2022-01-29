@@ -3,8 +3,7 @@
 // Forecaster protocol buffer definition
 //
 // Command:
-// $ goa gen
-// github.com/goadesign/clue/example/weather/services/forecaster/design -o
+// $ goa gen goa.design/clue/example/weather/services/forecaster/design -o
 // services/forecaster
 
 syntax = "proto3";

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goadesign/clue/internal/testsvc"
+	"goa.design/clue/internal/testsvc"
 	grpcmiddleware "goa.design/goa/v3/grpc/middleware"
 	"goa.design/goa/v3/middleware"
 	"google.golang.org/grpc"

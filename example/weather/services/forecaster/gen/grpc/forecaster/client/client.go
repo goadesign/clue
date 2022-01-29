@@ -3,8 +3,7 @@
 // Forecaster gRPC client
 //
 // Command:
-// $ goa gen
-// github.com/goadesign/clue/example/weather/services/forecaster/design -o
+// $ goa gen goa.design/clue/example/weather/services/forecaster/design -o
 // services/forecaster
 
 package client
@@ -12,7 +11,7 @@ package client
 import (
 	"context"
 
-	forecasterpb "github.com/goadesign/clue/example/weather/services/forecaster/gen/grpc/forecaster/pb"
+	forecasterpb "goa.design/clue/example/weather/services/forecaster/gen/grpc/forecaster/pb"
 	goagrpc "goa.design/goa/v3/grpc"
 	goa "goa.design/goa/v3/pkg"
 	"google.golang.org/grpc"

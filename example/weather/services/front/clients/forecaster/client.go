@@ -6,8 +6,8 @@ import (
 	goa "goa.design/goa/v3/pkg"
 	"google.golang.org/grpc"
 
-	genforecast "github.com/goadesign/clue/example/weather/services/forecaster/gen/forecaster"
-	genclient "github.com/goadesign/clue/example/weather/services/forecaster/gen/grpc/forecaster/client"
+	genforecast "goa.design/clue/example/weather/services/forecaster/gen/forecaster"
+	genclient "goa.design/clue/example/weather/services/forecaster/gen/grpc/forecaster/client"
 )
 
 type (

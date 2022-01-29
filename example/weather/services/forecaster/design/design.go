@@ -3,7 +3,7 @@ package design
 import (
 	. "goa.design/goa/v3/dsl"
 
-	. "github.com/goadesign/clue/example/weather/design"
+	. "goa.design/clue/example/weather/design"
 )
 
 var _ = API("Weather Service API", func() {

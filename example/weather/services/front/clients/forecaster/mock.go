@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/goadesign/clue/mock"
+	"goa.design/clue/mock"
 )
 
 type (

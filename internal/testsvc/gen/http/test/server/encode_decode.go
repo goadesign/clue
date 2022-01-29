@@ -3,7 +3,7 @@
 // test HTTP server encoders and decoders
 //
 // Command:
-// $ goa gen github.com/goadesign/clue/internal/testsvc/design
+// $ goa gen goa.design/clue/internal/testsvc/design
 
 package server
 
@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"strconv"
 
-	test "github.com/goadesign/clue/internal/testsvc/gen/test"
+	test "goa.design/clue/internal/testsvc/gen/test"
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
 )

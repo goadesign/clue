@@ -3,8 +3,7 @@
 // Weather Service API gRPC client CLI support package
 //
 // Command:
-// $ goa gen
-// github.com/goadesign/clue/example/weather/services/forecaster/design -o
+// $ goa gen goa.design/clue/example/weather/services/forecaster/design -o
 // services/forecaster
 
 package cli
@@ -14,7 +13,7 @@ import (
 	"fmt"
 	"os"
 
-	forecasterc "github.com/goadesign/clue/example/weather/services/forecaster/gen/grpc/forecaster/client"
+	forecasterc "goa.design/clue/example/weather/services/forecaster/gen/grpc/forecaster/client"
 	goa "goa.design/goa/v3/pkg"
 	grpc "google.golang.org/grpc"
 )

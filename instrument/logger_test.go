@@ -5,7 +5,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/goadesign/clue/log"
+	"goa.design/clue/log"
 )
 
 func TestLogger(t *testing.T) {

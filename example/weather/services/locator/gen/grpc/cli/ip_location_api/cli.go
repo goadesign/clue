@@ -3,8 +3,7 @@
 // IP Location API gRPC client CLI support package
 //
 // Command:
-// $ goa gen
-// github.com/goadesign/clue/example/weather/services/locator/design -o
+// $ goa gen goa.design/clue/example/weather/services/locator/design -o
 // services/locator
 
 package cli
@@ -14,7 +13,7 @@ import (
 	"fmt"
 	"os"
 
-	locatorc "github.com/goadesign/clue/example/weather/services/locator/gen/grpc/locator/client"
+	locatorc "goa.design/clue/example/weather/services/locator/gen/grpc/locator/client"
 	goa "goa.design/goa/v3/pkg"
 	grpc "google.golang.org/grpc"
 )

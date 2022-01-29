@@ -9,9 +9,9 @@ import (
 
 	goahttp "goa.design/goa/v3/http"
 
-	"github.com/goadesign/clue/internal/testsvc/gen/http/test/client"
-	"github.com/goadesign/clue/internal/testsvc/gen/http/test/server"
-	"github.com/goadesign/clue/internal/testsvc/gen/test"
+	"goa.design/clue/internal/testsvc/gen/http/test/client"
+	"goa.design/clue/internal/testsvc/gen/http/test/server"
+	"goa.design/clue/internal/testsvc/gen/test"
 )
 
 type (

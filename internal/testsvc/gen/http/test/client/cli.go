@@ -3,7 +3,7 @@
 // test HTTP client CLI support package
 //
 // Command:
-// $ goa gen github.com/goadesign/clue/internal/testsvc/design
+// $ goa gen goa.design/clue/internal/testsvc/design
 
 package client
 
@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"strconv"
 
-	test "github.com/goadesign/clue/internal/testsvc/gen/test"
+	test "goa.design/clue/internal/testsvc/gen/test"
 )
 
 // BuildHTTPMethodPayload builds the payload for the test http_method endpoint

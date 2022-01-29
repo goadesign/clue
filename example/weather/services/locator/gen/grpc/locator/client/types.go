@@ -3,15 +3,14 @@
 // locator gRPC client types
 //
 // Command:
-// $ goa gen
-// github.com/goadesign/clue/example/weather/services/locator/design -o
+// $ goa gen goa.design/clue/example/weather/services/locator/design -o
 // services/locator
 
 package client
 
 import (
-	locatorpb "github.com/goadesign/clue/example/weather/services/locator/gen/grpc/locator/pb"
-	locator "github.com/goadesign/clue/example/weather/services/locator/gen/locator"
+	locatorpb "goa.design/clue/example/weather/services/locator/gen/grpc/locator/pb"
+	locator "goa.design/clue/example/weather/services/locator/gen/locator"
 )
 
 // NewGetLocationRequest builds the gRPC request type from the payload of the

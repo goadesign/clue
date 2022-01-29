@@ -3,7 +3,7 @@
 // itest HTTP client CLI support package
 //
 // Command:
-// $ goa gen github.com/goadesign/clue/internal/testsvc/design
+// $ goa gen goa.design/clue/internal/testsvc/design
 
 package cli
 
@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"os"
 
-	testc "github.com/goadesign/clue/internal/testsvc/gen/http/test/client"
+	testc "goa.design/clue/internal/testsvc/gen/http/test/client"
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
 )

@@ -12,21 +12,21 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/goadesign/clue/health"
-	"github.com/goadesign/clue/instrument"
-	"github.com/goadesign/clue/log"
-	"github.com/goadesign/clue/trace"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	"goa.design/clue/health"
+	"goa.design/clue/instrument"
+	"goa.design/clue/log"
+	"goa.design/clue/trace"
 	goagrpcmiddleware "goa.design/goa/v3/grpc/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
-	"github.com/goadesign/clue/example/weather/services/forecaster"
-	"github.com/goadesign/clue/example/weather/services/forecaster/clients/weathergov"
-	genforecaster "github.com/goadesign/clue/example/weather/services/forecaster/gen/forecaster"
-	genpb "github.com/goadesign/clue/example/weather/services/forecaster/gen/grpc/forecaster/pb"
-	gengrpc "github.com/goadesign/clue/example/weather/services/forecaster/gen/grpc/forecaster/server"
+	"goa.design/clue/example/weather/services/forecaster"
+	"goa.design/clue/example/weather/services/forecaster/clients/weathergov"
+	genforecaster "goa.design/clue/example/weather/services/forecaster/gen/forecaster"
+	genpb "goa.design/clue/example/weather/services/forecaster/gen/grpc/forecaster/pb"
+	gengrpc "goa.design/clue/example/weather/services/forecaster/gen/grpc/forecaster/server"
 )
 
 func main() {

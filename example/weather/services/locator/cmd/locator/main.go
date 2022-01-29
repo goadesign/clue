@@ -12,21 +12,21 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/goadesign/clue/health"
-	"github.com/goadesign/clue/instrument"
-	"github.com/goadesign/clue/log"
-	"github.com/goadesign/clue/trace"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	"goa.design/clue/health"
+	"goa.design/clue/instrument"
+	"goa.design/clue/log"
+	"goa.design/clue/trace"
 	goagrpcmiddleware "goa.design/goa/v3/grpc/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
-	"github.com/goadesign/clue/example/weather/services/locator"
-	"github.com/goadesign/clue/example/weather/services/locator/clients/ipapi"
-	genpb "github.com/goadesign/clue/example/weather/services/locator/gen/grpc/locator/pb"
-	gengrpc "github.com/goadesign/clue/example/weather/services/locator/gen/grpc/locator/server"
-	genlocator "github.com/goadesign/clue/example/weather/services/locator/gen/locator"
+	"goa.design/clue/example/weather/services/locator"
+	"goa.design/clue/example/weather/services/locator/clients/ipapi"
+	genpb "goa.design/clue/example/weather/services/locator/gen/grpc/locator/pb"
+	gengrpc "goa.design/clue/example/weather/services/locator/gen/grpc/locator/server"
+	genlocator "goa.design/clue/example/weather/services/locator/gen/locator"
 )
 
 func main() {

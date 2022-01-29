@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goadesign/clue/internal/testsvc"
+	"goa.design/clue/internal/testsvc"
 )
 
 func TestHTTPServerDuration(t *testing.T) {

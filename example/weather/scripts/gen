@@ -8,7 +8,7 @@ pushd ${GIT_ROOT}/example/weather
 echo "Generating Goa code..."
 
 for svc in front forecaster locator; do
-  goa gen github.com/goadesign/clue/example/weather/services/${svc}/design -o services/${svc}
+  goa gen goa.design/clue/example/weather/services/${svc}/design -o services/${svc}
 done
 
 popd

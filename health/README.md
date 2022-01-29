@@ -1,6 +1,6 @@
 # health: Healthy Services
 
-[![Build Status](https://github.com/goadesign/clue/workflows/CI/badge.svg?branch=main&event=push)](https://github.com/goadesign/clue/actions?query=branch%3Amain+event%3Apush)
+[![Build Status](https://goa.design/clue/workflows/CI/badge.svg?branch=main&event=push)](https://goa.design/clue/actions?query=branch%3Amain+event%3Apush)
 
 ## Overview
 
@@ -59,8 +59,8 @@ import (
         "context"
         "database/sql"
 
-       "github.com/goadesign/clue/health"
-       "github.com/goadesign/clue/log"
+       "goa.design/clue/health"
+       "goa.design/clue/log"
        goahttp "goa.design/goa/v3/http"
 
         "github.com/repo/services/svc/clients/storage"

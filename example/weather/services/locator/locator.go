@@ -3,8 +3,8 @@ package locator
 import (
 	"context"
 
-	"github.com/goadesign/clue/example/weather/services/locator/clients/ipapi"
-	genlocator "github.com/goadesign/clue/example/weather/services/locator/gen/locator"
+	"goa.design/clue/example/weather/services/locator/clients/ipapi"
+	genlocator "goa.design/clue/example/weather/services/locator/gen/locator"
 )
 
 type (

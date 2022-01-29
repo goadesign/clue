@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/goadesign/clue/example/weather/services/forecaster/clients/weathergov"
-	genforecaster "github.com/goadesign/clue/example/weather/services/forecaster/gen/forecaster"
+	"goa.design/clue/example/weather/services/forecaster/clients/weathergov"
+	genforecaster "goa.design/clue/example/weather/services/forecaster/gen/forecaster"
 )
 
 func TestForecast(t *testing.T) {

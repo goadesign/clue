@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/goadesign/clue/log"
+	"goa.design/clue/log"
 )
 
 // micro/log to prometheus logger adapter.

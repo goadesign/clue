@@ -5,10 +5,10 @@ import (
 	"net"
 	"testing"
 
-	"github.com/goadesign/clue/internal/testsvc/gen/grpc/test/client"
-	testpb "github.com/goadesign/clue/internal/testsvc/gen/grpc/test/pb"
-	"github.com/goadesign/clue/internal/testsvc/gen/grpc/test/server"
-	"github.com/goadesign/clue/internal/testsvc/gen/test"
+	"goa.design/clue/internal/testsvc/gen/grpc/test/client"
+	testpb "goa.design/clue/internal/testsvc/gen/grpc/test/pb"
+	"goa.design/clue/internal/testsvc/gen/grpc/test/server"
+	"goa.design/clue/internal/testsvc/gen/test"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

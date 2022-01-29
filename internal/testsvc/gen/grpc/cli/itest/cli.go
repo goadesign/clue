@@ -3,7 +3,7 @@
 // itest gRPC client CLI support package
 //
 // Command:
-// $ goa gen github.com/goadesign/clue/internal/testsvc/design
+// $ goa gen goa.design/clue/internal/testsvc/design
 
 package cli
 
@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"os"
 
-	testc "github.com/goadesign/clue/internal/testsvc/gen/grpc/test/client"
+	testc "goa.design/clue/internal/testsvc/gen/grpc/test/client"
 	goa "goa.design/goa/v3/pkg"
 	grpc "google.golang.org/grpc"
 )

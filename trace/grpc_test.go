@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/goadesign/clue/internal/testsvc"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	"goa.design/clue/internal/testsvc"
 	"goa.design/goa/v3/grpc/middleware"
 	"google.golang.org/grpc"
 )
