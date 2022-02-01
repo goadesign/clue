@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/go-logfmt/logfmt"
 )
 
 // reset escape sequence for color unset
@@ -35,15 +37,7 @@ func FormatText(e *Entry) []byte {
 	}
 	if len(e.KeyVals) > 0 {
 		b.WriteByte(' ')
-		keys, vals := e.KeyVals.Parse()
-		for i := 0; i < len(keys); i++ {
-			b.WriteString(keys[i])
-			b.WriteByte('=')
-			b.WriteString(fmt.Sprintf("%v", vals[i]))
-			if i < len(keys)-1 {
-				b.WriteByte(' ')
-			}
-		}
+		logfmt.NewEncoder(&b).EncodeKeyvals(e.KeyVals...)
 	}
 	b.WriteByte('\n')
 	return b.Bytes()
@@ -251,6 +245,8 @@ func writeJSON(val interface{}, b *bytes.Buffer) {
 		}
 		b.WriteByte(']')
 	default:
+		b.WriteByte('"')
 		b.WriteString(fmt.Sprintf("%v", v))
+		b.WriteByte('"')
 	}
 }

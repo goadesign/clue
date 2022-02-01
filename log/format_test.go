@@ -25,6 +25,7 @@ func TestFormat(t *testing.T) {
 		"float64", float64(8.1),
 		"bool", true,
 		"nil", nil,
+		"dur", 123 * time.Millisecond,
 		"sliceString", []string{"a", "b", "c"},
 		"sliceInt", []int{1, 1},
 		"sliceInt32", []int32{2, 2},
@@ -49,19 +50,20 @@ func TestFormat(t *testing.T) {
 		"float32=7 " +
 		"float64=8.1 " +
 		"bool=true " +
-		"nil=<nil> " +
-		"sliceString=[a b c] " +
-		"sliceInt=[1 1] " +
-		"sliceInt32=[2 2] " +
-		"sliceInt64=[3 3] " +
-		"sliceUint=[4 4] " +
-		"sliceUint32=[5 5] " +
-		"sliceUint64=[6 6] " +
-		"sliceFloat32=[7 7] " +
-		"sliceFloat64=[8.1 8.1] " +
-		"sliceBool=[true false true] " +
-		"sliceNil=[<nil> <nil> <nil>] " +
-		"sliceMix=[a 1 true <nil>]"
+		"nil=null " +
+		"dur=123ms " +
+		"sliceString=\"unsupported value type\" " +
+		"sliceInt=\"unsupported value type\" " +
+		"sliceInt32=\"unsupported value type\" " +
+		"sliceInt64=\"unsupported value type\" " +
+		"sliceUint=\"unsupported value type\" " +
+		"sliceUint32=\"unsupported value type\" " +
+		"sliceUint64=\"unsupported value type\" " +
+		"sliceFloat32=\"unsupported value type\" " +
+		"sliceFloat64=\"unsupported value type\" " +
+		"sliceBool=\"unsupported value type\" " +
+		"sliceNil=\"unsupported value type\" " +
+		"sliceMix=\"unsupported value type\""
 
 	coloredKeyVals := func(col string) string {
 		return col + "string\033[0m=val " +
@@ -75,6 +77,7 @@ func TestFormat(t *testing.T) {
 			col + "float64\033[0m=8.1 " +
 			col + "bool\033[0m=true " +
 			col + "nil\033[0m=<nil> " +
+			col + "dur\033[0m=123ms " +
 			col + "sliceString\033[0m=[a b c] " +
 			col + "sliceInt\033[0m=[1 1] " +
 			col + "sliceInt32\033[0m=[2 2] " +
@@ -100,6 +103,7 @@ func TestFormat(t *testing.T) {
 		`"float64":8.1,` +
 		`"bool":true,` +
 		`"nil":null,` +
+		`"dur":"123ms",` +
 		`"sliceString":["a","b","c"],` +
 		`"sliceInt":[1,1],` +
 		`"sliceInt32":[2,2],` +
