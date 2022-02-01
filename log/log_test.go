@@ -96,7 +96,7 @@ func TestBuffering(t *testing.T) {
 	}
 
 	// Flush flushes the buffer.
-	Flush(ctx)
+	FlushAndDisableBuffering(ctx)
 	if len(entries(ctx)) != 0 {
 		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
 	}
@@ -114,7 +114,7 @@ func TestBuffering(t *testing.T) {
 	}
 
 	// Flush is idempotent.
-	Flush(ctx)
+	FlushAndDisableBuffering(ctx)
 	Info(ctx, printed)
 	if len(entries(ctx)) != 0 {
 		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
@@ -340,7 +340,7 @@ func TestNoLogging(t *testing.T) {
 	Info(ctx, "")
 	Error(ctx, "")
 	With(ctx, "key", "val")
-	Flush(ctx)
+	FlushAndDisableBuffering(ctx)
 }
 
 func TestMaxSize(t *testing.T) {
