@@ -154,6 +154,8 @@ func log(ctx context.Context, sev Severity, buffer bool, msg string, keyvals ...
 	}
 	if l.options.debug && !l.flushed {
 		l.flush()
+	} else if !l.flushed && l.options.disableBuffering(ctx) {
+		l.flush()
 	}
 
 	keyvals = append(l.keyvals, keyvals...)
