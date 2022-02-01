@@ -148,6 +148,25 @@ func TestBufferingWithError(t *testing.T) {
 	}
 }
 
+func TestWithDisabledBuffering(t *testing.T) {
+	disableBuffering := func(context.Context) bool { return true }
+
+	var buf bytes.Buffer
+	ctx := Context(
+		context.Background(), WithOutput(&buf), WithFormat(debugFormat),
+		WithDisableBuffering(disableBuffering),
+	)
+
+	// Info is not buffered
+	Info(ctx, printed)
+	if len(entries(ctx)) != 0 {
+		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
+	}
+	if buf.String() != printed {
+		t.Errorf("got printed message %q, want %q", buf.String(), printed)
+	}
+}
+
 func TestDebug(t *testing.T) {
 	var buf bytes.Buffer
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat))
