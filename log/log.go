@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"os"
 	"sync"
 	"time"
 )
@@ -90,6 +91,12 @@ func Info(ctx context.Context, msg string, keyvals ...interface{}) {
 func Error(ctx context.Context, msg string, keyvals ...interface{}) {
 	Flush(ctx)
 	log(ctx, SeverityError, true, msg, keyvals...)
+}
+
+// Fatal is equivalent to Error followed by a call to os.Exit(1)
+func Fatal(ctx context.Context, msg string, keyvals ...interface{}) {
+	Error(ctx, msg, keyvals...)
+	os.Exit(1)
 }
 
 // With creates a copy of the given log context and appends the given key/value
