@@ -66,7 +66,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// 3. Setup instrumentation
+	// 3. Setup metrics
 	ctx = metrics.Context(ctx, genlocator.ServiceName)
 
 	// 4. Create clients

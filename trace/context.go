@@ -26,7 +26,7 @@ type (
 
 const (
 	// InstrumentationLibraryName is the name of the instrumentation library.
-	InstrumentationLibraryName = "goa.design/micro"
+	InstrumentationLibraryName = "goa.design/clue"
 
 	// AttributeRequestID is the name of the span attribute that contains the
 	// request ID.

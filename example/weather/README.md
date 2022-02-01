@@ -87,7 +87,7 @@ grpcsvr := grpc.NewServer(
 		goagrpcmiddleware.UnaryRequestID(),
 		log.UnaryServerInterceptor(ctx), // <--
 		goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
-		instrument.UnaryServerInterceptor(ctx, genforecast.ServiceName),
+		metrics.UnaryServerInterceptor(ctx, genforecast.ServiceName),
 		trace.UnaryServerInterceptor(ctx),
 	))
 ```
@@ -118,7 +118,7 @@ grpcsvr := grpc.NewServer(
 		goagrpcmiddleware.UnaryRequestID(),
 		log.UnaryServerInterceptor(ctx),
 		goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
-		instrument.UnaryServerInterceptor(ctx, genforecast.ServiceName),
+		metrics.UnaryServerInterceptor(ctx, genforecast.ServiceName),
 		trace.UnaryServerInterceptor(ctx), // <--
 	))
 ```
@@ -148,18 +148,18 @@ lcc, err := grpc.DialContext(ctx, *locatorAddr,
 
 ### Metrics
 
-The `instrument` package provides a set of instrumentation middleware that
+The `metrics` package provides a set of instrumentation middleware that
 collects metrics from HTTP and gRPC servers and sends them to the
 [Tempo](https://grafana.com/docs/tempo/latest/) service.
 
 First the context is initialized with the service name and optional
-instrumentation options:
+options:
 
 ```go
-ctx = instrument.Context(ctx, genfront.ServiceName)
+ctx = metrics.Context(ctx, genfront.ServiceName)
 ```
 
-The gRPC services are instrumented with the `instrument.UnaryServerInterceptor`
+The gRPC services are instrumented with the `metrics.UnaryServerInterceptor`
 interceptor:
 
 ```go
@@ -168,29 +168,22 @@ grpcsvr := grpc.NewServer(
 		goagrpcmiddleware.UnaryRequestID(),
 		log.UnaryServerInterceptor(ctx),
 		goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
-		instrument.UnaryServerInterceptor(ctx), // <--
+		metrics.UnaryServerInterceptor(ctx), // <--
 		trace.UnaryServerInterceptor(ctx),
 	))
 ```
 
-The front service is instrumented with the `instrument.HTTP` middleware:
+The front service is instrumented with the `metrics.HTTP` middleware:
 
 ```go
-handler = instrument.HTTP(ctx)(handler)
+handler = metrics.HTTP(ctx)(handler)
 ```
 
 All the services run a HTTP server that exposes a Prometheus metrics endpoint at
-`/metrics`. gRPC services use the default `http` mux:
+`/metrics`.
 
 ```go
-http.Handle("/metrics", instrument.Handler(ctx))
-```
-
-While the front service mounts the `/metrics` endpoint onto the already
-configured Goa mux:
-
-```go
-mux.Handle("GET", "/metrics", instrument.Handler(ctx).(http.HandlerFunc))
+http.Handle("/metrics", metrics.Handler(ctx))
 ```
 
 ### Health Checks

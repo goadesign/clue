@@ -14,7 +14,7 @@ works best when used in microservices written using
 
 * Logging: the [log](log/) package provides a context-based logging API that
   intelligently selects what to log.
-* Metrics: the [instrument](instrument/) package makes it possible for
+* Metrics: the [metrics](metrics/) package makes it possible for
   services to expose a Prometheus compatible `/metrics` HTTP endpoint.
 * Health checks: the [health](health/) package provides a simple way for
   services to expose a health check endpoint.
