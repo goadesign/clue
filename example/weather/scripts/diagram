@@ -7,6 +7,6 @@ pushd ${GIT_ROOT}/example/weather
 
 echo "Starting diagram editor..."
 
-mdl serve goa.design/clue/example/weather/diagram -dir diagram -port 8085 front
+mdl serve goa.design/clue/example/weather/diagram -dir diagram -port 8095 front
 
 popd

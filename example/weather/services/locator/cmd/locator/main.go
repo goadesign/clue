@@ -32,7 +32,7 @@ import (
 func main() {
 	var (
 		grpcaddr  = flag.String("grpc-addr", ":8082", "gRPC listen address")
-		httpaddr  = flag.String("http-addr", ":8083", "HTTP listen address (health checks)")
+		httpaddr  = flag.String("http-addr", ":8083", "HTTP listen address (health checks and metrics)")
 		agentaddr = flag.String("agent-addr", ":4317", "Grafana agent listen address")
 		debug     = flag.Bool("debug", false, "Enable debug logs")
 	)

@@ -29,7 +29,8 @@ import (
 
 func main() {
 	var (
-		httpaddr             = flag.String("http-addr", ":8084", "HTTP listen address")
+		httpListenAddr       = flag.String("http-addr", ":8084", "HTTP listen address")
+		metricsListenAddr    = flag.String("metrics-addr", ":8085", "metrics listen address")
 		forecasterAddr       = flag.String("forecaster-addr", ":8080", "Forecaster service address")
 		forecasterHealthAddr = flag.String("forecaster-health-addr", ":8081", "Forecaster service health-check address")
 		locatorAddr          = flag.String("locator-addr", ":8082", "Locator service address")
@@ -104,8 +105,9 @@ func main() {
 	for _, m := range server.Mounts {
 		log.Print(ctx, "mount", "method", m.Method, "verb", m.Verb, "path", m.Pattern)
 	}
+	httpServer := &http.Server{Addr: *httpListenAddr, Handler: handler}
 
-	// 6. Mount health check & metrics on separate handler (to avoid logging, etc.)
+	// 6. Mount health check & metrics on separate HTTP server (different listen port)
 	check := health.Handler(health.NewChecker(
 		health.NewPinger("locator", "http", *locatorHealthAddr),
 		health.NewPinger("forecaster", "http", *forecasterHealthAddr)))
@@ -113,8 +115,7 @@ func main() {
 	http.Handle("/healthz", check)
 	http.Handle("/livez", check)
 	http.Handle("/metrics", metrics.Handler(ctx).(http.HandlerFunc))
-	http.Handle("/", handler)
-	l := &http.Server{Addr: *httpaddr}
+	metricsServer := &http.Server{Addr: *metricsListenAddr}
 
 	// 7. Start HTTP server
 	errc := make(chan error)
@@ -131,18 +132,24 @@ func main() {
 		defer wg.Done()
 
 		go func() {
-			log.Print(ctx, "HTTP server listening", "addr", *httpaddr)
-			errc <- l.ListenAndServe()
+			log.Print(ctx, "HTTP server listening", "addr", *httpListenAddr)
+			errc <- httpServer.ListenAndServe()
+		}()
+
+		go func() {
+			log.Print(ctx, "Metrics server listening", "addr", *metricsListenAddr)
+			errc <- metricsServer.ListenAndServe()
 		}()
 
 		<-ctx.Done()
-		log.Print(ctx, "shutting down HTTP server")
+		log.Print(ctx, "shutting down HTTP servers")
 
 		// Shutdown gracefully with a 30s timeout.
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		l.Shutdown(ctx)
+		httpServer.Shutdown(ctx)
+		metricsServer.Shutdown(ctx)
 	}()
 
 	// Cleanup
