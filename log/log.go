@@ -1,7 +1,11 @@
 package log
 
 import (
+	"bytes"
 	"context"
+	"errors"
+	"fmt"
+	"io"
 	"sync"
 	"time"
 )
@@ -237,6 +241,8 @@ func (l Severity) Color() string {
 	}
 }
 
+var truncationSuffix = " ... <clue/log.truncated>"
+
 // truncate makes sure that all string values in keyvals are no longer than
 // maxsize and that all slice values are truncated to maxsize.
 //
@@ -246,65 +252,50 @@ func (l Severity) Color() string {
 // against obvious mistakes - not to implement a bullet-proof solution.
 func truncate(keyvals []interface{}, maxsize int) {
 	for i := 1; i < len(keyvals); i += 2 {
-		switch v := keyvals[i].(type) {
-		case string:
-			if len(v) > maxsize {
-				keyvals[i] = v[0:maxsize]
-			}
-		case []string:
-			if len(v) > maxsize {
-				keyvals[i] = v[0:maxsize]
-			}
-			for j, s := range v {
-				if len(s) > maxsize {
-					v[j] = s[0:maxsize]
-				}
-			}
-		case []int:
-			if len(v) > maxsize {
-				keyvals[i] = v[0:maxsize]
-			}
-		case []int32:
-			if len(v) > maxsize {
-				keyvals[i] = v[0:maxsize]
-			}
-		case []int64:
-			if len(v) > maxsize {
-				keyvals[i] = v[0:maxsize]
-			}
-		case []uint:
-			if len(v) > maxsize {
-				keyvals[i] = v[0:maxsize]
-			}
-		case []uint32:
-			if len(v) > maxsize {
-				keyvals[i] = v[0:maxsize]
-			}
-		case []uint64:
-			if len(v) > maxsize {
-				keyvals[i] = v[0:maxsize]
-			}
-		case []float32:
-			if len(v) > maxsize {
-				keyvals[i] = v[0:maxsize]
-			}
-		case []float64:
-			if len(v) > maxsize {
-				keyvals[i] = v[0:maxsize]
-			}
-		case []bool:
-			if len(v) > maxsize {
-				keyvals[i] = v[0:maxsize]
-			}
-		case []interface{}:
-			if len(v) > maxsize {
-				keyvals[i] = v[0:maxsize]
-			}
-			for j, e := range v {
-				if s, ok := e.(string); ok && len(s) > maxsize {
-					v[j] = s[0:maxsize]
-				}
+		switch keyvals[i].(type) {
+		case int, int8, int16, int32, int64:
+			continue
+		case uint, uint8, uint16, uint32, uint64:
+			continue
+		case float32, float64:
+			continue
+		case bool:
+			continue
+		case nil:
+			continue
+		default:
+			var buf bytes.Buffer
+			_, err := fmt.Fprintf(newLimitWriter(&buf, maxsize), "%v", keyvals[i])
+			if errors.Is(err, errTruncated) {
+				fmt.Fprint(&buf, truncationSuffix)
+				keyvals[i] = buf.String()
 			}
 		}
 	}
+}
+
+type limitWriter struct {
+	io.Writer
+	max int
+	n   int
+}
+
+func newLimitWriter(w io.Writer, max int) io.Writer {
+	return &limitWriter{
+		Writer: w,
+		max:    max,
+	}
+}
+
+var errTruncated = errors.New("truncated value")
+
+func (lw *limitWriter) Write(b []byte) (int, error) {
+	newLen := lw.n + len(b)
+	if newLen > lw.max {
+		b = b[:lw.max-lw.n]
+		lw.Writer.Write(b)
+		return lw.max - lw.n, errTruncated
+	}
+	lw.n = newLen
+	return lw.Writer.Write(b)
 }
