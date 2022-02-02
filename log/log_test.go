@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 )
 
 const (
@@ -368,11 +369,11 @@ func TestMaxSize(t *testing.T) {
 		{"long message", txt + "a", nil, len(txt)},
 		{"short message with short value", txt, keyval, 2 * len(txt)},
 		{"long message with short value", txt + "a", keyval, 2 * len(txt)},
-		{"short message with long value", txt, toolong, 2 * len(txt)},
-		{"long message with long value", txt + "a", toolong, 2 * len(txt)},
-		{"too many elements in value", "", []interface{}{"key", toomany}, maxsize * len(txt)},
-		{"too many too long elements in value", "", []interface{}{"key", toomanytoolong}, maxsize * len(txt)},
-		{"too many too long elements in []interface{} value", "", []interface{}{"key", toomanyi}, maxsize * len(txt)},
+		{"short message with long value", txt, toolong, 2*len(txt) + len(truncationSuffix)},
+		{"long message with long value", txt + "a", toolong, 2*len(txt) + len(truncationSuffix)},
+		{"too many elements in value", "", []interface{}{"key", toomany}, maxsize + len(truncationSuffix)},
+		{"too many too long elements in value", "", []interface{}{"key", toomanytoolong}, maxsize + len(truncationSuffix)},
+		{"too many too long elements in []interface{} value", "", []interface{}{"key", toomanyi}, maxsize + len(truncationSuffix)},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -405,6 +406,22 @@ func TestMaxSize(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("example result", func(t *testing.T) {
+		now, epoc := timeNow, epoch
+		timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
+		epoch = timeNow()
+		defer func() { timeNow = now; epoch = epoc }()
+
+		var buf bytes.Buffer
+		ctx := Context(context.Background(), WithOutput(&buf), WithMaxSize(maxsize), WithFormat(FormatText))
+		Print(ctx, "example", "truncated", "it is too long")
+
+		want := "INFO[2022-01-09T20:29:45Z] examp truncated=it is ... <clue/log.truncated>\n"
+		if got := buf.String(); got != want {
+			t.Errorf("got %q, want %q", got, want)
+		}
+	})
 }
 
 func debugFormat(e *Entry) []byte {
