@@ -47,8 +47,8 @@ allows the application to write informative log messages without having to worry
 about the volume of logs being written.
 
 Specifically any call to the package `Info` function buffers log messages until
-the function `Error` or `Flush` is called. Note that calls to `Print` are not
-buffered. This makes it possible to log strategic messages (e.g. request
+the function `Fatal`, `Error` or `Flush` is called. Note that calls to `Print`
+are not buffered. This makes it possible to log strategic messages (e.g. request
 started, request finished, etc.) without having to flush all the buffered
 messages.
 
@@ -86,11 +86,11 @@ is called upon initial creation of the log context and upon each call to `With`.
 
 ## Structured Logging
 
-The logging function `Print`, `Debug`, `Info` and `Error` each accept a context,
-a message and a variadic number of arguments. The variadic arguments consist of
-alternating keys and values. `log` also makes it possible to build up the log
-context with a series of key-value pairs via the `With` function and to set
-default key-value pairs that should always be logged via the `WithKeyVal`
+The logging function `Print`, `Debug`, `Info`, `Error` and `Fatal` each accept
+a context, a message and a variadic number of arguments. The variadic arguments
+consist of alternating keys and values. `log` also makes it possible to build
+up the log context with a series of key-value pairs via the `With` function and
+to set default key-value pairs that should always be logged via the `WithKeyVal`
 option. The following example shows how to leverage structured logging:
 
 ```go
