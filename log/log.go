@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"sync"
 	"time"
 )
@@ -92,8 +93,14 @@ func Info(ctx context.Context, msg string, keyvals ...interface{}) {
 // keys and values. Keys must be strings and values must be strings, numbers,
 // booleans, nil or a slice of these types.
 func Error(ctx context.Context, msg string, keyvals ...interface{}) {
-	Flush(ctx)
+	FlushAndDisableBuffering(ctx)
 	log(ctx, SeverityError, true, msg, keyvals...)
+}
+
+// Fatal is equivalent to Error followed by a call to os.Exit(1)
+func Fatal(ctx context.Context, msg string, keyvals ...interface{}) {
+	Error(ctx, msg, keyvals...)
+	os.Exit(1)
 }
 
 // With creates a copy of the given log context and appends the given key/value
@@ -120,8 +127,9 @@ func With(ctx context.Context, keyvals ...interface{}) context.Context {
 	return context.WithValue(ctx, ctxLogger, &copy)
 }
 
-// Flush flushes the log entries to the writer.
-func Flush(ctx context.Context) {
+// FlushAndDisableBuffering flushes the log entries to the writer and stops
+// buffering the given context.
+func FlushAndDisableBuffering(ctx context.Context) {
 	v := ctx.Value(ctxLogger)
 	if v == nil {
 		return // do nothing if context isn't initialized
