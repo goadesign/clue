@@ -131,7 +131,7 @@ func TestFormat(t *testing.T) {
 			format:  FormatText,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    "DEBG[2022-01-09T20:29:45Z] hello " + formattedKeyVals + "\n",
+			want:    "time=2022-01-09T20:29:45Z level=debug msg=hello " + formattedKeyVals + "\n",
 		},
 		{
 			name:    "default info",
@@ -139,7 +139,7 @@ func TestFormat(t *testing.T) {
 			format:  FormatText,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    "INFO[2022-01-09T20:29:45Z] hello " + formattedKeyVals + "\n",
+			want:    "time=2022-01-09T20:29:45Z level=info msg=hello " + formattedKeyVals + "\n",
 		},
 		{
 			name:    "default print",
@@ -147,7 +147,7 @@ func TestFormat(t *testing.T) {
 			format:  FormatText,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    "INFO[2022-01-09T20:29:45Z] hello " + formattedKeyVals + "\n",
+			want:    "time=2022-01-09T20:29:45Z level=info msg=hello " + formattedKeyVals + "\n",
 		},
 		{
 			name:    "default error",
@@ -155,7 +155,7 @@ func TestFormat(t *testing.T) {
 			format:  FormatText,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    "ERRO[2022-01-09T20:29:45Z] hello " + formattedKeyVals + "\n",
+			want:    "time=2022-01-09T20:29:45Z level=error msg=hello " + formattedKeyVals + "\n",
 		},
 		{
 			name:    "colored debug",
@@ -195,7 +195,7 @@ func TestFormat(t *testing.T) {
 			format:  FormatJSON,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    `{"level":"DEBUG","time":"2022-01-09T20:29:45Z","msg":"hello",` + jsonKeyVals + "}\n",
+			want:    `{"time":"2022-01-09T20:29:45Z","level":"debug","msg":"hello",` + jsonKeyVals + "}\n",
 		},
 		{
 			name:    "json info",
@@ -203,7 +203,7 @@ func TestFormat(t *testing.T) {
 			format:  FormatJSON,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    `{"level":"INFO","time":"2022-01-09T20:29:45Z","msg":"hello",` + jsonKeyVals + "}\n",
+			want:    `{"time":"2022-01-09T20:29:45Z","level":"info","msg":"hello",` + jsonKeyVals + "}\n",
 		},
 		{
 			name:    "json print",
@@ -211,7 +211,7 @@ func TestFormat(t *testing.T) {
 			format:  FormatJSON,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    `{"level":"INFO","time":"2022-01-09T20:29:45Z","msg":"hello",` + jsonKeyVals + "}\n",
+			want:    `{"time":"2022-01-09T20:29:45Z","level":"info","msg":"hello",` + jsonKeyVals + "}\n",
 		},
 		{
 			name:    "json error",
@@ -219,7 +219,7 @@ func TestFormat(t *testing.T) {
 			format:  FormatJSON,
 			msg:     "hello",
 			keyVals: keyVals,
-			want:    `{"level":"ERROR","time":"2022-01-09T20:29:45Z","msg":"hello",` + jsonKeyVals + "}\n",
+			want:    `{"time":"2022-01-09T20:29:45Z","level":"error","msg":"hello",` + jsonKeyVals + "}\n",
 		},
 	}
 	for _, tc := range cases {

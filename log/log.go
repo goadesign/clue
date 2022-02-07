@@ -97,15 +97,22 @@ func Error(ctx context.Context, msg string, keyvals ...interface{}) {
 // strings and values must be strings, numbers, booleans, nil or a slice of
 // these types.
 func With(ctx context.Context, keyvals ...interface{}) context.Context {
+	if len(keyvals)%2 != 0 {
+		keyvals = append(keyvals, nil)
+	}
 	v := ctx.Value(ctxLogger)
 	if v == nil {
 		return ctx
 	}
 	l := v.(*logger)
-	if len(keyvals)%2 != 0 {
-		keyvals = append(keyvals, nil)
+	l.lock.Lock()
+	copy := logger{
+		options: l.options,
+		keyvals: l.keyvals,
+		entries: l.entries,
+		flushed: l.flushed,
 	}
-	copy := *l
+	l.lock.Unlock()
 	copy.keyvals = append(copy.keyvals, keyvals...)
 
 	// Make sure that if Go needs to grow the slice then each context get
@@ -198,11 +205,11 @@ func (kv KeyVals) Parse() (keys []string, vals []interface{}) {
 func (l Severity) String() string {
 	switch l {
 	case SeverityDebug:
-		return "DEBUG"
+		return "debug"
 	case SeverityInfo:
-		return "INFO"
+		return "info"
 	case SeverityError:
-		return "ERROR"
+		return "error"
 	default:
 		return "<INVALID>"
 	}

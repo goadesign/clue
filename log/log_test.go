@@ -58,7 +58,7 @@ func TestSeverity(t *testing.T) {
 	Debug(ctx, "")
 	Info(ctx, "")
 	Error(ctx, "")
-	want := "DEBUG:DEBG:\033[37m INFO:INFO:\033[34m ERROR:ERRO:\033[1;31m "
+	want := "debug:DEBG:\033[37m info:INFO:\033[34m error:ERRO:\033[1;31m "
 	if got := buf.String(); got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
