@@ -417,7 +417,7 @@ func TestMaxSize(t *testing.T) {
 		ctx := Context(context.Background(), WithOutput(&buf), WithMaxSize(maxsize), WithFormat(FormatText))
 		Print(ctx, "example", "truncated", "it is too long")
 
-		want := "INFO[2022-01-09T20:29:45Z] examp truncated=it is ... <clue/log.truncated>\n"
+		want := "time=2022-01-09T20:29:45Z level=info msg=examp truncated=\"it is ... <clue/log.truncated>\"\n"
 		if got := buf.String(); got != want {
 			t.Errorf("got %q, want %q", got, want)
 		}
