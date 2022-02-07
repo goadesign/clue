@@ -24,9 +24,9 @@ func init() {
 //
 //    time=TIME level=SEVERITY msg=MESSAGE KEY=VAL KEY=VAL ...
 //
-// Where TIME is the UTC timestamp in RFC3339 format, SEVERITY is one of DEBG,
-// INFO or ERRO, MESSAGE is the log message, and KEY=VAL are the entry key/value
-// entry pairs.
+// Where TIME is the UTC timestamp in RFC3339 format, SEVERITY is one of
+// "debug", "info" or "error", MESSAGE is the log message, and KEY=VAL are the
+// entry key/value pairs.
 func FormatText(e *Entry) []byte {
 	kvs := []interface{}{"time", e.Time.Format(time.RFC3339), "level", e.Severity}
 	if len(e.Message) > 0 {
