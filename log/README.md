@@ -173,7 +173,7 @@ interface.
 
 `log` comes with three predefined log formats and makes it easy to provide
 custom formatters. The three built-in formats are:
-* `FormatText`: a plain text format
+* `FormatText`: a plain text format using [logfmt](https://brandur.org/logfmt)
 * `FormatTerminal`: a format suitable to print logs to colored terminals
 * `FormatJSON`: a JSON format
 
@@ -190,7 +190,7 @@ log.Print(ctx, "hello world", "foo", "bar")
 The example above logs the following message:
 
 ```
-INFO[2022-01-09T20:29:45Z] hello world foo=bar
+time=2022-01-09T20:29:45Z level=info msg="hello world" foo=bar
 ```
 
 Where `2022-01-09T20:29:45Z` is the current time in UTC.
@@ -227,7 +227,7 @@ log.Print(ctx, "hello world", "foo", "bar")
 The example above logs the following message:
 
 ```
-{"level":"INFO","time":"2022-01-09T20:29:45Z","message":"hello world","foo":"bar"}
+{"time":"2022-01-09T20:29:45Z","level":"info","message":"hello world","foo":"bar"}
 ```
 
 ### Custom Formats

@@ -59,7 +59,7 @@ func TestSeverity(t *testing.T) {
 	Debug(ctx, "")
 	Info(ctx, "")
 	Error(ctx, "")
-	want := "DEBUG:DEBG:\033[37m INFO:INFO:\033[34m ERROR:ERRO:\033[1;31m "
+	want := "debug:DEBG:\033[37m info:INFO:\033[34m error:ERRO:\033[1;31m "
 	if got := buf.String(); got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
@@ -417,7 +417,7 @@ func TestMaxSize(t *testing.T) {
 		ctx := Context(context.Background(), WithOutput(&buf), WithMaxSize(maxsize), WithFormat(FormatText))
 		Print(ctx, "example", "truncated", "it is too long")
 
-		want := "INFO[2022-01-09T20:29:45Z] examp truncated=it is ... <clue/log.truncated>\n"
+		want := "time=2022-01-09T20:29:45Z level=info msg=examp truncated=\"it is ... <clue/log.truncated>\"\n"
 		if got := buf.String(); got != want {
 			t.Errorf("got %q, want %q", got, want)
 		}
