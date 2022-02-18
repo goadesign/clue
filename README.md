@@ -32,3 +32,25 @@ Grafana stack to query metrics and traces. See the
 ## Contributing
 
 See [Contributing](CONTRIBUTING.md)
+
+## Roadmap to Open Source
+
+The goal is to make this repo public ASAP. The one remaining item is a rework of
+the `log` package to make it more flexible and allow both `Printf` and key-based
+style logging.
+
+## Addendum: Importing Private Repository
+
+Because it is currently private importing this repo requires a few extra steps:
+
+1. The `go get` command must be able to use `ssh` to clone repoitories hosted on
+   GitHub.
+2. The `go get` command must know that this repo is private so it uses the right
+   `git` command.
+   
+These two requirements can be satisfied with the corresponding two commands below:
+
+```bash
+git config --global url.git@github.com:.insteadOf https://github.com/
+go env -w GOPRIVATE=goa.design/clue
+```
