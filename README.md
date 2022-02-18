@@ -20,7 +20,7 @@ works best when used in microservices written using
   services to expose a health check endpoint.
 * Dependency mocks: the [mock](mock/) package provides a way to mock
   downstream dependencies for testing.
-* Tracing: the [trace](trace/) package conforms to theV
+* Tracing: the [trace](trace/) package conforms to the
   [OpenTelemetry](https://opentelemetry.io/) specification to trace requests.
 
 The [weather](example/weather) example illustrates how to use `clue` to
