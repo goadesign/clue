@@ -44,25 +44,25 @@ func main() {
 		format = log.FormatTerminal
 	}
 	ctx := log.Context(context.Background(), log.WithFormat(format))
-	ctx = log.With(ctx, "svc", genlocator.ServiceName)
+	ctx = log.With(ctx, log.KV{"svc", genlocator.ServiceName})
 	if *debug {
 		ctx = log.Context(ctx, log.WithDebug())
-		log.Debug(ctx, "debug logs enabled")
+		log.Debugf(ctx, "debug logs enabled")
 	}
 
 	// 2. Setup tracing
-	log.Debug(ctx, "connecting to Grafana agent...", "addr", *agentaddr)
+	log.Debugf(ctx, "connecting to Grafana agent %s", *agentaddr)
 	conn, err := grpc.DialContext(ctx, *agentaddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock())
 	if err != nil {
-		log.Error(ctx, "failed to connect to Grafana agent", "err", err)
+		log.Errorf(ctx, err, "failed to connect to Grafana agent")
 		os.Exit(1)
 	}
-	log.Debug(ctx, "connected to Grafana agent", "addr", *agentaddr)
+	log.Debugf(ctx, "connected to Grafana agent %s", *agentaddr)
 	ctx, err = trace.Context(ctx, genlocator.ServiceName, conn)
 	if err != nil {
-		log.Error(ctx, "failed to initialize tracing", "err", err)
+		log.Errorf(ctx, err, "failed to initialize tracing")
 		os.Exit(1)
 	}
 
@@ -91,7 +91,7 @@ func main() {
 	reflection.Register(grpcsvr)
 	for svc, info := range grpcsvr.GetServiceInfo() {
 		for _, m := range info.Methods {
-			log.Print(ctx, "mount", "method", svc+"/"+m.Name)
+			log.Print(ctx, log.KV{"method", svc + "/" + m.Name})
 		}
 	}
 
@@ -117,7 +117,7 @@ func main() {
 		defer wg.Done()
 
 		go func() {
-			log.Print(ctx, "HTTP server listening", "addr", httpsvr.Addr)
+			log.Printf(ctx, "HTTP server listening on %s", httpsvr.Addr)
 			errc <- httpsvr.ListenAndServe()
 		}()
 
@@ -128,12 +128,12 @@ func main() {
 			if err != nil {
 				errc <- err
 			}
-			log.Print(ctx, "gRPC server listening", "addr", l.Addr())
+			log.Printf(ctx, "gRPC server listening on %s", l.Addr())
 			errc <- grpcsvr.Serve(l)
 		}()
 
 		<-ctx.Done()
-		log.Print(ctx, "shutting down HTTP and gRPC servers")
+		log.Printf(ctx, "shutting down HTTP and gRPC servers")
 
 		// Shutdown gracefully with a 30s timeout.
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -144,8 +144,10 @@ func main() {
 	}()
 
 	// Cleanup
-	log.Print(ctx, "exiting", "err", <-errc)
+	if err := <-errc; err != nil {
+		log.Errorf(ctx, err, "exiting")
+	}
 	cancel()
 	wg.Wait()
-	log.Print(ctx, "exited")
+	log.Printf(ctx, "exited")
 }

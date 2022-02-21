@@ -4,6 +4,8 @@ import (
 	"context"
 	"io"
 	"os"
+	"runtime"
+	"strconv"
 	"syscall"
 
 	"golang.org/x/term"
@@ -27,7 +29,8 @@ type (
 		debug            bool
 		w                io.Writer
 		format           FormatFunc
-		keyvals          []interface{}
+		keyvals          []KV
+		kvfuncs          []func(context.Context) []KV
 		maxsize          int
 	}
 )
@@ -73,18 +76,38 @@ func WithFormat(fn FormatFunc) LogOption {
 	}
 }
 
-// WithKeyValue sets a key value pair to be logged with every log entry. value
-// must be a string, number, boolean, nil, or a slice of any of these.
-func WithKeyValue(key string, value interface{}) LogOption {
-	return func(o *options) {
-		o.keyvals = append(o.keyvals, key, value)
-	}
-}
-
 // WithMaxSize sets the maximum size of a single log message or value.
 func WithMaxSize(n int) LogOption {
 	return func(o *options) {
 		o.maxsize = n
+	}
+}
+
+// WithFileLocation adds the "file" key to each log entry with the parent
+// directory, file and line number of the caller: "file=dir/file.go:123".
+func WithFileLocation() LogOption {
+	return WithFunc(func(context.Context) []KV {
+		_, file, line, _ := runtime.Caller(4)
+		short := file
+		second := false
+		for i := len(file) - 1; i > 0; i-- {
+			if file[i] == '/' {
+				if second {
+					short = file[i+1:]
+					break
+				}
+				second = true
+			}
+		}
+		return []KV{{"file", short + ":" + strconv.Itoa(line)}}
+	})
+}
+
+// WithFunc sets a key/value pair generator function to be called with every
+// log entry. The generated key/value pairs are added to the log entry.
+func WithFunc(fn func(context.Context) []KV) LogOption {
+	return func(o *options) {
+		o.kvfuncs = append(o.kvfuncs, fn)
 	}
 }
 

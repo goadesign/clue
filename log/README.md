@@ -18,26 +18,28 @@ import (
 )       
 
 func main() {
-        ctx := log.Context(context.Background(), "svc", svcgen.ServiceName)
-        ctx = log.With(ctx, "foo", "bar")
-        log.Print(ctx, "hello world", "baz", "qux")
+        ctx := log.Context(context.Background())
+        log.Printf(ctx, "hello %s", "world")
+        log.Print(ctx, log.KV{"hello", "world"})
 }
 ```
 
-The example above logs the following message to stdout, it is colored if the
-application runs in a terminal:
+The example above logs the following messages to stdout (assuming the default
+formatter):
 
 ```
-INFO[0000] hello world foo=bar baz=qux
+time=2022-02-22T02:22:02Z level=info msg="hello world"
+time=2022-02-22T02:22:02Z level=info hello=world
 ```
 
 A typical instantiation of the logger for a Goa service looks like this:
 
 ```go
-ctx := log.With(log.Context(context.Background()), "svc", svcgen.ServiceName)
+ctx := log.With(log.Context(context.Background()), log.KV{"svc", svcgen.ServiceName})
 ```
 
-Where `svcgen` is the generated Goa service package.
+Where `svcgen` is the generated Goa service package. This guarantees that all
+log entries for the service will have the `svc` key set to the service name.
 
 ## Buffering
 
@@ -47,25 +49,30 @@ allows the application to write informative log messages without having to worry
 about the volume of logs being written.
 
 Specifically any call to the package `Info` function buffers log messages until
-the function `Fatal`, `Error` or `Flush` is called. Note that calls to `Print`
-are not buffered. This makes it possible to log strategic messages (e.g. request
-started, request finished, etc.) without having to flush all the buffered
-messages.
+the function `Fatal`, `Error` or `Flush` is called. Calls to `Print` are not
+buffered. This makes it possible to log specific messages (e.g. request started,
+request finished, etc.) without having to flush all the buffered messages.
 
 The following example shows how to use the buffering feature:
 
 ```go
-log.Info(ctx, "request started")
+log.Infof(ctx, "request started")
 // ... no log written so far
-log.Error("request failed") // flushes all previous log entries
+log.Errorf(ctx, err, "request failed") // flushes all previous log entries
 ```
 
-The example above logs the following messages to stdout:
+The example above logs the following messages to stdout *after* the call to
+`Errorf`:
 
 ```
-INFO[0000] request started
-ERRO[0000] request failed
+time=2022-02-22T02:22:02Z level=info msg="request started"
+time=2022-02-22T02:22:04Z level=error msg="request failed"
 ```
+
+The `time` key makes it possible to infer the order of log events in case
+buffered and non-buffered function calls are mixed. In practice this rarely
+happens as non buffered log events are typically created by middlewares which
+log before and after the business logic.
 
 ### Conditional Buffering
 
@@ -77,7 +84,7 @@ The following example shows how to conditionally disable the buffering feature:
 
 ```go
 ctx := log.Context(context.Background(), log.WithDisableBuffering(log.IsTracing))
-log.Info(ctx, "request started") // buffering disabled if tracing is enabled
+log.Infof(ctx, "request started") // buffering disabled if tracing is enabled
 ```
 
 The function given to `WithDisableBuffering` is called with the current context
@@ -86,69 +93,54 @@ is called upon initial creation of the log context and upon each call to `With`.
 
 ## Structured Logging
 
-The logging function `Print`, `Debug`, `Info`, `Error` and `Fatal` each accept
-a context, a message and a variadic number of arguments. The variadic arguments
-consist of alternating keys and values. `log` also makes it possible to build
-up the log context with a series of key-value pairs via the `With` function and
-to set default key-value pairs that should always be logged via the `WithKeyVal`
-option. The following example shows how to leverage structured logging:
+The logging function `Print`, `Debug`, `Info`, `Error` and `Fatal` each accept a
+context and a variadic number of key/value pairs. `log` also makes it possible
+to build up the log context with a series of key-value pairs via the `With`
+function. The following example shows how to leverage structured logging:
 
 ```go
-ctx := log.Context(context.Background(), log.WithKeyValue("key1", "val1"))
-ctx := log.With(ctx, "key2", "val2")
-log.Print(ctx, "hello world 1")
+ctx := log.Context(context.Background())
+ctx := log.With(ctx, log.KV{"key2", "val2"})
+log.Print(ctx, log.KV{"hello",  "world 1"})
 
-ctx = log.With(ctx, "key3", "val3")
-log.Print(ctx, "hello world 2", "key4", "val4", "key5", "val5")
+ctx = log.With(ctx, log.KV{"key3", "val3"})
+log.Print(ctx, log.KV{"hello", "world 2"}, log.KV{"key4", "val4"})
 ```
 
-The example above logs the following message to stdout:
+The example above logs the following message to stdout (assuming the terminal
+formatter is being used):
 
 ```
-INFO[0000] hello world 1 key1=val1 key2=val2
-INFO[0000] hello world 2 key1=val1 key2=val2 key3=val3 key4=val4 key5=val5
+INFO[0000] key2=val2 hello="world 1"
+INFO[0000] key2=val2 key3=val3 hello="world 2" key4=val4
 ```
 
-Keys of key-value pairs must be strings and values must be strings, numbers,
-booleans, nil or a slice of these types.
-
-Log messages are optional and can be omitted by passing an empty string. The
-following example shows how to omit a log message:
-
-```go
-log.Print(ctx, "", "foo", "bar")
-```
-
-The example above logs the following message to stdout:
-
-```
-INFO[0000] foo=bar
-```
+Values must be strings, numbers, booleans, nil or a slice of these types.
 
 ## Log Severity
 
-`log` supports three log severities: `Debug`, `Info`, and `Error`. By default
+`log` supports three log severities: `debug`, `info`, and `error`. By default
 debug logs are not written to the log output. The following example shows how to
 enable debug logging:
 
 ```go
 ctx := log.Context(context.Background())
-log.Debug(ctx, "debug message 1")
+log.Debugf(ctx, "debug message 1")
 
 ctx := log.Context(ctx, log.WithDebug())
-log.Debug(ctx, "debug message 2")
-log.Info(ctx, "info message")
+log.Debugf(ctx, "debug message 2")
+log.Infof(ctx, "info message")
 ```
 
 The example above logs the following messages to stdout:
 
 ```
-DEBG[0000] debug message 2
-INFO[0000] info message
+DEBG[0000] msg="debug message 2"
+INFO[0000] msg="info message"
 ```
 
 Note that enabling debug logging also disables buffering and causes all future
-log messages to be written to the log output.
+log messages to be written to the log output as demonstrated above.
 
 ## Log Output
 
@@ -157,13 +149,13 @@ how to change the log output:
 
 ```go
 ctx := log.Context(context.Background(), log.WithOutput(os.Stderr))
-log.Print(ctx, "hello world")
+log.Printf(ctx, "hello world")
 ```
 
 The example above logs the following message to stderr:
 
 ```
-INFO[0000] hello world
+INFO[0000] msg="hello world"
 ```
 
 The `WithOuput` function accepts any type that implements the `io.Writer`
@@ -184,13 +176,13 @@ in a terminal.
 
 ```go
 ctx := log.Context(context.Background(), log.WithFormat(log.FormatText))
-log.Print(ctx, "hello world", "foo", "bar")
+log.Printf(ctx, "hello world")
 ```
 
 The example above logs the following message:
 
 ```
-time=2022-01-09T20:29:45Z level=info msg="hello world" foo=bar
+time=2022-01-09T20:29:45Z level=info msg="hello world"
 ```
 
 Where `2022-01-09T20:29:45Z` is the current time in UTC.
@@ -202,13 +194,13 @@ in a terminal.
 
 ```go
 ctx := log.Context(context.Background(), log.WithFormat(log.FormatTerminal))
-log.Print(ctx, "hello world", "foo", "bar")
+log.Printf(ctx, "hello world")
 ```
 
 The example above logs the following message:
 
 ```
-INFO[0000] hello world foo=bar
+INFO[0000] msg="hello world"
 ```
 
 Where `0000` is the number of seconds since the application started. The
@@ -221,13 +213,13 @@ The JSON format prints entries in JSON.
 
 ```go
 ctx := log.Context(context.Background(), log.WithFormat(log.FormatJSON))
-log.Print(ctx, "hello world", "foo", "bar")
+log.Printf(ctx, "hello world")
 ```
 
 The example above logs the following message:
 
 ```
-{"time":"2022-01-09T20:29:45Z","level":"info","message":"hello world","foo":"bar"}
+{"time":"2022-01-09T20:29:45Z","level":"info","msg":"hello world"}
 ```
 
 ### Custom Formats
@@ -239,11 +231,11 @@ format function:
 
 ```go
 func formatFunc(entry *log.Entry) []byte {
-        return []byte(fmt.Sprintf("%s: %s", entry.Severity, entry.Message))
+        return []byte(fmt.Sprintf("%s: %s", entry.Severity, entry.Keyvals[0].V))
 }
 
 ctx := log.Context(context.Background(), log.WithFormat(formatFunc))
-log.Print(ctx, "hello world")
+log.Printf(ctx, "hello world")
 ```
 
 The example above logs the following message to stdout:

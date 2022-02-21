@@ -27,7 +27,7 @@ func TestLogger(t *testing.T) {
 			var buf bytes.Buffer
 			ctx := log.Context(context.Background(),
 				log.WithOutput(&buf),
-				log.WithFormat(func(e *log.Entry) []byte { return []byte(e.Message) }))
+				log.WithFormat(func(e *log.Entry) []byte { return []byte(e.KeyVals[0].V.(string)) }))
 			l := logger{ctx}
 			l.Println(c.vals...)
 			if buf.String() != c.expected {

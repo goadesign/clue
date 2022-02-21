@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"fmt"
 
 	"goa.design/goa/v3/middleware"
 )
@@ -42,6 +43,15 @@ func Adapt(ctx context.Context) middleware.Logger {
 
 // Log creates a log entry using a sequence of key/value pairs.
 func (l goaLogger) Log(keyvals ...interface{}) error {
-	Print(l, "", keyvals...)
+	n := (len(keyvals) + 1) / 2
+	if len(keyvals)%2 != 0 {
+		keyvals = append(keyvals, "MISSING")
+	}
+	kvs := make([]KV, n)
+	for i := 0; i < n; i++ {
+		k, v := keyvals[2*i], keyvals[2*i+1]
+		kvs[i] = KV{K: fmt.Sprint(k), V: v}
+	}
+	Print(l, kvs...)
 	return nil
 }

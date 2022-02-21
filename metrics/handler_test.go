@@ -30,7 +30,7 @@ func TestHandler(t *testing.T) {
 			var buf bytes.Buffer
 			ctx := log.Context(context.Background(),
 				log.WithOutput(&buf),
-				log.WithFormat(func(e *log.Entry) []byte { return []byte(e.Message) }))
+				log.WithFormat(func(e *log.Entry) []byte { return []byte(e.KeyVals[0].V.(string)) }))
 			reg := NewTestRegistry(t)
 			gat := &mockGatherer{err: c.err}
 			req, _ := http.NewRequest("GET", "/metrics", nil)

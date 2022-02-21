@@ -15,5 +15,5 @@ type logger struct {
 // Implements the promhttp.Logger interface.
 func (l logger) Println(v ...interface{}) {
 	msg := fmt.Sprintln(v...)
-	log.Error(l, msg)
+	log.Printf(l, msg)
 }

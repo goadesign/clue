@@ -46,25 +46,25 @@ func main() {
 		format = log.FormatTerminal
 	}
 	ctx := log.Context(context.Background(), log.WithFormat(format))
-	ctx = log.With(ctx, "svc", genfront.ServiceName)
+	ctx = log.With(ctx, log.KV{"svc", genfront.ServiceName})
 	if *debug {
 		ctx = log.Context(ctx, log.WithDebug())
-		log.Debug(ctx, "debug logs enabled")
+		log.Debugf(ctx, "debug logs enabled")
 	}
 
 	// 2. Setup tracing
-	log.Debug(ctx, "connecting to Grafana agent...", "addr", *agentaddr)
+	log.Debugf(ctx, "connecting to Grafana agent %s", *agentaddr)
 	conn, err := grpc.DialContext(ctx, *agentaddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock())
 	if err != nil {
-		log.Error(ctx, "failed to connect to Grafana agent", "err", err)
+		log.Errorf(ctx, err, "failed to connect to Grafana agent")
 		os.Exit(1)
 	}
-	log.Debug(ctx, "connected to Grafana agent", "addr", *agentaddr)
+	log.Debugf(ctx, "connected to Grafana agent %s", *agentaddr)
 	ctx, err = trace.Context(ctx, genfront.ServiceName, conn)
 	if err != nil {
-		log.Error(ctx, "failed to initialize tracing", "err", err)
+		log.Errorf(ctx, err, "failed to initialize tracing")
 		os.Exit(1)
 	}
 
@@ -76,7 +76,7 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(trace.UnaryClientInterceptor(ctx)))
 	if err != nil {
-		log.Error(ctx, "failed to connect to locator", "err", err)
+		log.Errorf(ctx, err, "failed to connect to locator")
 		os.Exit(1)
 	}
 	lc := locator.New(lcc)
@@ -84,7 +84,7 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(trace.UnaryClientInterceptor(ctx)))
 	if err != nil {
-		log.Error(ctx, "failed to connect to forecast", "err", err)
+		log.Errorf(ctx, err, "failed to connect to forecast")
 		os.Exit(1)
 	}
 	fc := forecaster.New(fcc)
@@ -103,7 +103,7 @@ func main() {
 	handler = log.HTTP(ctx)(handler)
 	handler = goahttpmiddleware.RequestID()(handler)
 	for _, m := range server.Mounts {
-		log.Print(ctx, "mount", "method", m.Method, "verb", m.Verb, "path", m.Pattern)
+		log.Print(ctx, log.KV{"method", m.Method}, log.KV{"endpoint", m.Verb + " " + m.Pattern})
 	}
 	httpServer := &http.Server{Addr: *httpListenAddr, Handler: handler}
 
@@ -132,17 +132,17 @@ func main() {
 		defer wg.Done()
 
 		go func() {
-			log.Print(ctx, "HTTP server listening", "addr", *httpListenAddr)
+			log.Printf(ctx, "HTTP server listening on %s", *httpListenAddr)
 			errc <- httpServer.ListenAndServe()
 		}()
 
 		go func() {
-			log.Print(ctx, "Metrics server listening", "addr", *metricsListenAddr)
+			log.Printf(ctx, "Metrics server listening on %s", *metricsListenAddr)
 			errc <- metricsServer.ListenAndServe()
 		}()
 
 		<-ctx.Done()
-		log.Print(ctx, "shutting down HTTP servers")
+		log.Printf(ctx, "shutting down HTTP servers")
 
 		// Shutdown gracefully with a 30s timeout.
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -153,8 +153,10 @@ func main() {
 	}()
 
 	// Cleanup
-	log.Print(ctx, "exiting", "err", <-errc)
+	if err := <-errc; err != nil {
+		log.Errorf(ctx, err, "exiting")
+	}
 	cancel()
 	wg.Wait()
-	log.Print(ctx, "exited")
+	log.Printf(ctx, "exited")
 }

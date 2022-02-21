@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -15,38 +17,42 @@ const (
 	ignored  = "ignored"
 )
 
-func TestKeyValParse(t *testing.T) {
-	cases := []struct {
-		name         string
-		keyvals      []interface{}
-		expectedKeys []string
-		expectedVals []interface{}
-	}{
-		{"empty", []interface{}{}, []string{}, []interface{}{}},
-		{"one", []interface{}{"key", "val"}, []string{"key"}, []interface{}{"val"}},
-		{"invalid key", []interface{}{0, "val"}, []string{"<INVALID>"}, []interface{}{"val"}},
+const ServiceName = "service"
+
+func ExamplePrintf() {
+	timeNow = func() time.Time { return time.Date(2018, time.January, 1, 0, 0, 0, 0, time.UTC) }
+	defer func() { timeNow = time.Now }()
+	ctx := Context(context.Background())
+	Printf(ctx, "hello %s", "world")
+	// Output: time=2018-01-01T00:00:00Z level=info msg="hello world"
+}
+
+func ExamplePrint() {
+	timeNow = func() time.Time { return time.Date(2018, time.January, 1, 0, 0, 0, 0, time.UTC) }
+	defer func() { timeNow = time.Now }()
+	ctx := Context(context.Background())
+	Print(ctx, KV{"hello", "world"})
+	// Output: time=2018-01-01T00:00:00Z level=info hello=world
+}
+
+// Note: do not move this test as it is dependent on the line number of the
+// call to Infof.
+func TestFileLocation(t *testing.T) {
+	var buf bytes.Buffer
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat), WithFileLocation())
+	Infof(ctx, buffered)
+	if len(entries(ctx)) != 1 {
+		t.Fatalf("got %d buffered entries, want 1", len(entries(ctx)))
 	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			kv := KeyVals(c.keyvals)
-			keys, vals := kv.Parse()
-			if len(keys) != len(c.expectedKeys) {
-				t.Fatalf("got %d keys, want %d", len(keys), len(c.expectedKeys))
-			}
-			if len(vals) != len(c.expectedVals) {
-				t.Fatalf("got %d vals, want %d", len(vals), len(c.expectedVals))
-			}
-			for i, k := range keys {
-				if k != c.expectedKeys[i] {
-					t.Errorf("got key %q, want %q", k, c.expectedKeys[i])
-				}
-			}
-			for i, v := range vals {
-				if fmt.Sprintf("%v", v) != fmt.Sprintf("%v", c.expectedVals[i]) {
-					t.Errorf("got val %v, want %v", v, c.expectedVals[i])
-				}
-			}
-		})
+	e := (entries(ctx))[0]
+	if len(e.KeyVals) != 2 {
+		t.Errorf("got %d keyvals, want 2", len(e.KeyVals))
+	}
+	if e.KeyVals[0].K != "msg" || e.KeyVals[0].V != "buffered" {
+		t.Errorf("got keyval %q=%q, want msg=buffered", e.KeyVals[0].K, e.KeyVals[0].V)
+	}
+	if e.KeyVals[1].K != "file" || e.KeyVals[1].V != "log/log_test.go:43" {
+		t.Errorf("got keyval %q=%q, want file=log/log_test.go:43", e.KeyVals[1].K, e.KeyVals[1].V)
 	}
 }
 
@@ -56,9 +62,9 @@ func TestSeverity(t *testing.T) {
 		return []byte(e.Severity.String() + ":" + e.Severity.Code() + ":" + e.Severity.Color() + " ")
 	}
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(printSev), WithDebug())
-	Debug(ctx, "")
-	Info(ctx, "")
-	Error(ctx, "")
+	Debugf(ctx, "")
+	Infof(ctx, "")
+	Errorf(ctx, nil, "")
 	want := "debug:DEBG:\033[37m info:INFO:\033[34m error:ERRO:\033[1;31m "
 	if got := buf.String(); got != want {
 		t.Errorf("got %q, want %q", got, want)
@@ -80,18 +86,20 @@ func TestBuffering(t *testing.T) {
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat))
 
 	// Buffering is enabled by default.
-	Info(ctx, buffered)
+	Infof(ctx, buffered)
 	if len(entries(ctx)) != 1 {
 		t.Errorf("got %d buffered entries, want 1", len(entries(ctx)))
 	} else {
 		e := entries(ctx)[0]
-		if e.Message != buffered {
-			t.Errorf("got buffered entry message %q, want %q", e.Message, buffered)
+		if len(e.KeyVals) != 1 {
+			t.Errorf("got %d keyvals, want 1", len(e.KeyVals))
+		} else if kv := e.KeyVals[0]; kv.K != "msg" || kv.V != buffered {
+			t.Errorf("got keyval %v, want %v", kv, KV{"msg", buffered})
 		}
 	}
 
-	// Print does not buffer.
-	Print(ctx, printed)
+	// Printf does not buffer.
+	Printf(ctx, printed)
 	if buf.String() != printed {
 		t.Errorf("got printed message %q, want %q", buf.String(), printed)
 	}
@@ -106,7 +114,7 @@ func TestBuffering(t *testing.T) {
 	}
 
 	// Buffering is disabled after flush.
-	Info(ctx, printed)
+	Infof(ctx, printed)
 	if len(entries(ctx)) != 0 {
 		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
 	}
@@ -116,7 +124,7 @@ func TestBuffering(t *testing.T) {
 
 	// Flush is idempotent.
 	FlushAndDisableBuffering(ctx)
-	Info(ctx, printed)
+	Infof(ctx, printed)
 	if len(entries(ctx)) != 0 {
 		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
 	}
@@ -128,24 +136,50 @@ func TestBuffering(t *testing.T) {
 func TestBufferingWithError(t *testing.T) {
 	var buf bytes.Buffer
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat))
+	err := fmt.Errorf("error")
 
 	// Error flushes the buffer.
-	Info(ctx, buffered)
-	Error(ctx, printed)
+	Infof(ctx, buffered)
+	Errorf(ctx, err, printed)
 	if len(entries(ctx)) != 0 {
 		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
 	}
-	if buf.String() != buffered+printed {
-		t.Errorf("got printed message %q, want %q", buf.String(), buffered+printed)
+	expected := buffered + printed
+	if buf.String() != expected {
+		t.Errorf("got printed message %q, want %q", buf.String(), expected)
 	}
 
 	// Buffering is disabled after error.
-	Info(ctx, printed)
+	Infof(ctx, printed)
 	if len(entries(ctx)) != 0 {
 		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
 	}
-	if buf.String() != buffered+printed+printed {
+	if buf.String() != expected+printed {
 		t.Errorf("got printed message %q, want %q", buf.String(), buffered+printed+printed)
+	}
+}
+
+func TestFatal(t *testing.T) {
+	var exitCalled bool
+	osExit = func(code int) { exitCalled = true }
+	defer func() { osExit = os.Exit }()
+	var buf bytes.Buffer
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat))
+	err := fmt.Errorf("error")
+
+	// Fatal flushes the buffer.
+	Infof(ctx, buffered)
+	Fatalf(ctx, err, printed)
+	if len(entries(ctx)) != 0 {
+		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
+	}
+	expected := buffered + printed
+	if buf.String() != expected {
+		t.Errorf("got printed message %q, want %q", buf.String(), expected)
+	}
+
+	if !exitCalled {
+		t.Error("exit not called")
 	}
 }
 
@@ -154,7 +188,7 @@ func TestDebug(t *testing.T) {
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat))
 
 	// Debug logs are ignored by default.
-	Debug(ctx, ignored)
+	Debugf(ctx, ignored)
 	if len(entries(ctx)) != 0 {
 		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
 	}
@@ -164,7 +198,7 @@ func TestDebug(t *testing.T) {
 
 	// Debug logs are enabled after setting the WithDebug option.
 	ctx = Context(ctx, WithDebug())
-	Debug(ctx, printed)
+	Debugf(ctx, printed)
 	if len(entries(ctx)) != 0 {
 		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
 	}
@@ -173,7 +207,7 @@ func TestDebug(t *testing.T) {
 	}
 
 	// Buffering is disabled in debug mode.
-	Info(ctx, printed)
+	Infof(ctx, printed)
 	if len(entries(ctx)) != 0 {
 		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
 	}
@@ -187,49 +221,53 @@ func TestStructuredLogging(t *testing.T) {
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat))
 
 	// No key-value pair is logged by default.
-	Info(ctx, buffered)
+	Infof(ctx, buffered)
 	if len(entries(ctx)) != 1 {
 		t.Fatalf("got %d buffered entries, want 1", len(entries(ctx)))
 	}
 	e := (entries(ctx))[0]
-	if len(e.KeyVals) != 0 {
-		t.Errorf("got %d keyvals, want 0", len(e.KeyVals))
+	if len(e.KeyVals) != 1 {
+		t.Errorf("got %d keyvals, want 1", len(e.KeyVals))
 	}
 
 	// Key-value pairs are logged.
-	Info(ctx, buffered, "key1", "val1", "key2", "val2")
+	Info(ctx, []KV{{"key1", "val1"}, {"key2", "val2"}}...)
 	if len(entries(ctx)) != 2 {
 		t.Fatalf("got %d buffered entries, want 2", len(entries(ctx)))
 	}
 	e = (entries(ctx))[1]
-	if len(e.KeyVals) != 4 {
-		t.Errorf("got %d keyvals, want 4", len(e.KeyVals))
+	if len(e.KeyVals) != 2 {
+		t.Errorf("got %d keyvals, want 2", len(e.KeyVals))
 	}
-	keys, vals := e.KeyVals.Parse()
-	if keys[0] != "key1" || vals[0] != "val1" {
-		t.Errorf("got keyval %q=%q, want key1=val1", keys[0], vals[0])
+	if e.KeyVals[0].K != "key1" || e.KeyVals[0].V != "val1" {
+		t.Errorf("got keyval %q=%q, want key1=val1", e.KeyVals[0].K, e.KeyVals[0].V)
 	}
-	if keys[1] != "key2" || vals[1] != "val2" {
-		t.Errorf("got keyval %q=%q, want key2=val2", keys[1], vals[1])
+	if e.KeyVals[1].K != "key2" || e.KeyVals[1].V != "val2" {
+		t.Errorf("got keyval %q=%q, want key2=val2", e.KeyVals[1].K, e.KeyVals[1].V)
 	}
 
-	// log does not panic when an odd number of arguments is given to Info.
-	Info(ctx, buffered, "key1")
+	// Key-value pairs set in the log context are logged.
+	ctx = With(ctx, KV{"key1", "val1"}, KV{"key2", "val2"})
+	Info(ctx, KV{"msg", buffered})
 	if len(entries(ctx)) != 3 {
 		t.Fatalf("got %d buffered entries, want 3", len(entries(ctx)))
 	}
 	e = (entries(ctx))[2]
-	if len(e.KeyVals) != 2 {
-		t.Errorf("got %d keyvals, want 2", len(e.KeyVals))
+	if len(e.KeyVals) != 3 {
+		t.Errorf("got %d keyvals, want 3", len(e.KeyVals))
 	}
-	keys, vals = e.KeyVals.Parse()
-	if keys[0] != "key1" || vals[0] != nil {
-		t.Errorf("got keyval %q=%q, want key1=", keys[0], vals[0])
+	if e.KeyVals[0].K != "key1" || e.KeyVals[0].V != "val1" {
+		t.Errorf("got keyval %q=%q, want key1=val1", e.KeyVals[0].K, e.KeyVals[0].V)
+	}
+	if e.KeyVals[1].K != "key2" || e.KeyVals[1].V != "val2" {
+		t.Errorf("got keyval %q=%q, want key2=val2", e.KeyVals[1].K, e.KeyVals[1].V)
+	}
+	if e.KeyVals[2].K != "msg" || e.KeyVals[2].V != "buffered" {
+		t.Errorf("got keyval %q=%q, want msg=buffered", e.KeyVals[2].K, e.KeyVals[2].V)
 	}
 
-	// Key-value pairs set in the log context are logged.
-	ctx = With(ctx, "key1", "val1", "key2", "val2")
-	Info(ctx, buffered)
+	// Key-value pairs set in the log context prefix logged key/value pairs.
+	Info(ctx, KV{"key3", "val3"}, KV{"key4", "val4"})
 	if len(entries(ctx)) != 4 {
 		t.Fatalf("got %d buffered entries, want 4", len(entries(ctx)))
 	}
@@ -237,83 +275,71 @@ func TestStructuredLogging(t *testing.T) {
 	if len(e.KeyVals) != 4 {
 		t.Errorf("got %d keyvals, want 4", len(e.KeyVals))
 	}
-	keys, vals = e.KeyVals.Parse()
-	if keys[0] != "key1" || vals[0] != "val1" {
-		t.Errorf("got keyval %q=%q, want key1=val1", keys[0], vals[0])
-	}
-	if keys[1] != "key2" || vals[1] != "val2" {
-		t.Errorf("got keyval %q=%q, want key2=val2", keys[1], vals[1])
-	}
-
-	// Key-value pairs set in the log context prefix logged key/value pairs.
-	Info(ctx, buffered, "key3", "val3", "key4", "val4")
-	if len(entries(ctx)) != 5 {
-		t.Fatalf("got %d buffered entries, want 5", len(entries(ctx)))
-	}
-	e = (entries(ctx))[4]
-	if len(e.KeyVals) != 8 {
-		t.Errorf("got %d keyvals, want 8", len(e.KeyVals))
-	}
-	keys, vals = e.KeyVals.Parse()
 	for i := 0; i < 4; i++ {
 		suffix := fmt.Sprintf("%d", i+1)
-		if keys[i] != "key"+suffix || vals[i] != "val"+suffix {
-			t.Errorf("got keyval %q=%q, want key"+suffix+"=val"+suffix, keys[i], vals[i])
+		if e.KeyVals[i].K != "key"+suffix || e.KeyVals[i].V != "val"+suffix {
+			t.Errorf("got keyval %q=%q, want key"+suffix+"=val"+suffix, e.KeyVals[i].K, e.KeyVals[i].V)
 		}
 	}
 
 	// Key-value pairs set in the log context are logged in order they are set.
-	ctx = With(ctx, "key3", "val3", "key4", "val4")
-	Info(ctx, buffered)
-	if len(entries(ctx)) != 6 {
-		t.Fatalf("got %d buffered entries, want 6", len(entries(ctx)))
+	ctx = With(ctx, KV{"key3", "val3"}, KV{"key4", "val4"})
+	Info(ctx, KV{"msg", buffered})
+	if len(entries(ctx)) != 5 {
+		t.Fatalf("got %d buffered entries, want 5", len(entries(ctx)))
 	}
-	e = (entries(ctx))[5]
-	if len(e.KeyVals) != 8 {
-		t.Errorf("got %d keyvals, want 8", len(e.KeyVals))
+	e = (entries(ctx))[4]
+	if len(e.KeyVals) != 5 {
+		t.Errorf("got %d keyvals, want 5", len(e.KeyVals))
 	}
-	keys, vals = e.KeyVals.Parse()
 	for i := 0; i < 4; i++ {
 		suffix := fmt.Sprintf("%d", i+1)
-		if keys[i] != "key"+suffix || vals[i] != "val"+suffix {
-			t.Errorf("got keyval %q=%q, want key"+suffix+"=val"+suffix, keys[i], vals[i])
+		if e.KeyVals[i].K != "key"+suffix || e.KeyVals[i].V != "val"+suffix {
+			t.Errorf("got keyval %q=%q, want key"+suffix+"=val"+suffix, e.KeyVals[i].K, e.KeyVals[i].V)
 		}
 	}
+	if e.KeyVals[4].K != "msg" || e.KeyVals[4].V != buffered {
+		t.Errorf("got keyval %q=%q, want msg=buffered", e.KeyVals[4].K, e.KeyVals[4].V)
+	}
+}
 
-	// log does not panic when an odd number of arguments is given to With.
-	ctx = With(ctx, "key3")
-	Info(ctx, buffered)
-	if len(entries(ctx)) != 7 {
-		t.Fatalf("got %d buffered entries, want 7", len(entries(ctx)))
+func TestDynamicKeyVals(t *testing.T) {
+	var buf bytes.Buffer
+	kvfunc := func(ctx context.Context) []KV {
+		return []KV{{"key1", "val1"}, {"key2", "val2"}}
 	}
-	e = (entries(ctx))[6]
-	if len(e.KeyVals) != 10 {
-		t.Errorf("got %d keyvals, want 10", len(e.KeyVals))
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat), WithFunc(kvfunc))
+	Infof(ctx, buffered)
+	if len(entries(ctx)) != 1 {
+		t.Fatalf("got %d buffered entries, want 1", len(entries(ctx)))
 	}
-	keys, vals = e.KeyVals.Parse()
-	if len(keys) != 5 {
-		t.Fatalf("got %d keys, want 5", len(keys))
+	e := (entries(ctx))[0]
+	if len(e.KeyVals) != 3 {
+		t.Errorf("got %d keyvals, want 3", len(e.KeyVals))
 	}
-	if len(vals) != 5 {
-		t.Fatalf("got %d vals, want 5", len(vals))
+	if e.KeyVals[0].K != "msg" || e.KeyVals[0].V != "buffered" {
+		t.Errorf("got keyval %q=%q, want msg=buffered", e.KeyVals[0].K, e.KeyVals[0].V)
 	}
-	if keys[4] != "key3" || vals[4] != nil {
-		t.Errorf("got keyval %q=%q, want key3=", keys[4], vals[4])
+	if e.KeyVals[1].K != "key1" || e.KeyVals[1].V != "val1" {
+		t.Errorf("got keyval %q=%q, want key1=val1", e.KeyVals[1].K, e.KeyVals[1].V)
+	}
+	if e.KeyVals[2].K != "key2" || e.KeyVals[2].V != "val2" {
+		t.Errorf("got keyval %q=%q, want key2=val2", e.KeyVals[2].K, e.KeyVals[2].V)
 	}
 }
 
 func TestChaining(t *testing.T) {
 	ctx1 := Context(context.Background())
-	ctx2 := With(ctx1, "key1", "val1")
-	Info(ctx1, "msg1")
-	Info(ctx2, "msg2")
+	ctx2 := With(ctx1, KV{"key1", "val1"})
+	Info(ctx1, KV{"msg", "msg1"})
+	Info(ctx2, KV{"msg", "msg2"})
 
 	if len(entries(ctx1)) != 1 {
 		t.Fatalf("got %d buffered entries, want 1", len(entries(ctx1)))
 	}
 	e := (entries(ctx1))[0]
-	if len(e.KeyVals) != 0 {
-		t.Errorf("got %d keyvals, want 0", len(e.KeyVals))
+	if len(e.KeyVals) != 1 {
+		t.Errorf("got %d keyvals, want 1", len(e.KeyVals))
 	}
 
 	if len(entries(ctx2)) != 1 {
@@ -323,9 +349,8 @@ func TestChaining(t *testing.T) {
 	if len(e.KeyVals) != 2 {
 		t.Errorf("got %d keyvals, want 2", len(e.KeyVals))
 	}
-	keys, vals := e.KeyVals.Parse()
-	if keys[0] != "key1" || vals[0] != "val1" {
-		t.Errorf("got keyval %q=%q, want key1=val1", keys[0], vals[0])
+	if e.KeyVals[0].K != "key1" || e.KeyVals[0].V != "val1" {
+		t.Errorf("got keyval %q=%q, want key1=val1", e.KeyVals[0].K, e.KeyVals[0].V)
 	}
 }
 
@@ -336,11 +361,11 @@ func TestNoLogging(t *testing.T) {
 		}
 	}()
 	ctx := context.Background()
-	Debug(ctx, "")
-	Print(ctx, "")
-	Info(ctx, "")
-	Error(ctx, "")
-	With(ctx, "key", "val")
+	Debugf(ctx, "")
+	Printf(ctx, "")
+	Infof(ctx, "")
+	Errorf(ctx, nil, "")
+	With(ctx, KV{"key", "val"})
 	FlushAndDisableBuffering(ctx)
 }
 
@@ -348,58 +373,55 @@ func TestMaxSize(t *testing.T) {
 	var (
 		txt            = "|txt|"
 		maxsize        = len(txt)
-		keyval         = []interface{}{"key", txt}
-		toolong        = []interface{}{"key", txt + "b"}
+		maxtruncated   = len(txt) + len(truncationSuffix)
+		msg            = KV{"msg", "|txt|"}
+		toolong        = KV{"msg", txt + "b"}
 		toomany        = make([]string, maxsize+1)
-		toomanytoolong = make([]string, maxsize+1)
-		toomanyi       = make([]interface{}, maxsize+1)
+		toomanytoolong = make([]KV, maxsize+1)
+		toomanyi       = make([]KV, maxsize+1)
 	)
 	for i := 0; i < maxsize+1; i += 1 {
+		idx := strconv.Itoa(i)
 		toomany[i] = txt
-		toomanytoolong[i] = txt + "b"
-		toomanyi[i] = txt + "b"
+		toomanytoolong[i] = KV{"key" + idx, txt + "b"}
+		toomanyi[i] = KV{"key" + idx, interface{}(txt + "b")}
 	}
 	cases := []struct {
 		name     string
-		msg      string
-		keyvals  []interface{}
+		keyvals  []KV
 		expected int
 	}{
-		{"short message", txt, nil, len(txt)},
-		{"long message", txt + "a", nil, len(txt)},
-		{"short message with short value", txt, keyval, 2 * len(txt)},
-		{"long message with short value", txt + "a", keyval, 2 * len(txt)},
-		{"short message with long value", txt, toolong, 2*len(txt) + len(truncationSuffix)},
-		{"long message with long value", txt + "a", toolong, 2*len(txt) + len(truncationSuffix)},
-		{"too many elements in value", "", []interface{}{"key", toomany}, maxsize + len(truncationSuffix)},
-		{"too many too long elements in value", "", []interface{}{"key", toomanytoolong}, maxsize + len(truncationSuffix)},
-		{"too many too long elements in []interface{} value", "", []interface{}{"key", toomanyi}, maxsize + len(truncationSuffix)},
+		{"short message", []KV{msg}, len(txt)},
+		{"long message", []KV{toolong}, maxtruncated},
+		{"too many elements in value", []KV{{"key", toomany}}, maxtruncated},
+		{"too many too long elements in value", toomanytoolong, maxtruncated*maxsize + len(",log:"+truncationSuffix)},
+		{"too many too long elements in []interface{} value", toomanyi, maxtruncated*maxsize + len(",log:"+truncationSuffix)},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var buf bytes.Buffer
 
-			// Append message and values
+			// Append values
 			format := func(e *Entry) []byte {
 				var vals string
-				for i := 1; i < len(e.KeyVals); i += 2 {
-					if sv, ok := e.KeyVals[i].([]string); ok {
+				for i := 0; i < len(e.KeyVals); i++ {
+					if sv, ok := e.KeyVals[i].V.([]string); ok {
 						vals += strings.Join(sv, "")
-					} else if sv, ok := e.KeyVals[i].([]interface{}); ok {
+					} else if sv, ok := e.KeyVals[i].V.([]interface{}); ok {
 						strs := make([]string, len(sv))
 						for j := range sv {
 							strs[j] = sv[j].(string)
 						}
 						vals += strings.Join(strs, "")
 					} else {
-						vals += e.KeyVals[i].(string)
+						vals += e.KeyVals[i].V.(string)
 					}
 				}
-				return []byte(e.Message + vals)
+				return []byte(vals)
 			}
 
 			ctx := Context(context.Background(), WithOutput(&buf), WithMaxSize(maxsize), WithFormat(format))
-			Print(ctx, c.msg, c.keyvals...)
+			Print(ctx, c.keyvals...)
 
 			if buf.Len() != c.expected {
 				t.Errorf("got %d (%q), want %d", buf.Len(), buf.String(), c.expected)
@@ -415,9 +437,9 @@ func TestMaxSize(t *testing.T) {
 
 		var buf bytes.Buffer
 		ctx := Context(context.Background(), WithOutput(&buf), WithMaxSize(maxsize), WithFormat(FormatText))
-		Print(ctx, "example", "truncated", "it is too long")
+		Print(ctx, KV{"truncated", "it is too long"})
 
-		want := "time=2022-01-09T20:29:45Z level=info msg=examp truncated=\"it is ... <clue/log.truncated>\"\n"
+		want := "time=2022-01-09T20:29:45Z level=info truncated=\"it is ... <clue/log.truncated>\"\n"
 		if got := buf.String(); got != want {
 			t.Errorf("got %q, want %q", got, want)
 		}
@@ -425,7 +447,7 @@ func TestMaxSize(t *testing.T) {
 }
 
 func debugFormat(e *Entry) []byte {
-	return []byte(e.Message)
+	return []byte(e.KeyVals[0].V.(string))
 }
 
 func entries(ctx context.Context) []*Entry {
