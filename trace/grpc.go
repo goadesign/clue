@@ -106,7 +106,7 @@ func initTracingContextGRPCUnary(traceCtx context.Context, h grpc.UnaryHandler) 
 	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		if IsTraced(ctx) {
 			ctx = withTracing(traceCtx, ctx)
-			log.Debug(ctx, "", "traceID", trace.SpanFromContext(ctx).SpanContext().TraceID())
+			log.Debug(ctx, log.KV{"traceID", trace.SpanFromContext(ctx).SpanContext().TraceID()})
 		}
 		return h(ctx, req)
 	}
@@ -132,7 +132,8 @@ func initTracingContextGRPCStream(traceCtx context.Context, h grpc.StreamHandler
 	return func(srv interface{}, stream grpc.ServerStream) error {
 		if IsTraced(stream.Context()) {
 			ctx := withTracing(traceCtx, stream.Context())
-			log.Debug(stream.Context(), "", "traceID", trace.SpanFromContext(stream.Context()).SpanContext().TraceID())
+			log.Debug(stream.Context(),
+				log.KV{"traceID", trace.SpanFromContext(stream.Context()).SpanContext().TraceID()})
 			stream = &streamWithContext{ctx: ctx, ServerStream: stream}
 		}
 		return h(srv, stream)

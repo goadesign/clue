@@ -17,7 +17,7 @@ func TestHTTP(t *testing.T) {
 	defer func() { timeNow = now }()
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		Print(req.Context(), "hello world", "key1", "value1", "key2", "value2")
+		Print(req.Context(), KV{"key1", "value1"}, KV{"key2", "value2"})
 	})
 	var buf bytes.Buffer
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
@@ -30,10 +30,9 @@ func TestHTTP(t *testing.T) {
 
 	handler.ServeHTTP(nil, req)
 
-	expected := fmt.Sprintf("{%s,%s,%s,%s,%s,%s}\n",
+	expected := fmt.Sprintf("{%s,%s,%s,%s,%s}\n",
 		`"time":"2022-01-09T20:29:45Z"`,
 		`"level":"info"`,
-		`"msg":"hello world"`,
 		`"requestID":"request-id"`,
 		`"key1":"value1"`,
 		`"key2":"value2"`)

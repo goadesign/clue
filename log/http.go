@@ -19,7 +19,7 @@ func HTTP(logCtx context.Context) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			ctx := context.WithValue(req.Context(), ctxLogger, logger)
 			if requestID := req.Context().Value(middleware.RequestIDKey); requestID != nil {
-				ctx = With(ctx, "requestID", requestID)
+				ctx = With(ctx, KV{"requestID", requestID})
 			}
 			h.ServeHTTP(w, req.WithContext(ctx))
 		})

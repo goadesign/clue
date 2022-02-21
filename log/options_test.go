@@ -65,20 +65,6 @@ func TestWithFormat(t *testing.T) {
 	}
 }
 
-func TestWithKeyValue(t *testing.T) {
-	opts := defaultOptions()
-	WithKeyValue("key", "value")(opts)
-	if len(opts.keyvals) != 2 {
-		t.Fatalf("got %d keyvals, expected 2", len(opts.keyvals))
-	}
-	if opts.keyvals[0] != "key" {
-		t.Errorf("got key %q, expected \"key\"", opts.keyvals[0])
-	}
-	if opts.keyvals[1] != "value" {
-		t.Errorf("got value %q, expected \"value\"", opts.keyvals[1])
-	}
-}
-
 func TestWithMaxSize(t *testing.T) {
 	opts := defaultOptions()
 	WithMaxSize(10)(opts)

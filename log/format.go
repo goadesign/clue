@@ -22,19 +22,27 @@ func init() {
 // FormatText is the default log formatter when not running in a terminal, it
 // prints entries using the logfmt format:
 //
-//    time=TIME level=SEVERITY msg=MESSAGE KEY=VAL KEY=VAL ...
+//    time=TIME level=SEVERITY KEY=VAL KEY=VAL ...
 //
 // Where TIME is the UTC timestamp in RFC3339 format, SEVERITY is one of
-// "debug", "info" or "error", MESSAGE is the log message, and KEY=VAL are the
-// entry key/value pairs.
+// "debug", "info" or "error", and KEY=VAL are the entry key/value pairs.
+// Values are quoted and escaped according to the logfmt specification.
 func FormatText(e *Entry) []byte {
-	kvs := []interface{}{"time", e.Time.Format(time.RFC3339), "level", e.Severity}
-	if len(e.Message) > 0 {
-		kvs = append(kvs, "msg", e.Message)
-	}
-	kvs = append(kvs, e.KeyVals...)
 	var b bytes.Buffer
-	logfmt.NewEncoder(&b).EncodeKeyvals(kvs...)
+	enc := logfmt.NewEncoder(&b)
+	enc.EncodeKeyval("time", e.Time.Format(time.RFC3339))
+	enc.EncodeKeyval("level", e.Severity)
+	for _, kv := range e.KeyVals {
+		// Make logfmt format slices
+		v := kv.V
+		switch kv.V.(type) {
+		case []int, []int32, []int64, []uint, []uint32, []uint64, []float32, []float64, []string, []bool, []interface{}:
+			var buf bytes.Buffer
+			writeJSON(kv.V, &buf)
+			v = buf.String()
+		}
+		enc.EncodeKeyval(kv.K, v)
+	}
 	b.WriteByte('\n')
 	return b.Bytes()
 }
@@ -45,7 +53,6 @@ func FormatText(e *Entry) []byte {
 //   {
 //     "time": "TIMESTAMP", // UTC timestamp in RFC3339 format
 //     "level": "SEVERITY", // one of DEBUG, INFO or ERROR
-//     "msg": "MESSAGE",    // log message
 //     "key1": "val1",      // entry key/value pairs
 //     "key2": "val2",
 //     ...
@@ -60,20 +67,14 @@ func FormatJSON(e *Entry) []byte {
 	b.WriteString(`","level":"`)
 	b.WriteString(e.Severity.String())
 	b.WriteByte('"')
-	if len(e.Message) > 0 {
-		b.WriteString(`,"msg":"`)
-		b.WriteString(e.Message)
-		b.WriteString(`"`)
-	}
 	if len(e.KeyVals) > 0 {
 		b.WriteByte(',')
-		keys, vals := e.KeyVals.Parse()
-		for i := 0; i < len(keys); i++ {
+		for i, kv := range e.KeyVals {
 			b.WriteString(`"`)
-			b.WriteString(keys[i])
+			b.WriteString(kv.K)
 			b.WriteString(`":`)
-			writeJSON(vals[i], &b)
-			if i < len(keys)-1 {
+			writeJSON(kv.V, &b)
+			if i < len(e.KeyVals)-1 {
 				b.WriteByte(',')
 			}
 		}
@@ -85,7 +86,7 @@ func FormatJSON(e *Entry) []byte {
 // FormatTerminal is a log formatter that prints entries suitable for terminal
 // that supports colors. It prints entries in the following format:
 //
-//    SEVERITY[seconds] message key=val key=val ...
+//    SEVERITY[seconds] key=val key=val ...
 //
 // Where SEVERITY is one of DEBG, INFO or ERRO, seconds is the number of seconds
 // since the application started, message is the log message, and key=val are
@@ -97,19 +98,14 @@ func FormatTerminal(e *Entry) []byte {
 	b.WriteString(e.Severity.Code())
 	b.WriteString(reset)
 	b.WriteString(fmt.Sprintf("[%04d]", int(e.Time.Sub(epoch)/time.Second)))
-	if len(e.Message) > 0 {
-		b.WriteByte(' ')
-		b.WriteString(e.Message)
-	}
 	if len(e.KeyVals) > 0 {
 		b.WriteByte(' ')
-		keys, vals := e.KeyVals.Parse()
-		for i := 0; i < len(keys); i++ {
+		for i, kv := range e.KeyVals {
 			b.WriteString(e.Severity.Color())
-			b.WriteString(keys[i])
+			b.WriteString(kv.K)
 			b.WriteString(reset)
-			b.WriteString(fmt.Sprintf("=%v", vals[i]))
-			if i < len(keys)-1 {
+			b.WriteString(fmt.Sprintf("=%v", kv.V))
+			if i < len(e.KeyVals)-1 {
 				b.WriteByte(' ')
 			}
 		}

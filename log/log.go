@@ -12,22 +12,25 @@ import (
 )
 
 type (
-	// KeyVals represents a list of key/value pairs.
-	KeyVals []interface{}
+	// KV represents a key/value pair. Values must be strings, numbers,
+	// booleans, nil or a slice of these types.
+	KV struct {
+		K string
+		V interface{}
+	}
 
 	// Log entry
 	Entry struct {
 		Time     time.Time
 		Severity Severity
-		KeyVals  KeyVals
-		Message  string
+		KeyVals  []KV
 	}
 
 	// Logger implementation
 	logger struct {
 		options *options
 		lock    sync.Mutex
-		keyvals []interface{}
+		keyvals []KV
 		entries []*Entry
 		flushed bool
 	}
@@ -50,7 +53,10 @@ const (
 )
 
 // Be kind to tests
-var timeNow = time.Now
+var (
+	timeNow = time.Now
+	osExit  = os.Exit
+)
 
 // Context initializes a context for logging.
 func Context(ctx context.Context, opts ...LogOption) context.Context {
@@ -66,51 +72,73 @@ func Context(ctx context.Context, opts ...LogOption) context.Context {
 	return context.WithValue(ctx, ctxLogger, l)
 }
 
-// Debug logs a debug message. msg is optional and can be empty. keyvals is an
-// alternating list of keys and values. Keys must be strings and values must be
-// strings, numbers, booleans, nil or a slice of these types.
-func Debug(ctx context.Context, msg string, keyvals ...interface{}) {
-	log(ctx, SeverityDebug, true, msg, keyvals...)
+// Debug writes the key/value pairs to the log output if the log context is
+// configured to log debug messages (via WithDebug).
+func Debug(ctx context.Context, keyvals ...KV) {
+	log(ctx, SeverityDebug, true, keyvals)
 }
 
-// Print logs an info message and ignores buffering. msg is optional and can be
-// empty. keyvals is an alternating list of keys and values. Keys must be
-// strings and values must be strings, numbers, booleans, nil or a slice of
-// these types.
-func Print(ctx context.Context, msg string, keyvals ...interface{}) {
-	log(ctx, SeverityInfo, false, msg, keyvals...)
+// Debugf sets the key "msg" and calls Debug. Arguments are handled in the
+// manner of fmt.Printf.
+func Debugf(ctx context.Context, format string, v ...interface{}) {
+	Debug(ctx, KV{"msg", fmt.Sprintf(format, v...)})
 }
 
-// Info logs an info message. msg is optional and can be empty. keyvals is an
-// alternating list of keys and values. Keys must be strings and values must be
-// strings, numbers, booleans, nil or a slice of these types.
-func Info(ctx context.Context, msg string, keyvals ...interface{}) {
-	log(ctx, SeverityInfo, true, msg, keyvals...)
+// Print writes the key/value pairs to the log output ignoring buffering.
+func Print(ctx context.Context, keyvals ...KV) {
+	log(ctx, SeverityInfo, false, keyvals)
 }
 
-// Error logs an error message and flushes the log buffer if not already
-// flushed. msg is optional and can be empty. keyvals is an alternating list of
-// keys and values. Keys must be strings and values must be strings, numbers,
-// booleans, nil or a slice of these types.
-func Error(ctx context.Context, msg string, keyvals ...interface{}) {
+// Printf sets the key "msg" and calls Print. Arguments are handled in the
+// manner of fmt.Printf.
+func Printf(ctx context.Context, format string, v ...interface{}) {
+	Print(ctx, KV{"msg", fmt.Sprintf(format, v...)})
+}
+
+// Info writes the key/value pairs to the log buffer or output if buffering is
+// disabled.
+func Info(ctx context.Context, keyvals ...KV) {
+	log(ctx, SeverityInfo, true, keyvals)
+}
+
+// Infof sets the key "msg" and calls Info. Arguments are handled in the manner
+// of fmt.Printf.
+func Infof(ctx context.Context, format string, v ...interface{}) {
+	Info(ctx, KV{"msg", fmt.Sprintf(format, v...)})
+}
+
+// Error flushes the log buffer and disables buffering if not already disabled.
+// Error then sets the "err" key with the given error and writes the key/value
+// pairs to the log output.
+func Error(ctx context.Context, err error, keyvals ...KV) {
 	FlushAndDisableBuffering(ctx)
-	log(ctx, SeverityError, true, msg, keyvals...)
+	if err != nil {
+		keyvals = append(keyvals, KV{"err", err.Error()})
+	}
+	log(ctx, SeverityError, true, keyvals)
+}
+
+// Errorf sets the key "msg" and calls Error. Arguments are handled in the
+// manner of fmt.Printf.
+func Errorf(ctx context.Context, err error, format string, v ...interface{}) {
+	Error(ctx, err, KV{"msg", fmt.Sprintf(format, v...)})
 }
 
 // Fatal is equivalent to Error followed by a call to os.Exit(1)
-func Fatal(ctx context.Context, msg string, keyvals ...interface{}) {
-	Error(ctx, msg, keyvals...)
-	os.Exit(1)
+func Fatal(ctx context.Context, err error, keyvals ...KV) {
+	Error(ctx, err, keyvals...)
+	osExit(1)
+}
+
+// Fatalf is equivalent to Errorf followed by a call to os.Exit(1)
+func Fatalf(ctx context.Context, err error, format string, v ...interface{}) {
+	Fatal(ctx, err, KV{"msg", fmt.Sprintf(format, v...)})
 }
 
 // With creates a copy of the given log context and appends the given key/value
-// pairs to it. keyvals is an alternating list of keys and values. Keys must be
-// strings and values must be strings, numbers, booleans, nil or a slice of
+// pairs to it. Values must be strings, numbers, booleans, nil or a slice of
 // these types.
-func With(ctx context.Context, keyvals ...interface{}) context.Context {
-	if len(keyvals)%2 != 0 {
-		keyvals = append(keyvals, nil)
-	}
+func With(ctx context.Context, keyvals ...KV) context.Context {
 	v := ctx.Value(ctxLogger)
 	if v == nil {
 		return ctx
@@ -119,16 +147,14 @@ func With(ctx context.Context, keyvals ...interface{}) context.Context {
 	l.lock.Lock()
 	copy := logger{
 		options: l.options,
-		keyvals: l.keyvals,
 		entries: l.entries,
+		keyvals: append(l.keyvals, keyvals...),
 		flushed: l.flushed,
 	}
 	l.lock.Unlock()
-	copy.keyvals = append(copy.keyvals, keyvals...)
 
-	// Make sure that if Go needs to grow the slice then each context get
+	// Make sure that if Go needs to grow the slice then each context gets
 	// its own memory.
-	copy.keyvals = copy.keyvals[:len(copy.keyvals):len(copy.keyvals)]
 	copy.entries = copy.entries[:len(copy.entries):len(copy.entries)]
 
 	return context.WithValue(ctx, ctxLogger, &copy)
@@ -159,7 +185,7 @@ func (l *logger) flush() {
 	l.flushed = true
 }
 
-func log(ctx context.Context, sev Severity, buffer bool, msg string, keyvals ...interface{}) {
+func log(ctx context.Context, sev Severity, buffer bool, keyvals []KV) {
 	v := ctx.Value(ctxLogger)
 	if v == nil {
 		return // do nothing if context isn't initialized
@@ -177,40 +203,17 @@ func log(ctx context.Context, sev Severity, buffer bool, msg string, keyvals ...
 
 	keyvals = append(l.keyvals, keyvals...)
 	keyvals = append(l.options.keyvals, keyvals...)
-	if len(keyvals)%2 != 0 {
-		keyvals = append(keyvals, nil)
-	}
-
-	if len(msg) > l.options.maxsize {
-		msg = msg[0:l.options.maxsize]
+	for _, fn := range l.options.kvfuncs {
+		keyvals = append(keyvals, fn(ctx)...)
 	}
 	truncate(keyvals, l.options.maxsize)
 
-	e := &Entry{timeNow().UTC(), sev, keyvals, msg}
+	e := &Entry{timeNow().UTC(), sev, keyvals}
 	if l.flushed || !buffer {
 		l.options.w.Write(l.options.format(e))
 		return
 	}
 	l.entries = append(l.entries, e)
-}
-
-// Parse extracts the keys and values from the given key/value pairs. The
-// resulting slices are of the same length and ordered in the same way.
-func (kv KeyVals) Parse() (keys []string, vals []interface{}) {
-	if len(kv) == 0 {
-		return
-	}
-	keys = make([]string, len(kv)/2)
-	vals = make([]interface{}, len(kv)/2)
-	for i := 0; i < len(kv); i += 2 {
-		key, ok := kv[i].(string)
-		if !ok {
-			key = "<INVALID>"
-		}
-		keys[i/2] = key
-		vals[i/2] = kv[i+1]
-	}
-	return keys, vals
 }
 
 // String returns a string representation of the log severity.
@@ -256,7 +259,9 @@ func (l Severity) Color() string {
 	}
 }
 
-var truncationSuffix = " ... <clue/log.truncated>"
+const truncationSuffix = " ... <clue/log.truncated>"
+
+var errTruncated = errors.New("truncated value")
 
 // truncate makes sure that all string values in keyvals are no longer than
 // maxsize and that all slice values are truncated to maxsize.
@@ -265,9 +270,13 @@ var truncationSuffix = " ... <clue/log.truncated>"
 // max values for strings and slices, it could compute total size for slices vs.
 // size for each element, could recurse further etc.) - the point is to protect
 // against obvious mistakes - not to implement a bullet-proof solution.
-func truncate(keyvals []interface{}, maxsize int) {
-	for i := 1; i < len(keyvals); i += 2 {
-		switch keyvals[i].(type) {
+func truncate(keyvals []KV, maxsize int) {
+	if len(keyvals) > maxsize {
+		keyvals = keyvals[:maxsize]
+		keyvals = append(keyvals, KV{"log", truncationSuffix})
+	}
+	for i, kv := range keyvals {
+		switch kv.V.(type) {
 		case int, int8, int16, int32, int64:
 			continue
 		case uint, uint8, uint16, uint32, uint64:
@@ -280,10 +289,10 @@ func truncate(keyvals []interface{}, maxsize int) {
 			continue
 		default:
 			var buf bytes.Buffer
-			_, err := fmt.Fprintf(newLimitWriter(&buf, maxsize), "%v", keyvals[i])
+			_, err := fmt.Fprintf(newLimitWriter(&buf, maxsize), "%v", kv.V)
 			if errors.Is(err, errTruncated) {
 				fmt.Fprint(&buf, truncationSuffix)
-				keyvals[i] = buf.String()
+				keyvals[i] = KV{K: kv.K, V: buf.String()}
 			}
 		}
 	}
@@ -301,8 +310,6 @@ func newLimitWriter(w io.Writer, max int) io.Writer {
 		max:    max,
 	}
 }
-
-var errTruncated = errors.New("truncated value")
 
 func (lw *limitWriter) Write(b []byte) (int, error) {
 	newLen := lw.n + len(b)

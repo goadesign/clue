@@ -31,10 +31,9 @@ func TestUnaryServerInterceptor(t *testing.T) {
 	}
 	stop()
 
-	expected := fmt.Sprintf("{%s,%s,%s,%s%q,%s,%s}\n",
+	expected := fmt.Sprintf("{%s,%s,%s%q,%s,%s}\n",
 		`"time":"2022-01-09T20:29:45Z"`,
 		`"level":"info"`,
-		`"msg":"hello world"`,
 		`"requestID":`,
 		*f.S,
 		`"key1":"value1"`,
@@ -71,10 +70,9 @@ func TestStreamServerTrace(t *testing.T) {
 	reqID := *f.S
 	stop()
 
-	expected := fmt.Sprintf("{%s,%s,%s,%s%q,%s,%s}\n",
+	expected := fmt.Sprintf("{%s,%s,%s%q,%s,%s}\n",
 		`"time":"2022-01-09T20:29:45Z"`,
 		`"level":"info"`,
-		`"msg":"hello world"`,
 		`"requestID":`,
 		reqID,
 		`"key1":"value1"`,
@@ -86,13 +84,13 @@ func TestStreamServerTrace(t *testing.T) {
 }
 
 func logUnaryMethod(ctx context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
-	Print(ctx, "hello world", "key1", "value1", "key2", "value2")
+	Print(ctx, KV{"key1", "value1"}, KV{"key2", "value2"})
 	reqID := ctx.Value(middleware.RequestIDKey).(string)
 	return &testsvc.Fields{S: &reqID}, nil
 }
 
 func echoMethod(ctx context.Context, stream testsvc.Stream) (err error) {
-	Print(ctx, "hello world", "key1", "value1", "key2", "value2")
+	Print(ctx, KV{"key1", "value1"}, KV{"key2", "value2"})
 	f, err := stream.Recv()
 	if err != nil {
 		return err
