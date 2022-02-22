@@ -1,6 +1,7 @@
 # log: Smart Logging
 
 [![Build Status](https://github.com/goadesign/clue/workflows/CI/badge.svg?branch=main&event=push)](https://github.com/goadesign/clue/actions?query=branch%3Amain+event%3Apush)
+[![Go Reference](https://pkg.go.dev/badge/goa.design/clue/log.svg)](https://pkg.go.dev/goa.design/clue/log)
 
 ## Overview
 
