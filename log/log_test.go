@@ -176,9 +176,13 @@ func TestBufferingWithError(t *testing.T) {
 	}
 }
 
+type ctxTestKey int
+
+const disableBufferingKey ctxTestKey = iota + 1
+
 func TestBufferingWithDisableBufferingFunc(t *testing.T) {
 	disableBuffering := func(ctx context.Context) bool {
-		return ctx.Value("disableBuffering") == true
+		return ctx.Value(disableBufferingKey) == true
 	}
 
 	cases := []struct {
@@ -200,7 +204,7 @@ func TestBufferingWithDisableBufferingFunc(t *testing.T) {
 				t.Errorf("got %d buffered entries, want 1", len(entries(ctx)))
 			}
 
-			ctx = tc.ctxFunc(context.WithValue(ctx, "disableBuffering", true))
+			ctx = tc.ctxFunc(context.WithValue(ctx, disableBufferingKey, true))
 			Infof(ctx, printed)
 
 			expected := buffered + printed
