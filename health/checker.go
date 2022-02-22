@@ -59,9 +59,8 @@ func (c *checker) Check(ctx context.Context) (*Health, error) {
 	}
 	healthy := true
 	for _, dep := range c.deps {
-		err := dep.Ping(ctx)
 		res.Status[dep.Name()] = "OK"
-		if err != nil {
+		if err := dep.Ping(ctx); err != nil {
 			res.Status[dep.Name()] = "NOT OK"
 			healthy = false
 			log.Error(ctx, err, log.KV{"msg", "ping failed"}, log.KV{"target", dep.Name()})
