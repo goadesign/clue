@@ -1,7 +1,7 @@
 # trace: Simple Request Tracing
 
 [![Build Status](https://github.com/goadesign/clue/workflows/CI/badge.svg?branch=main&event=push)](https://github.com/goadesign/clue/actions?query=branch%3Amain+event%3Apush)
-[![codecov](https://codecov.io/gh/goadesign/clue/branch/main/graph/badge.svg?token=HVP4WT1PS6)](https://codecov.io/gh/goadesign/clue)
+[![Go Reference](https://pkg.go.dev/badge/goa.design/clue/trace.svg)](https://pkg.go.dev/goa.design/clue/trace)
 
 ## Overview
 
