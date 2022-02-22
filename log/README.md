@@ -83,13 +83,27 @@ for the current request for example.
 The following example shows how to conditionally disable the buffering feature:
 
 ```go
-ctx := log.Context(context.Background(), log.WithDisableBuffering(log.IsTracing))
+ctx := log.Context(req.Context(), log.WithDisableBuffering(log.IsTracing))
 log.Infof(ctx, "request started") // buffering disabled if tracing is enabled
 ```
 
 The function given to `WithDisableBuffering` is called with the current context
 and should return a boolean indicating whether buffering should be disabled. It
-is called upon initial creation of the log context and upon each call to `With`.
+is evaluated upon each call to `Context` and `With`.
+
+### Usage Pattern
+
+Buffering works best in code implementing network request handling (e.g. HTTP or
+gRPC requests). The context for each request is used to initialize a new logger
+context for example by using the HTTP middleware or gRPC intereceptors defined in
+this package (see [below](#http-middleware)). This allows for:
+
+* Creating request specific buffers thereby naturally limiting how many logs are
+  kept in memory at a given point in time.
+* Evaluating the buffering conditionally based on the request specific context
+  (e.g. to disable buffering for traced requests).
+* Flushing the buffer when the request encounters an error thereby providing
+  useful information about the request.
 
 ## Structured Logging
 

@@ -3,6 +3,7 @@ package log
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -19,24 +20,40 @@ const (
 
 const ServiceName = "service"
 
+func init() {
+	// Mock time.Now for examples and tests
+	timeNow = func() time.Time {
+		return time.Date(2022, time.February, 22, 17, 0, 0, 0, time.UTC)
+	}
+}
+
 func ExamplePrintf() {
-	timeNow = func() time.Time { return time.Date(2018, time.January, 1, 0, 0, 0, 0, time.UTC) }
-	defer func() { timeNow = time.Now }()
 	ctx := Context(context.Background())
 	Printf(ctx, "hello %s", "world")
-	// Output: time=2018-01-01T00:00:00Z level=info msg="hello world"
+	// Output: time=2022-02-22T17:00:00Z level=info msg="hello world"
 }
 
 func ExamplePrint() {
-	timeNow = func() time.Time { return time.Date(2018, time.January, 1, 0, 0, 0, 0, time.UTC) }
-	defer func() { timeNow = time.Now }()
 	ctx := Context(context.Background())
 	Print(ctx, KV{"hello", "world"})
-	// Output: time=2018-01-01T00:00:00Z level=info hello=world
+	// Output: time=2022-02-22T17:00:00Z level=info hello=world
 }
 
-// Note: do not move this test as it is dependent on the line number of the
-// call to Infof.
+func ExampleErrorf() {
+	ctx := Context(context.Background())
+	err := errors.New("error")
+	Info(ctx, KV{"hello", "world"})
+	// No output at this point because Info log events are buffered.
+	// The call to Errorf causes the buffered events to be flushed.
+	fmt.Println("---")
+	Errorf(ctx, err, "failure")
+	// Output: ---
+	// time=2022-02-22T17:00:00Z level=info hello=world
+	// time=2022-02-22T17:00:00Z level=error msg=failure err=error
+}
+
+// Note: if the line number for the call to Infof below changes update the test
+// accordingly.
 func TestFileLocation(t *testing.T) {
 	var buf bytes.Buffer
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat), WithFileLocation())
@@ -51,8 +68,8 @@ func TestFileLocation(t *testing.T) {
 	if e.KeyVals[0].K != "msg" || e.KeyVals[0].V != "buffered" {
 		t.Errorf("got keyval %q=%q, want msg=buffered", e.KeyVals[0].K, e.KeyVals[0].V)
 	}
-	if e.KeyVals[1].K != "file" || e.KeyVals[1].V != "log/log_test.go:43" {
-		t.Errorf("got keyval %q=%q, want file=log/log_test.go:43", e.KeyVals[1].K, e.KeyVals[1].V)
+	if e.KeyVals[1].K != "file" || e.KeyVals[1].V != "log/log_test.go:60" {
+		t.Errorf("got keyval %q=%q, want file=log/log_test.go:60", e.KeyVals[1].K, e.KeyVals[1].V)
 	}
 }
 
@@ -156,6 +173,41 @@ func TestBufferingWithError(t *testing.T) {
 	}
 	if buf.String() != expected+printed {
 		t.Errorf("got printed message %q, want %q", buf.String(), buffered+printed+printed)
+	}
+}
+
+func TestBufferingWithDisableBufferingFunc(t *testing.T) {
+	disableBuffering := func(ctx context.Context) bool {
+		return ctx.Value("disableBuffering") == true
+	}
+
+	cases := []struct {
+		name    string
+		ctxFunc func(context.Context) context.Context
+	}{
+		{"with", func(ctx context.Context) context.Context { return With(ctx) }},
+		{"context", func(ctx context.Context) context.Context { return Context(ctx) }},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			ctx := Context(context.Background(), WithOutput(&buf),
+				WithFormat(debugFormat), WithDisableBuffering(disableBuffering))
+
+			Infof(ctx, buffered)
+			if len(entries(ctx)) != 1 {
+				t.Errorf("got %d buffered entries, want 1", len(entries(ctx)))
+			}
+
+			ctx = tc.ctxFunc(context.WithValue(ctx, "disableBuffering", true))
+			Infof(ctx, printed)
+
+			expected := buffered + printed
+			if buf.String() != expected {
+				t.Errorf("got printed message %q, want %q", buf.String(), expected)
+			}
+		})
 	}
 }
 

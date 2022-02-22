@@ -66,8 +66,13 @@ func Context(ctx context.Context, opts ...LogOption) context.Context {
 	} else {
 		l = &logger{options: defaultOptions()}
 	}
+	l.lock.Lock()
+	defer l.lock.Unlock()
 	for _, opt := range opts {
 		opt(l.options)
+	}
+	if l.options.disableBuffering != nil && l.options.disableBuffering(ctx) {
+		l.flush()
 	}
 	return context.WithValue(ctx, ctxLogger, l)
 }
@@ -145,17 +150,21 @@ func With(ctx context.Context, keyvals ...KV) context.Context {
 	}
 	l := v.(*logger)
 	l.lock.Lock()
+	defer l.lock.Unlock()
 	copy := logger{
 		options: l.options,
 		entries: l.entries,
 		keyvals: append(l.keyvals, keyvals...),
 		flushed: l.flushed,
 	}
-	l.lock.Unlock()
-
-	// Make sure that if Go needs to grow the slice then each context gets
-	// its own memory.
-	copy.entries = copy.entries[:len(copy.entries):len(copy.entries)]
+	if l.options.disableBuffering != nil && l.options.disableBuffering(ctx) {
+		l.flush()
+		copy.flushed = true
+	} else {
+		// Make sure that if Go needs to grow the slice then each
+		// context gets its own memory.
+		copy.entries = copy.entries[:len(copy.entries):len(copy.entries)]
+	}
 
 	return context.WithValue(ctx, ctxLogger, &copy)
 }
