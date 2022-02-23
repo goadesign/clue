@@ -60,7 +60,7 @@ func TestCheck(t *testing.T) {
 			if res.Uptime != int64(time.Since(StartedAt).Seconds()) {
 				t.Errorf("unexpected uptime: %d", res.Uptime)
 			}
-			if res.Version != GitCommit {
+			if res.Version != Version {
 				t.Errorf("unexpected version: %s", res.Version)
 			}
 			if len(res.Status) != len(c.expectedStatus) {
