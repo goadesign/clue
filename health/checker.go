@@ -20,7 +20,7 @@ type (
 	Health struct {
 		// Uptime of service in seconds.
 		Uptime int64 `json:"uptime"`
-		// Git commit hash of service.
+		// Version of service.
 		Version string `json:"version"`
 		// Status of each dependency indexed by service name.
 		// "OK" if dependency is healthy, "NOT OK" otherwise.
@@ -34,8 +34,8 @@ type (
 	}
 )
 
-// Git commit hash of service, initialized at compiled time.
-var GitCommit string
+// Version of service, initialized at compiled time.
+var Version string
 
 // StartedAt is the time the service was started.
 var StartedAt = time.Now()
@@ -50,7 +50,7 @@ func NewChecker(deps ...Pinger) Checker {
 func (c *checker) Check(ctx context.Context) (*Health, bool) {
 	res := &Health{
 		Uptime:  int64(time.Since(StartedAt).Seconds()),
-		Version: GitCommit,
+		Version: Version,
 		Status:  make(map[string]string),
 	}
 	healthy := true
