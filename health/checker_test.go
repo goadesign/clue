@@ -9,27 +9,27 @@ import (
 
 func TestCheck(t *testing.T) {
 	cases := []struct {
-		name           string
-		deps           []Pinger
-		expectedStatus map[string]string
-		expectedErr    error
+		name            string
+		deps            []Pinger
+		expectedStatus  map[string]string
+		expectedHealthy bool
 	}{
 		{
-			name:           "empty",
-			expectedStatus: map[string]string{},
-			expectedErr:    nil,
+			name:            "empty",
+			expectedStatus:  map[string]string{},
+			expectedHealthy: true,
 		},
 		{
-			name:           "ok",
-			deps:           singleHealthyDep("dependency"),
-			expectedStatus: map[string]string{"dependency": "OK"},
-			expectedErr:    nil,
+			name:            "ok",
+			deps:            singleHealthyDep("dependency"),
+			expectedStatus:  map[string]string{"dependency": "OK"},
+			expectedHealthy: true,
 		},
 		{
-			name:           "not ok",
-			deps:           singleUnhealthyDep("dependency", fmt.Errorf("dependency is not ok")),
-			expectedStatus: map[string]string{"dependency": "NOT OK"},
-			expectedErr:    ErrUnhealthy,
+			name:            "not ok",
+			deps:            singleUnhealthyDep("dependency", fmt.Errorf("dependency is not ok")),
+			expectedStatus:  map[string]string{"dependency": "NOT OK"},
+			expectedHealthy: false,
 		},
 		{
 			name: "multiple dependencies",
@@ -38,7 +38,7 @@ func TestCheck(t *testing.T) {
 				"dependency1": "OK",
 				"dependency2": "OK",
 			},
-			expectedErr: nil,
+			expectedHealthy: true,
 		},
 		{
 			name: "multiple dependencies not ok",
@@ -47,14 +47,14 @@ func TestCheck(t *testing.T) {
 				"dependency1": "OK",
 				"dependency2": "NOT OK",
 			},
-			expectedErr: ErrUnhealthy,
+			expectedHealthy: false,
 		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			checker := NewChecker(c.deps...)
 			res, err := checker.Check(context.Background())
-			if err != c.expectedErr {
+			if err != c.expectedHealthy {
 				t.Errorf("unexpected error: %v", err)
 			}
 			if res.Uptime != int64(time.Since(StartedAt).Seconds()) {
