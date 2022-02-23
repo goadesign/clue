@@ -2,7 +2,6 @@ package health
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"goa.design/clue/log"
@@ -11,10 +10,10 @@ import (
 type (
 	// Checker exposes a health check.
 	Checker interface {
-		// Check that all dependencies are healthy. Check returns an
-		// error if the service is unhealthy. The returned Health struct
+		// Check that all dependencies are healthy. Check returns true
+		// if the service is healthy. The returned Health struct
 		// contains the health status of each dependency.
-		Check(context.Context) (*Health, error)
+		Check(context.Context) (*Health, bool)
 	}
 
 	// Health status of a service.
@@ -41,9 +40,6 @@ var GitCommit string
 // StartedAt is the time the service was started.
 var StartedAt = time.Now()
 
-// Error returned when one ore more dependencies are unhealthy.
-var ErrUnhealthy = fmt.Errorf("one or more dependencies are unhealthy")
-
 // Create a Checker that checks the health of the given dependencies.
 func NewChecker(deps ...Pinger) Checker {
 	return &checker{
@@ -51,7 +47,7 @@ func NewChecker(deps ...Pinger) Checker {
 	}
 }
 
-func (c *checker) Check(ctx context.Context) (*Health, error) {
+func (c *checker) Check(ctx context.Context) (*Health, bool) {
 	res := &Health{
 		Uptime:  int64(time.Since(StartedAt).Seconds()),
 		Version: GitCommit,
@@ -66,9 +62,5 @@ func (c *checker) Check(ctx context.Context) (*Health, error) {
 			log.Error(ctx, err, log.KV{K: "msg", V: "ping failed"}, log.KV{K: "target", V: dep.Name()})
 		}
 	}
-	var err error
-	if !healthy {
-		err = ErrUnhealthy
-	}
-	return res, err
+	return res, healthy
 }
