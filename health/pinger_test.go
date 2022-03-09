@@ -40,7 +40,7 @@ func TestPing(t *testing.T) {
 			svr := httptest.NewServer(http.HandlerFunc(handler))
 			defer svr.Close()
 			u, _ := url.Parse(svr.URL)
-			pinger := NewPinger("dependency", "", u.Host)
+			pinger := NewPinger("dependency", u.Host)
 			if pinger.Name() != "dependency" {
 				t.Errorf("got name: %s, expected dependency", pinger.Name())
 			}
@@ -55,6 +55,38 @@ func TestPing(t *testing.T) {
 			}
 			if err != nil && err.Error() != c.expected.Error() {
 				t.Errorf("got: %v, expected: %v", err, c.expected)
+			}
+		})
+	}
+}
+
+func TestOptions(t *testing.T) {
+	cases := []struct {
+		name           string
+		option         Option
+		expectedScheme string
+		expectedPath   string
+	}{
+		{"default", nil, "http", "/livez"},
+		{"scheme", WithScheme("https"), "https", "/livez"},
+		{"path", WithPath("/healthcheck"), "http", "/healthcheck"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var pinger *client
+			if c.option == nil {
+				pinger = NewPinger("dependency", "localhost").(*client)
+			} else {
+				pinger = NewPinger("dependency", "localhost", c.option).(*client)
+			}
+			if pinger.Name() != "dependency" {
+				t.Errorf("got name: %s, expected dependency", pinger.Name())
+			}
+			if pinger.req.URL.Scheme != c.expectedScheme {
+				t.Errorf("got scheme: %s, expected %s", pinger.req.URL.Scheme, c.expectedScheme)
+			}
+			if pinger.req.URL.Path != c.expectedPath {
+				t.Errorf("got path: %s, expected %s", pinger.req.URL.Path, c.expectedPath)
 			}
 		})
 	}

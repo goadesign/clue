@@ -109,8 +109,8 @@ func main() {
 
 	// 6. Mount health check & metrics on separate HTTP server (different listen port)
 	check := health.Handler(health.NewChecker(
-		health.NewPinger("locator", "http", *locatorHealthAddr),
-		health.NewPinger("forecaster", "http", *forecasterHealthAddr)))
+		health.NewPinger("locator", *locatorHealthAddr),
+		health.NewPinger("forecaster", *forecasterHealthAddr)))
 	check = log.HTTP(ctx)(check).(http.HandlerFunc)
 	http.Handle("/healthz", check)
 	http.Handle("/livez", check)
