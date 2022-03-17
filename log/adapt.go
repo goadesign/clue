@@ -8,19 +8,24 @@ import (
 )
 
 type (
+	// StdLogger implements an interface compatible with the stdlib log package.
+	StdLogger struct {
+		ctx context.Context
+	}
+
 	// goaLogger is a Goa middleware compatible logger.
 	goaLogger struct {
 		context.Context
 	}
 )
 
-// Adapt creates a Goa middleware compatible logger that can be used when
+// AsGoaMiddlewareLogger creates a Goa middleware compatible logger that can be used when
 // configuring Goa HTTP or gRPC servers.
 //
 // Usage:
 //
 //    ctx := log.Context(context.Background())
-//    logger := log.Adapt(ctx)
+//    logger := log.AsGoaMiddlewareLogger(ctx)
 //
 //    // HTTP server:
 //    import goahttp "goa.design/goa/v3/http"
@@ -37,8 +42,64 @@ type (
 //    srv := grpc.NewServer(
 //        grpcmiddleware.WithUnaryServerChain(grpcmdlwr.UnaryServerLog(logger))
 //    )
-func Adapt(ctx context.Context) middleware.Logger {
+func AsGoaMiddlewareLogger(ctx context.Context) middleware.Logger {
 	return goaLogger{ctx}
+}
+
+// AsStdLogger adapts a Goa logger to a stdlib compatible logger.
+func AsStdLogger(ctx context.Context) *StdLogger {
+	return &StdLogger{ctx}
+}
+
+// Fatal is equivalent to l.Print() followed by a call to os.Exit(1).
+func (l *StdLogger) Fatal(v ...interface{}) {
+	l.Print(v...)
+	osExit(1)
+}
+
+// Fatalf is equivalent to l.Printf() followed by a call to os.Exit(1).
+func (l *StdLogger) Fatalf(format string, v ...interface{}) {
+	l.Printf(format, v...)
+	osExit(1)
+}
+
+// Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
+func (l *StdLogger) Fatalln(v ...interface{}) {
+	l.Println(v...)
+	osExit(1)
+}
+
+// Panic is equivalent to l.Print() followed by a call to panic().
+func (l *StdLogger) Panic(v ...interface{}) {
+	l.Print(v...)
+	panic(fmt.Sprint(v...))
+}
+
+// Panicf is equivalent to l.Printf() followed by a call to panic().
+func (l *StdLogger) Panicf(format string, v ...interface{}) {
+	l.Printf(format, v...)
+	panic(fmt.Sprintf(format, v...))
+}
+
+// Panicln is equivalent to l.Println() followed by a call to panic().
+func (l *StdLogger) Panicln(v ...interface{}) {
+	l.Println(v...)
+	panic(fmt.Sprintln(v...))
+}
+
+// Print print to the logger. Arguments are handled in the manner of fmt.Print.
+func (l *StdLogger) Print(v ...interface{}) {
+	Printf(l.ctx, "%s", fmt.Sprint(v...))
+}
+
+// Printf prints to the logger. Arguments are handled in the manner of fmt.Printf.
+func (l *StdLogger) Printf(format string, v ...interface{}) {
+	Printf(l.ctx, format, v...)
+}
+
+// Println prints to the logger. Arguments are handled in the manner of fmt.Println.
+func (l *StdLogger) Println(v ...interface{}) {
+	Printf(l.ctx, "%s", fmt.Sprintln(v...))
 }
 
 // Log creates a log entry using a sequence of key/value pairs.
