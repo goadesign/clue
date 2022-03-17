@@ -282,7 +282,7 @@ grpcsvr := grpc.NewServer(
 	))
 ```
 
-## Standard Logger Compatilibity
+## Standard Logger Compatibility
 
 The `log` package also provides a compatibility layer for the standard
 `log` package. The following example shows how to use the standard logger:
