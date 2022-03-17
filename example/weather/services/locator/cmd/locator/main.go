@@ -83,7 +83,7 @@ func main() {
 		grpcmiddleware.WithUnaryServerChain(
 			goagrpcmiddleware.UnaryRequestID(),
 			log.UnaryServerInterceptor(ctx),
-			goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
+			goagrpcmiddleware.UnaryServerLog(log.AsGoaMiddlewareLogger(ctx)),
 			trace.UnaryServerInterceptor(ctx),
 			metrics.UnaryServerInterceptor(ctx),
 		))

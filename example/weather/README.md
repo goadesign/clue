@@ -86,7 +86,7 @@ grpcsvr := grpc.NewServer(
 	grpcmiddleware.WithUnaryServerChain(
 		goagrpcmiddleware.UnaryRequestID(),
 		log.UnaryServerInterceptor(ctx), // <--
-		goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
+		goagrpcmiddleware.UnaryServerLog(log.AsGoaMiddlewareLogger(ctx)),
 		metrics.UnaryServerInterceptor(ctx, genforecast.ServiceName),
 		trace.UnaryServerInterceptor(ctx),
 	))
@@ -117,7 +117,7 @@ grpcsvr := grpc.NewServer(
 	grpcmiddleware.WithUnaryServerChain(
 		goagrpcmiddleware.UnaryRequestID(),
 		log.UnaryServerInterceptor(ctx),
-		goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
+		goagrpcmiddleware.UnaryServerLog(log.AsGoaMiddlewareLogger(ctx)),
 		metrics.UnaryServerInterceptor(ctx, genforecast.ServiceName),
 		trace.UnaryServerInterceptor(ctx), // <--
 	))
@@ -167,7 +167,7 @@ grpcsvr := grpc.NewServer(
 	grpcmiddleware.WithUnaryServerChain(
 		goagrpcmiddleware.UnaryRequestID(),
 		log.UnaryServerInterceptor(ctx),
-		goagrpcmiddleware.UnaryServerLog(log.Adapt(ctx)),
+		goagrpcmiddleware.UnaryServerLog(log.AsGoaMiddlewareLogger(ctx)),
 		metrics.UnaryServerInterceptor(ctx), // <--
 		trace.UnaryServerInterceptor(ctx),
 	))

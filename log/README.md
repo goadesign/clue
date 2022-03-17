@@ -282,6 +282,31 @@ grpcsvr := grpc.NewServer(
 	))
 ```
 
+## Standard Logger Compatilibity
+
+The `log` package also provides a compatibility layer for the standard
+`log` package. The following example shows how to use the standard logger:
+
+```go
+ctx := log.Context(context.Background())
+logger := log.AsStdLogger(ctx)
+logger.Print("hello world")
+```
+
+The compatibility layer supports the following functions:
+* `Print`
+* `Printf`
+* `Println`
+* `Fatal`
+* `Fatalf`
+* `Fatalln`
+* `Panic`
+* `Panicf`
+* `Panicln`
+
+The standard logger adapter uses `log.Print` under the hood which means that
+there is no buffering when using these functions.
+
 ## Goa Request Logging
 
 Loggers created via the `log` package can be adapted to the Goa
@@ -292,7 +317,7 @@ and sending a response).
 
 ```go
 ctx := log.Context(context.Background())
-logger := log.Adapt(ctx) // logger implements middleware.Logger
+logger := log.AsGoaMiddlewareLogger(ctx) // logger implements middleware.Logger
 ```
 
-See the [Adapt](adapt.go) function for more details on usage.
+See the [AsGoaMiddlewareLogger](adapt.go) function for more details on usage.
