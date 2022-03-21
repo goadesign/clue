@@ -55,7 +55,7 @@ func main() {
         pbsvr := grpc.NewServer(grpc.UnaryInterceptor(unaryInterceptor), grpc.StreamInterceptor(streamInterceptor))
 
         // ** Mount the /metrics handler used by Prometheus to scrape metrics **
-        mux.Handle("GET", "/metrics", metrics.Handler())
+        mux.Handle("GET", "/metrics", metrics.Handler(ctx).ServeHTTP)
 
         // .... Start the servers ....
 }
