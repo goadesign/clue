@@ -13,7 +13,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.4.1
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.4.1
 	go.opentelemetry.io/otel/metric v0.27.0
-	go.opentelemetry.io/otel/sdk v1.4.1
+	go.opentelemetry.io/otel/sdk v1.5.0
 	go.opentelemetry.io/otel/trace v1.5.0
 	goa.design/goa/v3 v3.7.0
 	goa.design/model v1.7.6
