@@ -2,6 +2,7 @@ package log
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -119,9 +120,8 @@ func writeJSON(val interface{}, b *bytes.Buffer) {
 	case nil:
 		b.WriteString("null")
 	case string:
-		b.WriteByte('"')
-		b.WriteString(v)
-		b.WriteByte('"')
+		res, _ := json.Marshal(v)
+		b.Write(res)
 	case int, int32, int64, uint, uint32, uint64:
 		b.WriteString(fmt.Sprintf("%d", v))
 	case float32:
@@ -133,9 +133,8 @@ func writeJSON(val interface{}, b *bytes.Buffer) {
 	case []string:
 		b.WriteByte('[')
 		for j := 0; j < len(v); j++ {
-			b.WriteByte('"')
-			b.WriteString(v[j])
-			b.WriteByte('"')
+			res, _ := json.Marshal(v[j])
+			b.Write(res)
 			if j < len(v)-1 {
 				b.WriteByte(',')
 			}
@@ -232,8 +231,7 @@ func writeJSON(val interface{}, b *bytes.Buffer) {
 		}
 		b.WriteByte(']')
 	default:
-		b.WriteByte('"')
-		b.WriteString(fmt.Sprintf("%v", v))
-		b.WriteByte('"')
+		res, _ := json.Marshal(fmt.Sprintf("%v", v))
+		b.Write(res)
 	}
 }

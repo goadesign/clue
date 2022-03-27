@@ -16,6 +16,7 @@ func TestFormat(t *testing.T) {
 
 	keyVals := []KV{
 		{"string", "val"},
+		{"stringWithQuotes", `example "val"`},
 		{"int", 1},
 		{"int32", int32(2)},
 		{"int64", int64(3)},
@@ -28,6 +29,7 @@ func TestFormat(t *testing.T) {
 		{"nil", nil},
 		{"dur", 123 * time.Millisecond},
 		{"sliceString", []string{"a", "b", "c"}},
+		{"sliceStringWithQuotes", []string{"example \"a\""}},
 		{"sliceInt", []int{1, 1}},
 		{"sliceInt32", []int32{2, 2}},
 		{"sliceInt64", []int64{3, 3}},
@@ -42,6 +44,7 @@ func TestFormat(t *testing.T) {
 	}
 
 	formattedKeyVals := "string=val " +
+		`stringWithQuotes="example \"val\"" ` +
 		"int=1 " +
 		"int32=2 " +
 		"int64=3 " +
@@ -54,6 +57,7 @@ func TestFormat(t *testing.T) {
 		"nil=null " +
 		"dur=123ms " +
 		`sliceString="[\"a\",\"b\",\"c\"]" ` +
+		`sliceStringWithQuotes="[\"example \\\"a\\\"\"]" ` +
 		"sliceInt=[1,1] " +
 		"sliceInt32=[2,2] " +
 		"sliceInt64=[3,3] " +
@@ -68,6 +72,7 @@ func TestFormat(t *testing.T) {
 
 	coloredKeyVals := func(col string) string {
 		return col + "string\033[0m=val " +
+			col + "stringWithQuotes\033[0m=example \"val\" " +
 			col + "int\033[0m=1 " +
 			col + "int32\033[0m=2 " +
 			col + "int64\033[0m=3 " +
@@ -80,6 +85,7 @@ func TestFormat(t *testing.T) {
 			col + "nil\033[0m=<nil> " +
 			col + "dur\033[0m=123ms " +
 			col + "sliceString\033[0m=[a b c] " +
+			col + "sliceStringWithQuotes\033[0m=[example \"a\"] " +
 			col + "sliceInt\033[0m=[1 1] " +
 			col + "sliceInt32\033[0m=[2 2] " +
 			col + "sliceInt64\033[0m=[3 3] " +
@@ -94,6 +100,7 @@ func TestFormat(t *testing.T) {
 	}
 
 	jsonKeyVals := `"string":"val",` +
+		`"stringWithQuotes":"example \"val\"",` +
 		`"int":1,` +
 		`"int32":2,` +
 		`"int64":3,` +
@@ -106,6 +113,7 @@ func TestFormat(t *testing.T) {
 		`"nil":null,` +
 		`"dur":"123ms",` +
 		`"sliceString":["a","b","c"],` +
+		`"sliceStringWithQuotes":["example \"a\""],` +
 		`"sliceInt":[1,1],` +
 		`"sliceInt32":[2,2],` +
 		`"sliceInt64":[3,3],` +
