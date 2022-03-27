@@ -106,7 +106,7 @@ traces to the agent:
 conn, err := grpc.DialContext(ctx, *collectorAddr,
 	grpc.WithTransportCredentials(insecure.NewCredentials()),
 	grpc.WithBlock())
-ctx, err = trace.Context(ctx, genfront.ServiceName, conn)
+ctx, err = trace.Context(ctx, genfront.ServiceName, trace.WithGRPCExporter(conn))
 ```
 
 gRPC services use the `trace.UnaryServerInterceptor` to create a span for each

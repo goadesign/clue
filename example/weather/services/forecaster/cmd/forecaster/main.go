@@ -60,7 +60,7 @@ func main() {
 		os.Exit(1)
 	}
 	log.Debugf(ctx, "connected to Grafana agent %s", *agentaddr)
-	ctx, err = trace.Context(ctx, genforecaster.ServiceName, conn)
+	ctx, err = trace.Context(ctx, genforecaster.ServiceName, trace.WithGRPCExporter(conn))
 	if err != nil {
 		log.Errorf(ctx, err, "failed to initialize tracing")
 		os.Exit(1)

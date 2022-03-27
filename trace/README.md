@@ -28,7 +28,7 @@ package `github.com/repo/services/svc`
 
 ```go
 package main
-        
+
 import (
        "context"
 
@@ -40,7 +40,7 @@ import (
         httpsvrgen "github.com/repo/services/svc/gen/http/svc/server"
        	grpcsvrgen "github.com/repo/services/svc/gen/grpc/svc/server"
        	svcgen "github.com/repo/services/svc/gen/svc"
-)       
+)
 
 func main() {
         // Initialize the log context
@@ -61,7 +61,7 @@ func main() {
                 log.Error(ctx, "unable to connect to span collector", "err", err)
                 os.Exit(1)
         }
-        ctx = trace.Context(ctx, svcgen.ServiceName, conn)
+        ctx = trace.Context(ctx, svcgen.ServiceName, trace.WithGRPCExporter(conn))
 
         // ** Trace HTTP requests **
         handler := trace.HTTP(ctx)(mux)
@@ -81,7 +81,7 @@ func main() {
 ### Making Requests to Downstream Dependencies
 
 For tracing to work appropriately all clients to downstream dependencies must be
-configured using the appropriate trace package function. 
+configured using the appropriate trace package function.
 
 For HTTP dependencies the trace package provides a `Client` function that can be
 used to configure a `http.RoundTripper` to trace all requests made through it.
@@ -142,7 +142,7 @@ this package adds the following attributes to HTTP requests:
 * `http.request_content_length`: The length of the request body if any.
 * `enduser.id`: The request basic auth username if any.
 * `net.transport`: One of `ip_tcp`, `ip_udp`, `ip`, `unix` or `other`.
-* `net.peer.ip`, `net.peer.name`, `net.peer.port`: The IP address, port and name 
+* `net.peer.ip`, `net.peer.name`, `net.peer.port`: The IP address, port and name
   of the remote peer if available in the request `RemoteAddr` field.
 * `net.host.ip`, `net.host.name`, `net.host.port`: The IP address, port and name
   of the remote host if available in the request `Host` field, the request `Host`
@@ -181,7 +181,7 @@ is not traced or the context not initialized with `trace.Context`.
 
 ```go
 // Add an event to the current span
-trace.AddEvent(ctx, "operation completed", "operation_id", operationID, "status", status) 
+trace.AddEvent(ctx, "operation completed", "operation_id", operationID, "status", status)
 ```
 
 ### Span Status And Error
