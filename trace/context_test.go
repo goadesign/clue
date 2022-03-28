@@ -10,8 +10,8 @@ import (
 func TestContext(t *testing.T) {
 	// We don't want to test otel, keep it simple...
 	exporter := tracetest.NewInMemoryExporter()
-	ctx, err := Context(context.Background(), "test", nil,
-		WithMaxSamplingRate(3), WithSampleSize(20), withExporter(exporter))
+	ctx, err := Context(context.Background(), "test",
+		WithMaxSamplingRate(3), WithSampleSize(20), WithExporter(exporter))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func TestContext(t *testing.T) {
 }
 
 func TestDisabled(t *testing.T) {
-	ctx, err := Context(context.Background(), "test", nil, WithDisabled())
+	ctx, err := Context(context.Background(), "test", WithDisabled())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,15 +52,15 @@ func TestDisabled(t *testing.T) {
 
 func TestIsTraced(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
-	ctx, err := Context(context.Background(), "test", nil,
-		WithMaxSamplingRate(3), WithSampleSize(20), withExporter(exporter))
+	ctx, err := Context(context.Background(), "test",
+		WithMaxSamplingRate(3), WithSampleSize(20), WithExporter(exporter))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if IsTraced(ctx) {
 		t.Error("expected not traced")
 	}
-	ctx, err = Context(ctx, "test", nil, WithMaxSamplingRate(3), WithSampleSize(20), withExporter(exporter))
+	ctx, err = Context(ctx, "test", WithMaxSamplingRate(3), WithSampleSize(20), WithExporter(exporter))
 	if err != nil {
 		t.Fatal(err)
 	}

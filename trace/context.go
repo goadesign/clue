@@ -2,13 +2,12 @@ package trace
 
 import (
 	"context"
+	"errors"
 
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/grpc"
 )
 
 type (
@@ -39,25 +38,25 @@ const (
 )
 
 // Context initializes the context so it can be used to create traces.
-func Context(ctx context.Context, svc string, conn *grpc.ClientConn, opts ...TraceOption) (context.Context, error) {
+func Context(ctx context.Context, svc string, opts ...TraceOption) (context.Context, error) {
 	options := defaultOptions()
 	for _, o := range opts {
-		o(options)
+		err := o(ctx, options)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if options.disabled {
 		return withProvider(ctx, trace.NewNoopTracerProvider(), svc), nil
 	}
 
+	if options.exporter == nil {
+		return nil, errors.New("missing exporter")
+	}
+
 	res := resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceNameKey.String(svc))
 	rootSampler := adaptiveSampler(options.maxSamplingRate, options.sampleSize)
-	if options.exporter == nil {
-		exporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
-		if err != nil {
-			return nil, err
-		}
-		options.exporter = exporter
-	}
 	provider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.ParentBased(rootSampler)),
 		sdktrace.WithResource(res),
@@ -70,6 +69,12 @@ func Context(ctx context.Context, svc string, conn *grpc.ClientConn, opts ...Tra
 func IsTraced(ctx context.Context) bool {
 	span := trace.SpanFromContext(ctx)
 	return span.IsRecording() && span.SpanContext().IsSampled()
+}
+
+// TraceProvider returns the underlying otel trace provider.
+func TraceProvider(ctx context.Context) trace.TracerProvider {
+	sb := ctx.Value(stateKey).(*stateBag)
+	return sb.provider
 }
 
 // withProvider stores the tracer provider in the context.

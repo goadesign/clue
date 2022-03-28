@@ -34,7 +34,7 @@ const errContextMissing = "context not initialized for tracing, use trace.Contex
 //          os.Exit(1)
 //      }
 //      // Initialize context for tracing
-//      ctx := trace.Context(ctx, svcgen.ServiceName, conn)
+//      ctx := trace.Context(ctx, svcgen.ServiceName, trace.WithGRPCExporter(conn))
 //      // Mount middleware
 // 	handler := trace.HTTP(ctx)(mux)
 //
