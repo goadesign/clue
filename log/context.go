@@ -41,6 +41,6 @@ func WithContext(parentCtx, logCtx context.Context) context.Context {
 func MustContainLogger(logCtx context.Context) {
 	_, ok := logCtx.Value(ctxLogger).(*logger)
 	if !ok {
-		panic("log.HTTP called without log.Context")
+		panic("provided a context without a logger. Use log.Context")
 	}
 }
