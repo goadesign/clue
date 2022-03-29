@@ -48,34 +48,11 @@ const (
 	SeverityError
 )
 
-const (
-	ctxLogger ctxKey = iota + 1
-)
-
 // Be kind to tests
 var (
 	timeNow = time.Now
 	osExit  = os.Exit
 )
-
-// Context initializes a context for logging.
-func Context(ctx context.Context, opts ...LogOption) context.Context {
-	var l *logger
-	if v := ctx.Value(ctxLogger); v != nil {
-		l = v.(*logger)
-	} else {
-		l = &logger{options: defaultOptions()}
-	}
-	l.lock.Lock()
-	defer l.lock.Unlock()
-	for _, opt := range opts {
-		opt(l.options)
-	}
-	if l.options.disableBuffering != nil && l.options.disableBuffering(ctx) {
-		l.flush()
-	}
-	return context.WithValue(ctx, ctxLogger, l)
-}
 
 // Debug writes the key/value pairs to the log output if the log context is
 // configured to log debug messages (via WithDebug).

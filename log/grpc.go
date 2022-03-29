@@ -11,18 +11,14 @@ import (
 // context with the logger contained in logCtx.  It panics if logCtx was not
 // initialized with Context.
 func UnaryServerInterceptor(logCtx context.Context) grpc.UnaryServerInterceptor {
-	l := logCtx.Value(ctxLogger)
-	if l == nil {
-		panic("log.Init called without log.Context")
-	}
-	logger := l.(*logger)
+	MustContainLogger(logCtx)
 	return func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		ctx = context.WithValue(ctx, ctxLogger, logger)
+		ctx = WithContext(ctx, logCtx)
 		if reqID := ctx.Value(middleware.RequestIDKey); reqID != nil {
 			ctx = With(ctx, KV{"requestID", reqID})
 		}
@@ -34,18 +30,14 @@ func UnaryServerInterceptor(logCtx context.Context) grpc.UnaryServerInterceptor 
 // request context with the logger contained in logCtx.  It panics if logCtx
 // was not initialized with Context.
 func StreamServerInterceptor(logCtx context.Context) grpc.StreamServerInterceptor {
-	l := logCtx.Value(ctxLogger)
-	if l == nil {
-		panic("log.Init called without log.Context")
-	}
-	logger := l.(*logger)
+	MustContainLogger(logCtx)
 	return func(
 		srv interface{},
 		stream grpc.ServerStream,
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
-		ctx := context.WithValue(stream.Context(), ctxLogger, logger)
+		ctx := WithContext(stream.Context(), logCtx)
 		if reqID := ctx.Value(middleware.RequestIDKey); reqID != nil {
 			ctx = With(ctx, KV{"requestID", reqID})
 		}
