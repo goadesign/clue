@@ -23,6 +23,9 @@ func Context(ctx context.Context, opts ...LogOption) context.Context {
 	return context.WithValue(ctx, ctxLogger, l)
 }
 
+// WithContext will inject the second context in the given one.
+//
+// It is useful when building middleware handlers such as log.HTTP
 func WithContext(parentCtx, logCtx context.Context) context.Context {
 	logger, ok := logCtx.Value(ctxLogger).(*logger)
 	if !ok {
@@ -31,6 +34,10 @@ func WithContext(parentCtx, logCtx context.Context) context.Context {
 	return context.WithValue(parentCtx, ctxLogger, logger)
 }
 
+// MustContainLogger will panic if the given context is missing the logger.
+//
+// It can be used during server initialisation when you have a function or
+// middleware that you want to ensure receives a context with a logger.
 func MustContainLogger(logCtx context.Context) {
 	_, ok := logCtx.Value(ctxLogger).(*logger)
 	if !ok {
