@@ -12,7 +12,7 @@ require (
 	go.opentelemetry.io/otel v1.6.1
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.6.1
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.6.1
-	go.opentelemetry.io/otel/metric v0.27.0
+	go.opentelemetry.io/otel/metric v0.28.0
 	go.opentelemetry.io/otel/sdk v1.6.1
 	go.opentelemetry.io/otel/trace v1.6.1
 	goa.design/goa/v3 v3.7.0
@@ -45,7 +45,6 @@ require (
 	github.com/zach-klippenstein/goregen v0.0.0-20160303162051-795b5e3961ea // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.6.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.6.1 // indirect
-	go.opentelemetry.io/otel/internal/metric v0.27.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.12.1 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
