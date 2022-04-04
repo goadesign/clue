@@ -9,12 +9,12 @@ require (
 	github.com/prometheus/client_model v0.2.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.30.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.30.0
-	go.opentelemetry.io/otel v1.6.0
+	go.opentelemetry.io/otel v1.6.1
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.6.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.5.0
 	go.opentelemetry.io/otel/metric v0.27.0
 	go.opentelemetry.io/otel/sdk v1.6.0
-	go.opentelemetry.io/otel/trace v1.6.0
+	go.opentelemetry.io/otel/trace v1.6.1
 	goa.design/goa/v3 v3.7.0
 	goa.design/model v1.7.6
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
