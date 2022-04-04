@@ -6,7 +6,6 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"goa.design/clue/log"
@@ -48,7 +47,6 @@ func HTTP(ctx context.Context) func(http.Handler) http.Handler {
 		h = addRequestIDHTTP(h)
 		return otelhttp.NewHandler(h, s.(*stateBag).svc,
 			otelhttp.WithTracerProvider(s.(*stateBag).provider),
-			otelhttp.WithMeterProvider(metric.NewNoopMeterProvider()),
 			otelhttp.WithPropagators(propagation.TraceContext{}))
 	}
 }
@@ -62,7 +60,6 @@ func Client(ctx context.Context, t http.RoundTripper) http.RoundTripper {
 	}
 	return otelhttp.NewTransport(t,
 		otelhttp.WithTracerProvider(s.(*stateBag).provider),
-		otelhttp.WithMeterProvider(metric.NewNoopMeterProvider()),
 		otelhttp.WithPropagators(propagation.TraceContext{}))
 }
 
