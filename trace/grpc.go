@@ -5,7 +5,6 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"goa.design/clue/log"
 	"goa.design/goa/v3/middleware"
@@ -30,7 +29,7 @@ func UnaryServerInterceptor(traceCtx context.Context) grpc.UnaryServerIntercepto
 		handler = addRequestIDGRPCUnary(handler)
 		ui := otelgrpc.UnaryServerInterceptor(
 			otelgrpc.WithTracerProvider(state.(*stateBag).provider),
-			otelgrpc.WithPropagators(propagation.TraceContext{}),
+			otelgrpc.WithPropagators(state.(*stateBag).propagator),
 		)
 		return ui(ctx, req, info, handler)
 	}
@@ -54,7 +53,7 @@ func StreamServerInterceptor(traceCtx context.Context) grpc.StreamServerIntercep
 		handler = addRequestIDGRPCStream(handler)
 		si := otelgrpc.StreamServerInterceptor(
 			otelgrpc.WithTracerProvider(state.(*stateBag).provider),
-			otelgrpc.WithPropagators(propagation.TraceContext{}),
+			otelgrpc.WithPropagators(state.(*stateBag).propagator),
 		)
 		return si(srv, stream, info, handler)
 	}
@@ -70,7 +69,7 @@ func UnaryClientInterceptor(traceCtx context.Context) grpc.UnaryClientIntercepto
 	}
 	return otelgrpc.UnaryClientInterceptor(
 		otelgrpc.WithTracerProvider(state.(*stateBag).provider),
-		otelgrpc.WithPropagators(propagation.TraceContext{}))
+		otelgrpc.WithPropagators(state.(*stateBag).propagator))
 }
 
 // StreamClientInterceptor returns an OpenTelemetry StreamClientInterceptor configured
@@ -83,7 +82,7 @@ func StreamClientInterceptor(traceCtx context.Context) grpc.StreamClientIntercep
 	}
 	return otelgrpc.StreamClientInterceptor(
 		otelgrpc.WithTracerProvider(state.(*stateBag).provider),
-		otelgrpc.WithPropagators(propagation.TraceContext{}))
+		otelgrpc.WithPropagators(state.(*stateBag).propagator))
 }
 
 // addRequestIDGRPCUnary is a middleware that adds the request ID to the current span

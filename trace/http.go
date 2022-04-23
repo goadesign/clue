@@ -6,7 +6,6 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"goa.design/clue/log"
 	"goa.design/goa/v3/middleware"
@@ -47,7 +46,7 @@ func HTTP(ctx context.Context) func(http.Handler) http.Handler {
 		h = addRequestIDHTTP(h)
 		return otelhttp.NewHandler(h, s.(*stateBag).svc,
 			otelhttp.WithTracerProvider(s.(*stateBag).provider),
-			otelhttp.WithPropagators(propagation.TraceContext{}))
+			otelhttp.WithPropagators(s.(*stateBag).propagator))
 	}
 }
 
@@ -60,7 +59,7 @@ func Client(ctx context.Context, t http.RoundTripper) http.RoundTripper {
 	}
 	return otelhttp.NewTransport(t,
 		otelhttp.WithTracerProvider(s.(*stateBag).provider),
-		otelhttp.WithPropagators(propagation.TraceContext{}))
+		otelhttp.WithPropagators(s.(*stateBag).propagator))
 }
 
 // addRequestIDHTTP is a middleware that adds the request ID to the current span
