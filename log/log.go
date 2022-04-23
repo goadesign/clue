@@ -60,10 +60,10 @@ func Debug(ctx context.Context, keyvals ...KV) {
 	log(ctx, SeverityDebug, true, keyvals)
 }
 
-// Debugf sets the key "msg" and calls Debug. Arguments are handled in the
-// manner of fmt.Printf.
+// Debugf sets the key MessageKey (default "msg") and calls Debug. Arguments
+// are handled in the manner of fmt.Printf.
 func Debugf(ctx context.Context, format string, v ...interface{}) {
-	Debug(ctx, KV{"msg", fmt.Sprintf(format, v...)})
+	Debug(ctx, KV{MessageKey, fmt.Sprintf(format, v...)})
 }
 
 // Print writes the key/value pairs to the log output ignoring buffering.
@@ -71,10 +71,10 @@ func Print(ctx context.Context, keyvals ...KV) {
 	log(ctx, SeverityInfo, false, keyvals)
 }
 
-// Printf sets the key "msg" and calls Print. Arguments are handled in the
-// manner of fmt.Printf.
+// Printf sets the key MessageKey (default "msg") and calls Print. Arguments
+// are handled in the manner of fmt.Printf.
 func Printf(ctx context.Context, format string, v ...interface{}) {
-	Print(ctx, KV{"msg", fmt.Sprintf(format, v...)})
+	Print(ctx, KV{MessageKey, fmt.Sprintf(format, v...)})
 }
 
 // Info writes the key/value pairs to the log buffer or output if buffering is
@@ -83,27 +83,27 @@ func Info(ctx context.Context, keyvals ...KV) {
 	log(ctx, SeverityInfo, true, keyvals)
 }
 
-// Infof sets the key "msg" and calls Info. Arguments are handled in the manner
-// of fmt.Printf.
+// Infof sets the key MessageKey (default "msg") and calls Info. Arguments are
+// handled in the manner of fmt.Printf.
 func Infof(ctx context.Context, format string, v ...interface{}) {
-	Info(ctx, KV{"msg", fmt.Sprintf(format, v...)})
+	Info(ctx, KV{MessageKey, fmt.Sprintf(format, v...)})
 }
 
 // Error flushes the log buffer and disables buffering if not already disabled.
-// Error then sets the "err" key with the given error and writes the key/value
-// pairs to the log output.
+// Error then sets the ErrorMessageKey (default "err") key with the given error
+// and writes the key/value pairs to the log output.
 func Error(ctx context.Context, err error, keyvals ...KV) {
 	FlushAndDisableBuffering(ctx)
 	if err != nil {
-		keyvals = append(keyvals, KV{"err", err.Error()})
+		keyvals = append(keyvals, KV{ErrorMessageKey, err.Error()})
 	}
 	log(ctx, SeverityError, true, keyvals)
 }
 
-// Errorf sets the key "msg" and calls Error. Arguments are handled in the
-// manner of fmt.Printf.
+// Errorf sets the key MessageKey (default "msg") and calls Error. Arguments
+// are handled in the manner of fmt.Printf.
 func Errorf(ctx context.Context, err error, format string, v ...interface{}) {
-	Error(ctx, err, KV{"msg", fmt.Sprintf(format, v...)})
+	Error(ctx, err, KV{MessageKey, fmt.Sprintf(format, v...)})
 }
 
 // Fatal is equivalent to Error followed by a call to os.Exit(1)
@@ -114,7 +114,7 @@ func Fatal(ctx context.Context, err error, keyvals ...KV) {
 
 // Fatalf is equivalent to Errorf followed by a call to os.Exit(1)
 func Fatalf(ctx context.Context, err error, format string, v ...interface{}) {
-	Fatal(ctx, err, KV{"msg", fmt.Sprintf(format, v...)})
+	Fatal(ctx, err, KV{MessageKey, fmt.Sprintf(format, v...)})
 }
 
 // With creates a copy of the given log context and appends the given key/value

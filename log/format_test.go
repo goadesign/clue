@@ -10,7 +10,7 @@ import (
 
 func TestFormat(t *testing.T) {
 	now, epoc := timeNow, epoch
-	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
+	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 123, time.UTC) }
 	epoch = timeNow()
 	defer func() { timeNow = now; epoch = epoc }()
 
@@ -243,6 +243,53 @@ func TestFormat(t *testing.T) {
 			var buf bytes.Buffer
 			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(tc.format), WithDebug())
 			tc.logfn(ctx, errors.New("error"), tc.keyVals...)
+			got := buf.String()
+			if got != tc.want {
+				t.Errorf("got %s, want %s", got, tc.want)
+			}
+		})
+	}
+
+	customisedCases := []struct {
+		name    string
+		logfn   func(ctx context.Context, keyvals ...KV)
+		format  FormatFunc
+		keyVals []KV
+		want    string
+	}{
+		{
+			name:    "default debug",
+			logfn:   Debug,
+			format:  FormatText,
+			keyVals: keyVals,
+			want:    "timestamp=2022-01-09T20:29:45.000000123Z severity=debug " + formattedKeyVals + "\n",
+		},
+		{
+			name:    "json debug",
+			logfn:   Debug,
+			format:  FormatJSON,
+			keyVals: keyVals,
+			want:    `{"timestamp":"2022-01-09T20:29:45.000000123Z","severity":"debug",` + jsonKeyVals + "}\n",
+		},
+	}
+	timestampKey := TimestampKey
+	timestampFormatLayout := TimestampFormatLayout
+	severityKey := SeverityKey
+	for _, tc := range customisedCases {
+		t.Run(tc.name, func(t *testing.T) {
+			{
+				TimestampKey = "timestamp"
+				TimestampFormatLayout = time.RFC3339Nano
+				SeverityKey = "severity"
+			}
+			defer func() {
+				TimestampKey = timestampKey
+				TimestampFormatLayout = timestampFormatLayout
+				SeverityKey = severityKey
+			}()
+			var buf bytes.Buffer
+			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(tc.format), WithDebug())
+			tc.logfn(ctx, tc.keyVals...)
 			got := buf.String()
 			if got != tc.want {
 				t.Errorf("got %s, want %s", got, tc.want)
