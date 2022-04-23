@@ -12,25 +12,18 @@ import (
 )
 
 type (
-	// KV represents a key/value pair. Values must be strings, numbers,
-	// booleans, nil or a slice of these types.
-	KV struct {
-		K string
-		V interface{}
-	}
-
 	// Log entry
 	Entry struct {
 		Time     time.Time
 		Severity Severity
-		KeyVals  []KV
+		KeyVals  kvList
 	}
 
 	// Logger implementation
 	logger struct {
 		options *options
 		lock    sync.Mutex
-		keyvals []KV
+		keyvals kvList
 		entries []*Entry
 		flushed bool
 	}
@@ -56,7 +49,7 @@ var (
 
 // Debug writes the key/value pairs to the log output if the log context is
 // configured to log debug messages (via WithDebug).
-func Debug(ctx context.Context, keyvals ...KV) {
+func Debug(ctx context.Context, keyvals ...Fielder) {
 	log(ctx, SeverityDebug, true, keyvals)
 }
 
@@ -67,7 +60,7 @@ func Debugf(ctx context.Context, format string, v ...interface{}) {
 }
 
 // Print writes the key/value pairs to the log output ignoring buffering.
-func Print(ctx context.Context, keyvals ...KV) {
+func Print(ctx context.Context, keyvals ...Fielder) {
 	log(ctx, SeverityInfo, false, keyvals)
 }
 
@@ -79,7 +72,7 @@ func Printf(ctx context.Context, format string, v ...interface{}) {
 
 // Info writes the key/value pairs to the log buffer or output if buffering is
 // disabled.
-func Info(ctx context.Context, keyvals ...KV) {
+func Info(ctx context.Context, keyvals ...Fielder) {
 	log(ctx, SeverityInfo, true, keyvals)
 }
 
@@ -92,7 +85,7 @@ func Infof(ctx context.Context, format string, v ...interface{}) {
 // Error flushes the log buffer and disables buffering if not already disabled.
 // Error then sets the "err" key with the given error and writes the key/value
 // pairs to the log output.
-func Error(ctx context.Context, err error, keyvals ...KV) {
+func Error(ctx context.Context, err error, keyvals ...Fielder) {
 	FlushAndDisableBuffering(ctx)
 	if err != nil {
 		keyvals = append(keyvals, KV{"err", err.Error()})
@@ -107,7 +100,7 @@ func Errorf(ctx context.Context, err error, format string, v ...interface{}) {
 }
 
 // Fatal is equivalent to Error followed by a call to os.Exit(1)
-func Fatal(ctx context.Context, err error, keyvals ...KV) {
+func Fatal(ctx context.Context, err error, keyvals ...Fielder) {
 	Error(ctx, err, keyvals...)
 	osExit(1)
 }
@@ -120,7 +113,7 @@ func Fatalf(ctx context.Context, err error, format string, v ...interface{}) {
 // With creates a copy of the given log context and appends the given key/value
 // pairs to it. Values must be strings, numbers, booleans, nil or a slice of
 // these types.
-func With(ctx context.Context, keyvals ...KV) context.Context {
+func With(ctx context.Context, keyvals ...Fielder) context.Context {
 	v := ctx.Value(ctxLogger)
 	if v == nil {
 		return ctx
@@ -131,7 +124,7 @@ func With(ctx context.Context, keyvals ...KV) context.Context {
 	copy := logger{
 		options: l.options,
 		entries: l.entries,
-		keyvals: append(l.keyvals, keyvals...),
+		keyvals: l.keyvals.merge(keyvals),
 		flushed: l.flushed,
 	}
 	if l.options.disableBuffering != nil && l.options.disableBuffering(ctx) {
@@ -171,7 +164,7 @@ func (l *logger) flush() {
 	l.flushed = true
 }
 
-func log(ctx context.Context, sev Severity, buffer bool, keyvals []KV) {
+func log(ctx context.Context, sev Severity, buffer bool, fielders []Fielder) {
 	v := ctx.Value(ctxLogger)
 	if v == nil {
 		return // do nothing if context isn't initialized
@@ -187,6 +180,8 @@ func log(ctx context.Context, sev Severity, buffer bool, keyvals []KV) {
 		l.flush()
 	}
 
+	var keyvals kvList
+	keyvals = keyvals.merge(fielders)
 	keyvals = append(l.keyvals, keyvals...)
 	keyvals = append(l.options.keyvals, keyvals...)
 	for _, fn := range l.options.kvfuncs {

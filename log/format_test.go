@@ -128,7 +128,7 @@ func TestFormat(t *testing.T) {
 
 	cases := []struct {
 		name    string
-		logfn   func(ctx context.Context, keyvals ...KV)
+		logfn   func(ctx context.Context, keyvals ...Fielder)
 		format  FormatFunc
 		keyVals []KV
 		want    string
@@ -201,7 +201,7 @@ func TestFormat(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(tc.format), WithDebug())
-			tc.logfn(ctx, tc.keyVals...)
+			tc.logfn(ctx, kvList(tc.keyVals))
 			got := buf.String()
 			if got != tc.want {
 				t.Errorf("got %s, want %s", got, tc.want)
@@ -211,7 +211,7 @@ func TestFormat(t *testing.T) {
 
 	errorCases := []struct {
 		name    string
-		logfn   func(ctx context.Context, err error, keyvals ...KV)
+		logfn   func(ctx context.Context, err error, keyvals ...Fielder)
 		format  FormatFunc
 		keyVals []KV
 		want    string
@@ -242,7 +242,7 @@ func TestFormat(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(tc.format), WithDebug())
-			tc.logfn(ctx, errors.New("error"), tc.keyVals...)
+			tc.logfn(ctx, errors.New("error"), kvList(tc.keyVals))
 			got := buf.String()
 			if got != tc.want {
 				t.Errorf("got %s, want %s", got, tc.want)

@@ -16,12 +16,24 @@ package main
 import (
         "context"
         "github.com/goadesign/clue/log"
-)       
+)
 
 func main() {
         ctx := log.Context(context.Background())
         log.Printf(ctx, "hello %s", "world")
         log.Print(ctx, log.KV{"hello", "world"})
+
+        log.Print(ctx,
+                log.KV{"example", "log.KV"},
+                log.KV{"order", "deterministic"},
+                log.KV{"backed_by", "slice"},
+        )
+
+        log.Print(ctx, log.Fields{
+                "example": "log.Fields",
+                "order": "random",
+                "backed_by": "map",
+        })
 }
 ```
 
@@ -31,6 +43,8 @@ formatter):
 ```
 time=2022-02-22T02:22:02Z level=info msg="hello world"
 time=2022-02-22T02:22:02Z level=info hello=world
+time=2022-02-22T02:22:02Z level=info example=log.KV order=deterministic backed_by=slice
+time=2022-02-22T02:22:02Z level=info order=random backed_by=map example=log.Fields
 ```
 
 A typical instantiation of the logger for a Goa service looks like this:

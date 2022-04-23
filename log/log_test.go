@@ -287,7 +287,7 @@ func TestStructuredLogging(t *testing.T) {
 	}
 
 	// Key-value pairs are logged.
-	Info(ctx, []KV{{"key1", "val1"}, {"key2", "val2"}}...)
+	Info(ctx, KV{"key1", "val1"}, KV{"key2", "val2"})
 	if len(entries(ctx)) != 2 {
 		t.Fatalf("got %d buffered entries, want 2", len(entries(ctx)))
 	}
@@ -477,7 +477,7 @@ func TestMaxSize(t *testing.T) {
 			}
 
 			ctx := Context(context.Background(), WithOutput(&buf), WithMaxSize(maxsize), WithFormat(format))
-			Print(ctx, c.keyvals...)
+			Print(ctx, kvList(c.keyvals))
 
 			if buf.Len() != c.expected {
 				t.Errorf("got %d (%q), want %d", buf.Len(), buf.String(), c.expected)
