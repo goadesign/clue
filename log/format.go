@@ -20,6 +20,10 @@ func init() {
 	epoch = time.Now()
 }
 
+// TimestampFormatLayout is used to set the layout for our TimestampKey
+// (default "time") values.  Default format is time.RFC3339.
+var TimestampFormatLayout = time.RFC3339
+
 // FormatText is the default log formatter when not running in a terminal, it
 // prints entries using the logfmt format:
 //
@@ -28,11 +32,14 @@ func init() {
 // Where TIME is the UTC timestamp in RFC3339 format, SEVERITY is one of
 // "debug", "info" or "error", and KEY=VAL are the entry key/value pairs.
 // Values are quoted and escaped according to the logfmt specification.
+//
+// Output can be customised with log.TimestampKey, log.TimestampFormatLayout,
+// and log.SeverityKey.
 func FormatText(e *Entry) []byte {
 	var b bytes.Buffer
 	enc := logfmt.NewEncoder(&b)
-	enc.EncodeKeyval("time", e.Time.Format(time.RFC3339))
-	enc.EncodeKeyval("level", e.Severity)
+	enc.EncodeKeyval(TimestampKey, e.Time.Format(TimestampFormatLayout))
+	enc.EncodeKeyval(SeverityKey, e.Severity)
 	for _, kv := range e.KeyVals {
 		// Make logfmt format slices
 		v := kv.V
@@ -61,11 +68,18 @@ func FormatText(e *Entry) []byte {
 //
 // note: the implementation avoids using reflection (and thus the json package)
 // for efficiency.
+//
+// Output can be customised with log.TimestampKey, log.TimestampFormatLayout,
+// and log.SeverityKey.
 func FormatJSON(e *Entry) []byte {
 	var b bytes.Buffer
-	b.WriteString(`{"time":"`)
-	b.WriteString(e.Time.Format(time.RFC3339))
-	b.WriteString(`","level":"`)
+	b.WriteString(`{"`)
+	b.WriteString(TimestampKey)
+	b.WriteString(`":"`)
+	b.WriteString(e.Time.Format(TimestampFormatLayout))
+	b.WriteString(`","`)
+	b.WriteString(SeverityKey)
+	b.WriteString(`":"`)
 	b.WriteString(e.Severity.String())
 	b.WriteByte('"')
 	if len(e.KeyVals) > 0 {
