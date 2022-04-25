@@ -86,7 +86,7 @@ func initTracingContext(traceCtx context.Context, h http.Handler) http.Handler {
 		if IsTraced(ctx) {
 			req = req.WithContext(withTracing(traceCtx, ctx))
 			log.Debug(ctx,
-				log.KV{"traceID", trace.SpanFromContext(ctx).SpanContext().TraceID()})
+				log.KV{log.TraceIDKey, trace.SpanFromContext(ctx).SpanContext().TraceID()})
 		}
 		h.ServeHTTP(w, req)
 	})
