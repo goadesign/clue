@@ -113,6 +113,6 @@ func (l goaLogger) Log(keyvals ...interface{}) error {
 		k, v := keyvals[2*i], keyvals[2*i+1]
 		kvs[i] = KV{K: fmt.Sprint(k), V: v}
 	}
-	Print(l, kvs...)
+	Print(l, kvList(kvs))
 	return nil
 }

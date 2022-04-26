@@ -29,7 +29,7 @@ type (
 		debug            bool
 		w                io.Writer
 		format           FormatFunc
-		keyvals          []KV
+		keyvals          kvList
 		kvfuncs          []func(context.Context) []KV
 		maxsize          int
 	}
