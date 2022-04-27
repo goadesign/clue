@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -16,10 +17,11 @@ type (
 
 	// stateBag tracks the provider, tracer and active span sequence for a request.
 	stateBag struct {
-		svc      string
-		provider trace.TracerProvider
-		tracer   trace.Tracer
-		spans    []trace.Span
+		svc        string
+		provider   trace.TracerProvider
+		propagator propagation.TextMapPropagator
+		tracer     trace.Tracer
+		spans      []trace.Span
 	}
 )
 
@@ -48,7 +50,7 @@ func Context(ctx context.Context, svc string, opts ...TraceOption) (context.Cont
 	}
 
 	if options.disabled {
-		return withProvider(ctx, trace.NewNoopTracerProvider(), svc), nil
+		return withProvider(ctx, trace.NewNoopTracerProvider(), options.propagator, svc), nil
 	}
 
 	if options.exporter == nil {
@@ -62,7 +64,7 @@ func Context(ctx context.Context, svc string, opts ...TraceOption) (context.Cont
 		sdktrace.WithResource(res),
 		sdktrace.WithBatcher(options.exporter),
 	)
-	return withProvider(ctx, provider, svc), nil
+	return withProvider(ctx, provider, options.propagator, svc), nil
 }
 
 // IsTraced returns true if the current request is traced.
@@ -78,8 +80,8 @@ func TraceProvider(ctx context.Context) trace.TracerProvider {
 }
 
 // withProvider stores the tracer provider in the context.
-func withProvider(ctx context.Context, provider trace.TracerProvider, svc string) context.Context {
-	return context.WithValue(ctx, stateKey, &stateBag{provider: provider, svc: svc})
+func withProvider(ctx context.Context, provider trace.TracerProvider, propagator propagation.TextMapPropagator, svc string) context.Context {
+	return context.WithValue(ctx, stateKey, &stateBag{provider: provider, propagator: propagator, svc: svc})
 }
 
 // withTracing initializes the tracing context, ctx must have been initialized
@@ -88,7 +90,14 @@ func withTracing(traceCtx, ctx context.Context) context.Context {
 	state := traceCtx.Value(stateKey).(*stateBag)
 	svc := state.svc
 	provider := state.provider
+	propagator := state.propagator
 	tracer := provider.Tracer(InstrumentationLibraryName)
 	spans := []trace.Span{trace.SpanFromContext(ctx)}
-	return context.WithValue(ctx, stateKey, &stateBag{svc, provider, tracer, spans})
+	return context.WithValue(ctx, stateKey, &stateBag{
+		svc:        svc,
+		provider:   provider,
+		propagator: propagator,
+		tracer:     tracer,
+		spans:      spans,
+	})
 }

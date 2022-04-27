@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc"
 )
@@ -13,6 +14,7 @@ type (
 		maxSamplingRate int
 		sampleSize      int
 		exporter        sdktrace.SpanExporter
+		propagator      propagation.TextMapPropagator
 		disabled        bool
 	}
 
@@ -25,6 +27,7 @@ func defaultOptions() *options {
 	return &options{
 		maxSamplingRate: 2,
 		sampleSize:      10,
+		propagator:      propagation.TraceContext{},
 	}
 }
 
@@ -57,6 +60,14 @@ func WithDisabled() TraceOption {
 func WithExporter(exporter sdktrace.SpanExporter) TraceOption {
 	return func(ctx context.Context, opts *options) error {
 		opts.exporter = exporter
+		return nil
+	}
+}
+
+// WithPropagator sets the otel propagators
+func WithPropagator(propagator propagation.TextMapPropagator) TraceOption {
+	return func(ctx context.Context, opts *options) error {
+		opts.propagator = propagator
 		return nil
 	}
 }

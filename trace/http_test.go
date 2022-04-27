@@ -15,7 +15,7 @@ import (
 func TestHTTP(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	ctx := withProvider(context.Background(), provider, "test")
+	ctx := testContext(provider)
 	cli, stop := testsvc.SetupHTTP(t,
 		testsvc.WithHTTPMiddleware(middleware.RequestID(), HTTP(ctx)),
 		testsvc.WithHTTPFunc(addEventUnaryMethod))
@@ -49,7 +49,7 @@ func TestHTTP(t *testing.T) {
 func TestHTTPRequestID(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	ctx := withProvider(context.Background(), provider, "test")
+	ctx := testContext(provider)
 	cli, stop := testsvc.SetupHTTP(t,
 		testsvc.WithHTTPMiddleware(HTTP(ctx)),
 		testsvc.WithHTTPFunc(addEventUnaryMethod))
@@ -66,7 +66,7 @@ func TestHTTPRequestID(t *testing.T) {
 func TestTrace(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	ctx := withProvider(context.Background(), provider, "test")
+	ctx := testContext(provider)
 	c := http.Client{Transport: Client(ctx, http.DefaultTransport)}
 	otelt, ok := c.Transport.(*otelhttp.Transport)
 	if !ok {

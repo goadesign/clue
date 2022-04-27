@@ -7,6 +7,7 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.opentelemetry.io/otel/trace"
@@ -15,7 +16,7 @@ import (
 func newTestTracingContext() (context.Context, *tracetest.InMemoryExporter) {
 	exporter := tracetest.NewInMemoryExporter()
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	ctx := withProvider(context.Background(), provider, "test")
+	ctx := withProvider(context.Background(), provider, propagation.TraceContext{}, "test")
 	return ctx, exporter
 }
 

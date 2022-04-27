@@ -4,8 +4,14 @@ import (
 	"context"
 	"testing"
 
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	"go.opentelemetry.io/otel/trace"
 )
+
+func testContext(provider trace.TracerProvider) context.Context {
+	return withProvider(context.Background(), provider, propagation.TraceContext{}, "test")
+}
 
 func TestContext(t *testing.T) {
 	// We don't want to test otel, keep it simple...
