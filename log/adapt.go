@@ -24,15 +24,12 @@ type (
 //
 // Usage:
 //
-//    ctx := log.Context(context.Background())
-//    logger := log.AsGoaMiddlewareLogger(ctx)
-//
 //    // HTTP server:
 //    import goahttp "goa.design/goa/v3/http"
 //    import httpmdlwr "goa.design/goa/v3/http/middleware"
 //    ...
 //    mux := goahttp.NewMuxer()
-//    handler := httpmdlwr.Log(logger)(mux)
+//    handler := httpmdlwr.LogContext(log.AsGoaMiddlewareLogger)(mux)
 //
 //    // gRPC server:
 //    import "google.golang.org/grpc"
@@ -40,7 +37,7 @@ type (
 //    import grpcmdlwr "goa.design/goa/v3/grpc/middleware"
 //    ...
 //    srv := grpc.NewServer(
-//        grpcmiddleware.WithUnaryServerChain(grpcmdlwr.UnaryServerLog(logger))
+//        grpcmiddleware.WithUnaryServerChain(grpcmdlwr.UnaryServerLogContext(log.AsGoaMiddlewareLogger)),
 //    )
 func AsGoaMiddlewareLogger(ctx context.Context) middleware.Logger {
 	return goaLogger{ctx}

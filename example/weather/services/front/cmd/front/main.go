@@ -97,11 +97,11 @@ func main() {
 	mux := goahttp.NewMuxer()
 	server := genhttp.New(endpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)
 	genhttp.Mount(mux, server)
-	handler := trace.HTTP(ctx)(mux)                                          // 5. Trace request
-	handler = metrics.HTTP(ctx)(handler)                                     // 4. Record request metrics
-	handler = goahttpmiddleware.Log(log.AsGoaMiddlewareLogger(ctx))(handler) // 3. Log request and response
-	handler = log.HTTP(ctx)(handler)                                         // 2. Add logger to request context (with request ID key)
-	handler = goahttpmiddleware.RequestID()(handler)                         // 1. Add request ID to context
+	handler := trace.HTTP(ctx)(mux)                                            // 5. Trace request
+	handler = metrics.HTTP(ctx)(handler)                                       // 4. Record request metrics
+	handler = goahttpmiddleware.LogContext(log.AsGoaMiddlewareLogger)(handler) // 3. Log request and response
+	handler = log.HTTP(ctx)(handler)                                           // 2. Add logger to request context (with request ID key)
+	handler = goahttpmiddleware.RequestID()(handler)                           // 1. Add request ID to context
 	for _, m := range server.Mounts {
 		log.Print(ctx, log.KV{"method", m.Method}, log.KV{"endpoint", m.Verb + " " + m.Pattern})
 	}
