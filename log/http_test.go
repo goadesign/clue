@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"testing"
 	"time"
 
@@ -39,5 +40,23 @@ func TestHTTP(t *testing.T) {
 
 	if buf.String() != expected {
 		t.Errorf("got %s, want %s", buf.String(), expected)
+	}
+}
+
+func TestWithPathFilter(t *testing.T) {
+	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		Print(req.Context(), KV{"key1", "value1"}, KV{"key2", "value2"})
+	})
+	var buf bytes.Buffer
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+
+	handler = HTTP(ctx, WithPathFilter(regexp.MustCompile("/path/to/ignore")))(handler)
+
+	req, _ := http.NewRequest("GET", "http://example.com/path/to/ignore", nil)
+
+	handler.ServeHTTP(nil, req)
+
+	if buf.String() != "" {
+		t.Errorf("got %s, want empty", buf.String())
 	}
 }
