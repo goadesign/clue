@@ -1,8 +1,9 @@
 package log
 
 var (
-	TraceIDKey      = "traceID"
-	RequestIDKey    = "requestID"
+	TraceIDKey      = "trace-id"
+	SpanIDKey       = "span-id"
+	RequestIDKey    = "request-id"
 	MessageKey      = "msg"
 	ErrorMessageKey = "err"
 	TimestampKey    = "time"

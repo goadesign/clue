@@ -99,7 +99,11 @@ func addRequestIDGRPCUnary(h grpc.UnaryHandler) grpc.UnaryHandler {
 func initTracingContextGRPCUnary(traceCtx context.Context, h grpc.UnaryHandler) grpc.UnaryHandler {
 	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		if IsTraced(ctx) {
-			ctx = withTracing(traceCtx, ctx)
+			ctx := withTracing(traceCtx, ctx)
+			sctx := trace.SpanFromContext(ctx).SpanContext()
+			log.Debug(ctx,
+				log.KV{K: log.TraceIDKey, V: sctx.TraceID()},
+				log.KV{K: log.SpanIDKey, V: sctx.SpanID()})
 		}
 		return h(ctx, req)
 	}
@@ -125,8 +129,10 @@ func initTracingContextGRPCStream(traceCtx context.Context, h grpc.StreamHandler
 	return func(srv interface{}, stream grpc.ServerStream) error {
 		if IsTraced(stream.Context()) {
 			ctx := withTracing(traceCtx, stream.Context())
-			log.Debug(stream.Context(),
-				log.KV{log.TraceIDKey, trace.SpanFromContext(stream.Context()).SpanContext().TraceID()})
+			sctx := trace.SpanFromContext(ctx).SpanContext()
+			log.Debug(ctx,
+				log.KV{K: log.TraceIDKey, V: sctx.TraceID()},
+				log.KV{K: log.SpanIDKey, V: sctx.SpanID()})
 			stream = &streamWithContext{ctx: ctx, ServerStream: stream}
 		}
 		return h(srv, stream)
