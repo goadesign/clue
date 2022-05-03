@@ -34,7 +34,7 @@ func TestHTTP(t *testing.T) {
 	expected := fmt.Sprintf("{%s,%s,%s,%s,%s}\n",
 		`"time":"2022-01-09T20:29:45Z"`,
 		`"level":"info"`,
-		`"requestID":"request-id"`,
+		`"request-id":"request-id"`,
 		`"key1":"value1"`,
 		`"key2":"value2"`)
 

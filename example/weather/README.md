@@ -44,7 +44,7 @@ To analyze traces:
 * Retrieve the front service trace ID from its logs, for example:
 
 ```
-front      | DEBG[0003] svc=front requestID=aZtVOM7L traceID=fcb9bb474db0b095923b110b7c1cdcab
+front      | DEBG[0003] svc=front request-id=aZtVOM7L trace-id=fcb9bb474db0b095923b110b7c1cdcab
 ```
 
 * Open the Grafana dashboard running on
