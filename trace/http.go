@@ -7,7 +7,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"goa.design/clue/log"
 	"goa.design/goa/v3/middleware"
 )
 
@@ -83,10 +82,6 @@ func initTracingContext(traceCtx context.Context, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if IsTraced(req.Context()) {
 			ctx := withTracing(traceCtx, req.Context())
-			sctx := trace.SpanFromContext(ctx).SpanContext()
-			log.Debug(ctx,
-				log.KV{K: log.TraceIDKey, V: sctx.TraceID()},
-				log.KV{K: log.SpanIDKey, V: sctx.SpanID()})
 			req = req.WithContext(ctx)
 		}
 		h.ServeHTTP(w, req)

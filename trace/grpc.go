@@ -6,7 +6,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"goa.design/clue/log"
 	"goa.design/goa/v3/middleware"
 	"google.golang.org/grpc"
 )
@@ -99,11 +98,7 @@ func addRequestIDGRPCUnary(h grpc.UnaryHandler) grpc.UnaryHandler {
 func initTracingContextGRPCUnary(traceCtx context.Context, h grpc.UnaryHandler) grpc.UnaryHandler {
 	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		if IsTraced(ctx) {
-			ctx := withTracing(traceCtx, ctx)
-			sctx := trace.SpanFromContext(ctx).SpanContext()
-			log.Debug(ctx,
-				log.KV{K: log.TraceIDKey, V: sctx.TraceID()},
-				log.KV{K: log.SpanIDKey, V: sctx.SpanID()})
+			ctx = withTracing(traceCtx, ctx)
 		}
 		return h(ctx, req)
 	}
@@ -129,10 +124,6 @@ func initTracingContextGRPCStream(traceCtx context.Context, h grpc.StreamHandler
 	return func(srv interface{}, stream grpc.ServerStream) error {
 		if IsTraced(stream.Context()) {
 			ctx := withTracing(traceCtx, stream.Context())
-			sctx := trace.SpanFromContext(ctx).SpanContext()
-			log.Debug(ctx,
-				log.KV{K: log.TraceIDKey, V: sctx.TraceID()},
-				log.KV{K: log.SpanIDKey, V: sctx.SpanID()})
 			stream = &streamWithContext{ctx: ctx, ServerStream: stream}
 		}
 		return h(srv, stream)
