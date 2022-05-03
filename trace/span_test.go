@@ -87,6 +87,50 @@ func TestChildSpan(t *testing.T) {
 	}
 }
 
+func TestStartEndTrace(t *testing.T) {
+	// Setup
+	ctx, exporter := newTestTracingContext()
+
+	// Create trace
+	ctx = StartTrace(ctx, "trace")
+	EndTrace(ctx)
+
+	// Verify
+	spans := exporter.GetSpans()
+	if len(spans) != 1 {
+		t.Fatalf("got %d spans, expected 1", len(spans))
+	}
+	if spans[0].Name != "trace" {
+		t.Errorf("got span name %q, expected %q", spans[0].Name, "span")
+	}
+	var zeroID trace.TraceID
+	if spans[0].Parent.TraceID() != zeroID {
+		t.Errorf("got parent traceID %s, expected %s", spans[0].Parent.TraceID(), zeroID)
+	}
+}
+
+func TestContinueRemoteTrace(t *testing.T) {
+	// Setup
+	ctx, exporter := newTestTracingContext()
+
+	// Create span and set status
+	traceID := [16]byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10}
+	ctx = ContinueRemoteTrace(ctx, "trace", traceID)
+	EndTrace(ctx)
+
+	// Verify
+	spans := exporter.GetSpans()
+	if len(spans) != 1 {
+		t.Fatalf("got %d spans, expected 1", len(spans))
+	}
+	if spans[0].Name != "trace" {
+		t.Errorf("got span name %q, expected %q", spans[0].Name, "span")
+	}
+	if spans[0].Parent.TraceID() != traceID {
+		t.Errorf("got parent traceID %s, expected %s", spans[0].Parent.TraceID(), traceID)
+	}
+}
+
 func TestSetSpanAttributesNoContext(t *testing.T) {
 	SetSpanAttributes(context.Background(), "key", "value")
 }

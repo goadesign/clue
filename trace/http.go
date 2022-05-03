@@ -7,7 +7,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"goa.design/clue/log"
 	"goa.design/goa/v3/middleware"
 )
 
@@ -81,11 +80,9 @@ func addRequestIDHTTP(h http.Handler) http.Handler {
 // context.
 func initTracingContext(traceCtx context.Context, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		ctx := req.Context()
-		if IsTraced(ctx) {
-			req = req.WithContext(withTracing(traceCtx, ctx))
-			log.Debug(ctx,
-				log.KV{log.TraceIDKey, trace.SpanFromContext(ctx).SpanContext().TraceID()})
+		if IsTraced(req.Context()) {
+			ctx := withTracing(traceCtx, req.Context())
+			req = req.WithContext(ctx)
 		}
 		h.ServeHTTP(w, req)
 	})

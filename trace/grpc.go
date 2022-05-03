@@ -6,14 +6,12 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"goa.design/clue/log"
 	"goa.design/goa/v3/middleware"
 	"google.golang.org/grpc"
 )
 
-// UnaryServerInterceptor returns an OpenTelemetry UnaryServerInterceptor configured
-// to export traces to AWS X-Ray. It panics if the context has not been
-// initialized with Context.
+// UnaryServerInterceptor returns an OpenTelemetry UnaryServerInterceptor. It
+// panics if the context has not been initialized with Context.
 func UnaryServerInterceptor(traceCtx context.Context) grpc.UnaryServerInterceptor {
 	state := traceCtx.Value(stateKey)
 	if state == nil {
@@ -29,15 +27,13 @@ func UnaryServerInterceptor(traceCtx context.Context) grpc.UnaryServerIntercepto
 		handler = addRequestIDGRPCUnary(handler)
 		ui := otelgrpc.UnaryServerInterceptor(
 			otelgrpc.WithTracerProvider(state.(*stateBag).provider),
-			otelgrpc.WithPropagators(state.(*stateBag).propagator),
-		)
+			otelgrpc.WithPropagators(state.(*stateBag).propagator))
 		return ui(ctx, req, info, handler)
 	}
 }
 
-// StreamServerInterceptor returns an OpenTelemetry StreamServerInterceptor configured
-// to export traces to AWS X-Ray. It panics if the context has not been
-// initialized with Context.
+// StreamServerInterceptor returns an OpenTelemetry StreamServerInterceptor. It
+// panics if the context has not been initialized with Context.
 func StreamServerInterceptor(traceCtx context.Context) grpc.StreamServerInterceptor {
 	state := traceCtx.Value(stateKey)
 	if state == nil {
@@ -59,9 +55,8 @@ func StreamServerInterceptor(traceCtx context.Context) grpc.StreamServerIntercep
 	}
 }
 
-// UnaryClientInterceptor returns an OpenTelemetry UnaryClientInterceptor configured
-// to export traces to AWS X-Ray. It panics if the context has not been
-// initialized with Context.
+// UnaryClientInterceptor returns an OpenTelemetry UnaryClientInterceptor. It
+// panics if the context has not been initialized with Context.
 func UnaryClientInterceptor(traceCtx context.Context) grpc.UnaryClientInterceptor {
 	state := traceCtx.Value(stateKey)
 	if state == nil {
@@ -72,9 +67,8 @@ func UnaryClientInterceptor(traceCtx context.Context) grpc.UnaryClientIntercepto
 		otelgrpc.WithPropagators(state.(*stateBag).propagator))
 }
 
-// StreamClientInterceptor returns an OpenTelemetry StreamClientInterceptor configured
-// to export traces to AWS X-Ray. It panics if the context has not been
-// initialized with Context.
+// StreamClientInterceptor returns an OpenTelemetry StreamClientInterceptor. It
+// panics if the context has not been initialized with Context.
 func StreamClientInterceptor(traceCtx context.Context) grpc.StreamClientInterceptor {
 	state := traceCtx.Value(stateKey)
 	if state == nil {
@@ -105,7 +99,6 @@ func initTracingContextGRPCUnary(traceCtx context.Context, h grpc.UnaryHandler) 
 	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		if IsTraced(ctx) {
 			ctx = withTracing(traceCtx, ctx)
-			log.Debug(ctx, log.KV{log.TraceIDKey, trace.SpanFromContext(ctx).SpanContext().TraceID()})
 		}
 		return h(ctx, req)
 	}
@@ -131,8 +124,6 @@ func initTracingContextGRPCStream(traceCtx context.Context, h grpc.StreamHandler
 	return func(srv interface{}, stream grpc.ServerStream) error {
 		if IsTraced(stream.Context()) {
 			ctx := withTracing(traceCtx, stream.Context())
-			log.Debug(stream.Context(),
-				log.KV{log.TraceIDKey, trace.SpanFromContext(stream.Context()).SpanContext().TraceID()})
 			stream = &streamWithContext{ctx: ctx, ServerStream: stream}
 		}
 		return h(srv, stream)

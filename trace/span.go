@@ -16,7 +16,11 @@ func StartSpan(ctx context.Context, name string, keyvals ...string) context.Cont
 	if s == nil {
 		return ctx
 	}
-	ctx, span := s.(*stateBag).tracer.Start(ctx, name, trace.WithAttributes(toKeyVal(keyvals)...))
+	tracer := s.(*stateBag).tracer
+	if tracer == nil {
+		return ctx
+	}
+	ctx, span := tracer.Start(ctx, name, trace.WithAttributes(toKeyVal(keyvals)...))
 	setActiveSpans(ctx, append(activeSpans(ctx), span))
 	return ctx
 }
@@ -29,6 +33,35 @@ func EndSpan(ctx context.Context) {
 	}
 	spans[len(spans)-1].End()
 	setActiveSpans(ctx, spans[:len(spans)-1])
+}
+
+// StartTrace starts a new trace and initializes the context with it. In general
+// traces should be managed by HTTP middlewares and gRPC interceptors created
+// via the HTTP, UnaryServerInterceptor and StreamServerInterceptor methods.
+// This function is intended to be used by code running outside of network
+// requests for example workers that initiate request threads. The context must
+// be initialized with Context. EndTrace must be called by the client in the
+// same goroutine. Not calling EndTrace may cause resource leaks.
+func StartTrace(ctx context.Context, name string, keyvals ...string) context.Context {
+	return createSpan(ctx, trace.SpanKindClient, name, keyvals...)
+}
+
+// ContinueRemoteTrace initializes the tracing context with the given remote
+// trace ID and starts a new server span. See StartTrace for usage.
+func ContinueRemoteTrace(ctx context.Context, name string, traceID [16]byte, keyvals ...string) context.Context {
+	sc := trace.NewSpanContext(trace.SpanContextConfig{
+		TraceID: traceID,
+		Remote:  true,
+	})
+	return createSpan(trace.ContextWithRemoteSpanContext(ctx, sc), trace.SpanKindServer, name, keyvals...)
+}
+
+// EndTrace ends the last trace started by StartTrace.
+func EndTrace(ctx context.Context) {
+	for _, span := range activeSpans(ctx) {
+		span.End()
+	}
+	setActiveSpans(ctx, nil)
 }
 
 // SetSpanAttributes adds the given attributes to the current span if any.
@@ -99,6 +132,28 @@ func SpanID(ctx context.Context) string {
 		return ""
 	}
 	return span.SpanContext().SpanID().String()
+}
+
+// createSpan creates a new span with the given name and attributes.
+func createSpan(ctx context.Context, kind trace.SpanKind, name string, keyvals ...string) context.Context {
+	s := ctx.Value(stateKey)
+	if s == nil {
+		return ctx
+	}
+	bag := s.(*stateBag)
+	tracer := bag.tracer
+	if tracer == nil {
+		tracer = bag.provider.Tracer(InstrumentationLibraryName)
+		bag.tracer = tracer
+	}
+	ctx, span := tracer.Start(
+		ctx,
+		name,
+		trace.WithSpanKind(kind),
+		trace.WithAttributes(toKeyVal(keyvals)...),
+	)
+	setActiveSpans(ctx, []trace.Span{span})
+	return ctx
 }
 
 // activeSpans returns the active spans of the tracing state.

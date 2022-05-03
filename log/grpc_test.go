@@ -34,7 +34,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 	expected := fmt.Sprintf("{%s,%s,%s%q,%s,%s}\n",
 		`"time":"2022-01-09T20:29:45Z"`,
 		`"level":"info"`,
-		`"requestID":`,
+		`"request-id":`,
 		*f.S,
 		`"key1":"value1"`,
 		`"key2":"value2"`)
@@ -73,7 +73,7 @@ func TestStreamServerTrace(t *testing.T) {
 	expected := fmt.Sprintf("{%s,%s,%s%q,%s,%s}\n",
 		`"time":"2022-01-09T20:29:45Z"`,
 		`"level":"info"`,
-		`"requestID":`,
+		`"request-id":`,
 		reqID,
 		`"key1":"value1"`,
 		`"key2":"value2"`)
