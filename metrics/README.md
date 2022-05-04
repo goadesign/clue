@@ -17,8 +17,8 @@ package main
 import (
         "context"
 
-        "github.com/goadesign/clue/metrics"
-        "github.com/goadesign/clue/log"
+        "goa.design/clue/metrics"
+        "goa.design/clue/log"
        	goahttp "goa.design/goa/v3/http"
 
        	"github.com/repo/services/svc"
