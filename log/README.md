@@ -15,7 +15,7 @@ package main
 
 import (
         "context"
-        "github.com/goadesign/clue/log"
+        "goa.design/clue/log"
 )
 
 func main() {

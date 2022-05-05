@@ -32,8 +32,8 @@ package main
 import (
        "context"
 
-       "github.com/goadesign/clue/log"
-       "github.com/goadesign/clue/trace"
+       "goa.design/clue/log"
+       "goa.design/clue/trace"
        	goahttp "goa.design/goa/v3/http"
 
        "github.com/repo/services/svc"
