@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 )
 
@@ -32,5 +34,13 @@ func TestOptions(t *testing.T) {
 	WithExporter(tracetest.NewInMemoryExporter())(ctx, options)
 	if options.exporter == nil {
 		t.Error("got nil exporter, want non-nil")
+	}
+	WithResource(&resource.Resource{})(ctx, options)
+	if options.resource == nil {
+		t.Error("got nil resource, want non-nil")
+	}
+	WithParentSamplerOptions(sdktrace.WithRemoteParentSampled(nil))(ctx, options)
+	if total := len(options.parentSamplerOptions); total != 1 {
+		t.Errorf("got %d parent sampler options, expected 1", total)
 	}
 }
