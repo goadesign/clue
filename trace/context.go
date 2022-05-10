@@ -57,10 +57,14 @@ func Context(ctx context.Context, svc string, opts ...TraceOption) (context.Cont
 		return nil, errors.New("missing exporter")
 	}
 
-	res := resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceNameKey.String(svc))
+	res := options.resource
+	if res == nil {
+		res = resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceNameKey.String(svc))
+	}
+
 	rootSampler := adaptiveSampler(options.maxSamplingRate, options.sampleSize)
 	provider := sdktrace.NewTracerProvider(
-		sdktrace.WithSampler(sdktrace.ParentBased(rootSampler)),
+		sdktrace.WithSampler(sdktrace.ParentBased(rootSampler, options.parentSamplerOptions...)),
 		sdktrace.WithResource(res),
 		sdktrace.WithBatcher(options.exporter),
 	)

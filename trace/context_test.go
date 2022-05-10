@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -17,7 +19,9 @@ func TestContext(t *testing.T) {
 	// We don't want to test otel, keep it simple...
 	exporter := tracetest.NewInMemoryExporter()
 	ctx, err := Context(context.Background(), "test",
-		WithMaxSamplingRate(3), WithSampleSize(20), WithExporter(exporter))
+		WithMaxSamplingRate(3), WithSampleSize(20), WithExporter(exporter),
+		WithResource(&resource.Resource{}), WithParentSamplerOptions(sdktrace.WithRemoteParentSampled(nil)),
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
