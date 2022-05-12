@@ -56,6 +56,9 @@ func (c *checker) Check(ctx context.Context) (*Health, bool) {
 	healthy := true
 	for _, dep := range c.deps {
 		res.Status[dep.Name()] = "OK"
+		// Note: need to create a new context for each dependency So that one
+		// dependency canceling the context will not affect the other checks.
+		ctx = log.With(ctx, log.KV{K: "dep", V: dep.Name()})
 		if err := dep.Ping(ctx); err != nil {
 			res.Status[dep.Name()] = "NOT OK"
 			healthy = false
