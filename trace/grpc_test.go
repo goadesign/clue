@@ -160,6 +160,7 @@ func TestStreamClientTrace(t *testing.T) {
 	if err := stream.Send(&testsvc.Fields{}); err != nil {
 		t.Errorf("unexpected send error: %v", err)
 	}
+	stream.Recv()
 	cancel()
 	stop()
 	spans := exporter.GetSpans()
