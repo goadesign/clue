@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/go-logfmt/logfmt v0.5.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
-	github.com/prometheus/client_golang v1.12.1
+	github.com/prometheus/client_golang v1.12.2
 	github.com/prometheus/client_model v0.2.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.32.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.32.0
