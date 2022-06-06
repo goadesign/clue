@@ -14,7 +14,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.7.0
 	go.opentelemetry.io/otel/sdk v1.7.0
 	go.opentelemetry.io/otel/trace v1.7.0
-	goa.design/goa/v3 v3.7.5
+	goa.design/goa/v3 v3.7.6
 	goa.design/model v1.7.9
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
 	google.golang.org/grpc v1.47.0
@@ -51,5 +51,5 @@ require (
 	golang.org/x/tools v0.1.10 // indirect
 	golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df // indirect
 	google.golang.org/genproto v0.0.0-20220531173845-685668d2de03 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
