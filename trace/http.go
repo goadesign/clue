@@ -51,14 +51,15 @@ func HTTP(ctx context.Context) func(http.Handler) http.Handler {
 
 // Client returns a roundtripper that wraps t and creates spans for each request.
 // It panics if the context hasn't been initialized with Context.
-func Client(ctx context.Context, t http.RoundTripper) http.RoundTripper {
+func Client(ctx context.Context, t http.RoundTripper, opts ...otelhttp.Option) http.RoundTripper {
 	s := ctx.Value(stateKey)
 	if s == nil {
 		panic(errContextMissing)
 	}
-	return otelhttp.NewTransport(t,
+	opts = append(opts,
 		otelhttp.WithTracerProvider(s.(*stateBag).provider),
 		otelhttp.WithPropagators(s.(*stateBag).propagator))
+	return otelhttp.NewTransport(t, opts...)
 }
 
 // addRequestIDHTTP is a middleware that adds the request ID to the current span
