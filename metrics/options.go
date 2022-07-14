@@ -1,10 +1,21 @@
 package metrics
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"net/http"
+
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 type (
 	// Option is a function that configures the metricsation.
 	Option func(*options)
+
+	// RouteResolver is a function that resolves the route of a request used
+	// to label metrics.  Using a route resolver makes it possible to label
+	// all routes matching a pattern with the same label. As an example
+	// services using the github.com/dimfled/httptreemux muxer can use
+	// httptreemux.ContexRoute(r.Context()).
+	RouteResolver func(r *http.Request) string
 
 	// options contains the configuration for the metricsation.
 	options struct {
@@ -16,6 +27,8 @@ type (
 		responseSizeBuckets []float64
 		// Prometheus registerer
 		registerer prometheus.Registerer
+		// RouteResolver is used to label metrics.
+		resolver RouteResolver
 	}
 )
 
@@ -32,6 +45,14 @@ func defaultOptions() *options {
 		requestSizeBuckets:  DefaultRequestSizeBuckets,
 		responseSizeBuckets: DefaultResponseSizeBuckets,
 		registerer:          prometheus.DefaultRegisterer,
+	}
+}
+
+// WithRouteResolver returns an option that sets the route resolver used to
+// label metrics.  The default uses the request path.
+func WithRouteResolver(resolver RouteResolver) Option {
+	return func(o *options) {
+		o.resolver = resolver
 	}
 }
 

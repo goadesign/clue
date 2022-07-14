@@ -48,13 +48,20 @@ func HTTP(ctx context.Context) func(http.Handler) http.Handler {
 		panic("initialize context with Context first")
 	}
 	metrics := b.(*stateBag).HTTPMetrics()
+	resolver := b.(*stateBag).options.resolver
 
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			var route string
+			if resolver != nil {
+				route = resolver(req)
+			} else {
+				route = req.URL.Path
+			}
 			labels := prometheus.Labels{
 				labelHTTPVerb: req.Method,
 				labelHTTPHost: req.Host,
-				labelHTTPPath: req.URL.Path,
+				labelHTTPPath: route,
 			}
 			metrics.ActiveRequests.With(labels).Add(1)
 			defer metrics.ActiveRequests.With(labels).Sub(1)
