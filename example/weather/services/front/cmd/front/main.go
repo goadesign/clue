@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/dimfeld/httptreemux/v5"
 	"goa.design/clue/health"
 	"goa.design/clue/log"
 	"goa.design/clue/metrics"
@@ -46,7 +47,7 @@ func main() {
 		format = log.FormatTerminal
 	}
 	ctx := log.Context(context.Background(), log.WithFormat(format))
-	ctx = log.With(ctx, log.KV{"svc", genfront.ServiceName})
+	ctx = log.With(ctx, log.KV{K: "svc", V: genfront.ServiceName})
 	if *debug {
 		ctx = log.Context(ctx, log.WithDebug())
 		log.Debugf(ctx, "debug logs enabled")
@@ -69,7 +70,11 @@ func main() {
 	}
 
 	// 3. Setup metrics
-	ctx = metrics.Context(ctx, genfront.ServiceName)
+	ctx = metrics.Context(ctx, genfront.ServiceName,
+		metrics.WithRouteResolver(func(r *http.Request) string {
+			return httptreemux.ContextRoute(r.Context())
+		}),
+	)
 
 	// 3. Create clients
 	lcc, err := grpc.DialContext(ctx, *locatorAddr,
@@ -103,7 +108,7 @@ func main() {
 	handler = log.HTTP(ctx)(handler)                                           // 2. Add logger to request context (with request ID key)
 	handler = goahttpmiddleware.RequestID()(handler)                           // 1. Add request ID to context
 	for _, m := range server.Mounts {
-		log.Print(ctx, log.KV{"method", m.Method}, log.KV{"endpoint", m.Verb + " " + m.Pattern})
+		log.Print(ctx, log.KV{K: "method", V: m.Method}, log.KV{K: "endpoint", V: m.Verb + " " + m.Pattern})
 	}
 	httpServer := &http.Server{Addr: *httpListenAddr, Handler: handler}
 
