@@ -427,8 +427,8 @@ go.uber.org/multierr v1.6.0/go.mod h1:cdWPpRnG4AhwMwsgIHip0KRBQjJy5kYEpYjJxpXp9i
 go.uber.org/zap v1.10.0/go.mod h1:vwi/ZaCAaUcBkycHslxD9B2zi4UTXhF60s6SWpuDF0Q=
 go.uber.org/zap v1.17.0/go.mod h1:MXVU+bhUf/A7Xi2HNOnopQOrmycQ5Ih87HtOu4q5SSo=
 goa.design/goa/v3 v3.7.3/go.mod h1:OCCZWV0HyDl1bFeciHCWUhDB+hw3KzW6ROk3guu2ggQ=
-goa.design/goa/v3 v3.7.13 h1:4C1lF5dK/OjMJzzHLvSDUiSHD3rj7OkVxlxlOw6Yp24=
-goa.design/goa/v3 v3.7.13/go.mod h1:iAZRP2wqf2Fu++CWt7Qfoxe3iVMkKqlsFAEF2kcxs28=
+goa.design/goa/v3 v3.7.14 h1:7WeoQipwjag/RLm6ZNH6k68TDZT7QYcTAm8aLKynWaU=
+goa.design/goa/v3 v3.7.14/go.mod h1:iAZRP2wqf2Fu++CWt7Qfoxe3iVMkKqlsFAEF2kcxs28=
 goa.design/model v1.7.9 h1:frDkT+9aKQLPf0ri32PO7HtQ1nWc7azNZFI3GhMW3Mc=
 goa.design/model v1.7.9/go.mod h1:T6VhpjtO7hwRNEVRFjafN6bEqfuy+GqUh+ZrhlBN8/M=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
