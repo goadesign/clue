@@ -43,7 +43,7 @@ To analyze traces:
 
 * Retrieve the front service trace ID from its logs, for example:
 
-```
+```text
 front      | DEBG[0003] svc=front request-id=aZtVOM7L trace-id=fcb9bb474db0b095923b110b7c1cdcab
 ```
 
@@ -78,18 +78,18 @@ The health check HTTP endpoints also use the log HTTP middleware to log errors:
 check = log.HTTP(ctx)(check).(http.HandlerFunc)
 ```
 
-The gRPC services (`locator` and `forecaster`) use the gRPC intercetor returned by
+The gRPC services (`locator` and `forecaster`) use the gRPC interceptor returned by
 `log.UnaryServerInterceptor` to initialize the log context for every request:
 
 ```go
 grpcsvr := grpc.NewServer(
-	grpcmiddleware.WithUnaryServerChain(
-		goagrpcmiddleware.UnaryRequestID(),
-		log.UnaryServerInterceptor(ctx), // <--
-		goagrpcmiddleware.UnaryServerLogContext(log.AsGoaMiddlewareLogger),
-		metrics.UnaryServerInterceptor(ctx, genforecast.ServiceName),
-		trace.UnaryServerInterceptor(ctx),
-	))
+        grpcmiddleware.WithUnaryServerChain(
+                goagrpcmiddleware.UnaryRequestID(),
+                log.UnaryServerInterceptor(ctx), // <--
+                goagrpcmiddleware.UnaryServerLogContext(log.AsGoaMiddlewareLogger),
+                metrics.UnaryServerInterceptor(ctx, genforecast.ServiceName),
+                trace.UnaryServerInterceptor(ctx),
+        ))
 ```
 
 ### Tracing
@@ -104,8 +104,8 @@ traces to the agent:
 
 ```go
 conn, err := grpc.DialContext(ctx, *collectorAddr,
-	grpc.WithTransportCredentials(insecure.NewCredentials()),
-	grpc.WithBlock())
+        grpc.WithTransportCredentials(insecure.NewCredentials()),
+        grpc.WithBlock())
 ctx, err = trace.Context(ctx, genfront.ServiceName, trace.WithGRPCExporter(conn))
 ```
 
@@ -114,13 +114,13 @@ request:
 
 ```go
 grpcsvr := grpc.NewServer(
-	grpcmiddleware.WithUnaryServerChain(
-		goagrpcmiddleware.UnaryRequestID(),
-		log.UnaryServerInterceptor(ctx),
-		goagrpcmiddleware.UnaryServerLogContext(log.AsGoaMiddlewareLogger),
-		metrics.UnaryServerInterceptor(ctx, genforecast.ServiceName),
-		trace.UnaryServerInterceptor(ctx), // <--
-	))
+        grpcmiddleware.WithUnaryServerChain(
+                goagrpcmiddleware.UnaryRequestID(),
+                log.UnaryServerInterceptor(ctx),
+                goagrpcmiddleware.UnaryServerLogContext(log.AsGoaMiddlewareLogger),
+                metrics.UnaryServerInterceptor(ctx, genforecast.ServiceName),
+                trace.UnaryServerInterceptor(ctx), // <--
+        ))
 ```
 
 The front service uses the `trace.HTTP` middleware to create a span for each
@@ -142,8 +142,8 @@ create spans for each outgoing request:
 
 ```go
 lcc, err := grpc.DialContext(ctx, *locatorAddr,
-	grpc.WithTransportCredentials(insecure.NewCredentials()),
-	grpc.WithUnaryInterceptor(trace.UnaryClientInterceptor(ctx)))
+        grpc.WithTransportCredentials(insecure.NewCredentials()),
+        grpc.WithUnaryInterceptor(trace.UnaryClientInterceptor(ctx)))
 ```
 
 ### Metrics
@@ -164,13 +164,13 @@ interceptor:
 
 ```go
 grpcsvr := grpc.NewServer(
-	grpcmiddleware.WithUnaryServerChain(
-		goagrpcmiddleware.UnaryRequestID(),
-		log.UnaryServerInterceptor(ctx),
-		goagrpcmiddleware.UnaryServerLogContext(log.AsGoaMiddlewareLogger),
-		metrics.UnaryServerInterceptor(ctx), // <--
-		trace.UnaryServerInterceptor(ctx),
-	))
+        grpcmiddleware.WithUnaryServerChain(
+                goagrpcmiddleware.UnaryRequestID(),
+                log.UnaryServerInterceptor(ctx),
+                goagrpcmiddleware.UnaryServerLogContext(log.AsGoaMiddlewareLogger),
+                metrics.UnaryServerInterceptor(ctx), // <--
+                trace.UnaryServerInterceptor(ctx),
+        ))
 ```
 
 The front service is instrumented with the `metrics.HTTP` middleware:
@@ -200,8 +200,8 @@ checker for the `forecaster` and `location` services which both expose a
 
 ```go
 check := health.Handler(health.NewChecker(
-	health.NewPinger("locator", "http", *locatorHealthAddr),
-	health.NewPinger("forecaster", "http", *forecasterHealthAddr)))
+        health.NewPinger("locator", "http", *locatorHealthAddr),
+        health.NewPinger("forecaster", "http", *forecasterHealthAddr)))
 ```
 
 The health check and metric handlers are mounted on a separate HTTP handler (the
@@ -230,8 +230,8 @@ services under the `clients` directory. Each client is defined via a
 ```go
 // Client is a client for the forecast service.
 Client interface {
-	// GetForecast gets the forecast for the given location.
-	GetForecast(ctx context.Context, lat, long float64) (*Forecast, error)
+        // GetForecast gets the forecast for the given location.
+        GetForecast(ctx context.Context, lat, long float64) (*Forecast, error)
 }
 ```
 
@@ -241,8 +241,8 @@ is instantiated via the `New` function in the `client.go` file:
 ```go
 // New instantiates a new forecast service client.
 func New(cc *grpc.ClientConn) Client {
-	c := genclient.NewClient(cc, grpc.WaitForReady(true))
-	return &client{c.Forecast()}
+        c := genclient.NewClient(cc, grpc.WaitForReady(true))
+        return &client{c.Forecast()}
 }
 ```
 
@@ -253,7 +253,7 @@ var _ Client = &Mock{}
 
 // NewMock returns a new mock client.
 func NewMock(t *testing.T) *Mock {
-	return &Mock{mock.New(), t}
+        return &Mock{mock.New(), t}
 }
 ```
 
@@ -262,32 +262,32 @@ create call sequences and validate them:
 
 ```go
 type (
-       	// Mock implementation of the forecast client.
-	Mock struct {
-		m *mock.Mock
-		t *testing.T
-	}
+               // Mock implementation of the forecast client.
+        Mock struct {
+                m *mock.Mock
+                t *testing.T
+        }
 )
 ```
 
 ```go
 // AddGetForecastFunc adds f to the mocked call sequence.
 func (m *Mock) AddGetForecastFunc(f GetForecastFunc) {
-	m.m.Add("GetForecast", f)
+        m.m.Add("GetForecast", f)
 }
 
 // SetGetForecastFunc sets f for all calls to the mocked method.
 func (m *Mock) SetGetForecastFunc(f GetForecastFunc) {
-	m.m.Set("GetForecast", f)
+        m.m.Set("GetForecast", f)
 }
 
 // GetForecast implements the Client interface.
 func (m *Mock) GetForecast(ctx context.Context, lat, long float64) (*Forecast, error) {
-	if f := m.m.Next("GetForecast"); f != nil {
-		return f.(GetForecastFunc)(ctx, lat, long)
-	}
-	m.t.Error("unexpected call to GetForecast")
-	return nil, nil
+        if f := m.m.Next("GetForecast"); f != nil {
+                return f.(GetForecastFunc)(ctx, lat, long)
+        }
+        m.t.Error("unexpected call to GetForecast")
+        return nil, nil
 }
 ```
 

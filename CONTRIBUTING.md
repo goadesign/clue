@@ -14,7 +14,7 @@ Below are some guidelines to follow when contributing to this project:
 * If you know how to fix your bug, we highly encourage PR contributions. See
   [How Can I Get Started section](#how-can-i-get-started?) on how to submit a PR.
 * For feature requests and submitting major changes, [open an issue](https://github.com/goadesign/clue/issues/new)
-  or hop on to our slack channel (see https://goa.design to join) to discuss
+  or hop on to our slack channel (see <https://goa.design> to join) to discuss
   the feature first.
 * Keep conversations friendly! Constructive criticism goes a long way.
 * Have fun contributing!
@@ -35,4 +35,4 @@ worked on and contributing to them are most welcome.
 does not exist, adding a description in the PR that describes the issue and the
 fix is recommended.
 5) Ensure the CI build passes when you issue a PR to Clue.
-6) Join our slack channel (see https://goa.design to join)!
+6) Join our slack channel (see <https://goa.design> to join)!

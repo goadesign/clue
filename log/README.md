@@ -40,7 +40,7 @@ func main() {
 The example above logs the following messages to stdout (assuming the default
 formatter):
 
-```
+```text
 time=2022-02-22T02:22:02Z level=info msg="hello world"
 time=2022-02-22T02:22:02Z level=info hello=world
 time=2022-02-22T02:22:02Z level=info example=log.KV order=deterministic backed_by=slice
@@ -79,7 +79,7 @@ log.Errorf(ctx, err, "request failed") // flushes all previous log entries
 The example above logs the following messages to stdout *after* the call to
 `Errorf`:
 
-```
+```text
 time=2022-02-22T02:22:02Z level=info msg="request started"
 time=2022-02-22T02:22:04Z level=error msg="request failed"
 ```
@@ -110,7 +110,7 @@ is evaluated upon each call to `Context` and `With`.
 
 Buffering works best in code implementing network request handling (e.g. HTTP or
 gRPC requests). The context for each request is used to initialize a new logger
-context for example by using the HTTP middleware or gRPC intereceptors defined in
+context for example by using the HTTP middleware or gRPC interceptors defined in
 this package (see [below](#http-middleware)). This allows for:
 
 * Creating request specific buffers thereby naturally limiting how many logs are
@@ -139,7 +139,7 @@ log.Print(ctx, log.KV{"hello", "world 2"}, log.KV{"key4", "val4"})
 The example above logs the following message to stdout (assuming the terminal
 formatter is being used):
 
-```
+```text
 INFO[0000] key2=val2 hello="world 1"
 INFO[0000] key2=val2 key3=val3 hello="world 2" key4=val4
 ```
@@ -163,7 +163,7 @@ log.Infof(ctx, "info message")
 
 The example above logs the following messages to stdout:
 
-```
+```text
 DEBG[0000] msg="debug message 2"
 INFO[0000] msg="info message"
 ```
@@ -183,17 +183,18 @@ log.Printf(ctx, "hello world")
 
 The example above logs the following message to stderr:
 
-```
+```text
 INFO[0000] msg="hello world"
 ```
 
-The `WithOuput` function accepts any type that implements the `io.Writer`
+The `WithOutput` function accepts any type that implements the `io.Writer`
 interface.
 
 ## Log Format
 
 `log` comes with three predefined log formats and makes it easy to provide
 custom formatters. The three built-in formats are:
+
 * `FormatText`: a plain text format using [logfmt](https://brandur.org/logfmt)
 * `FormatTerminal`: a format suitable to print logs to colored terminals
 * `FormatJSON`: a JSON format
@@ -210,7 +211,7 @@ log.Printf(ctx, "hello world")
 
 The example above logs the following message:
 
-```
+```text
 time=2022-01-09T20:29:45Z level=info msg="hello world"
 ```
 
@@ -228,7 +229,7 @@ log.Printf(ctx, "hello world")
 
 The example above logs the following message:
 
-```
+```text
 INFO[0000] msg="hello world"
 ```
 
@@ -247,7 +248,7 @@ log.Printf(ctx, "hello world")
 
 The example above logs the following message:
 
-```
+```json
 {"time":"2022-01-09T20:29:45Z","level":"info","msg":"hello world"}
 ```
 
@@ -260,7 +261,7 @@ format function:
 
 ```go
 func formatFunc(entry *log.Entry) []byte {
-        return []byte(fmt.Sprintf("%s: %s", entry.Severity, entry.Keyvals[0].V))
+        return []byte(fmt.Sprintf("%s: %s", entry.Severity, entry.KeyVals[0].V))
 }
 
 ctx := log.Context(context.Background(), log.WithFormat(formatFunc))
@@ -269,7 +270,7 @@ log.Printf(ctx, "hello world")
 
 The example above logs the following message to stdout:
 
-```
+```text
 INFO: hello world
 ```
 
@@ -290,10 +291,10 @@ given context:
 
 ```go
 grpcsvr := grpc.NewServer(
-	grpcmiddleware.WithUnaryServerChain(
-		goagrpcmiddleware.UnaryRequestID(),
-		log.UnaryServerInterceptor(ctx),
-	))
+        grpcmiddleware.WithUnaryServerChain(
+                goagrpcmiddleware.UnaryRequestID(),
+                log.UnaryServerInterceptor(ctx),
+        ))
 ```
 
 ## Standard Logger Compatibility
@@ -308,6 +309,7 @@ logger.Print("hello world")
 ```
 
 The compatibility layer supports the following functions:
+
 * `Print`
 * `Printf`
 * `Println`

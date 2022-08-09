@@ -1,3 +1,4 @@
+.vscode/
 example/weather/services/forecaster/cmd/forecaster/forecaster
 example/weather/services/locator/cmd/locator/locator
 example/weather/services/front/cmd/front/front

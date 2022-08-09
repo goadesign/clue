@@ -15,7 +15,7 @@ and
 middlewares and adds both the Goa service name and current request ID to the
 span attributes.
 
-The package uses an adaptative sampler that is configured to sample at a given
+The package uses an adaptive sampler that is configured to sample at a given
 maximum number of request per seconds (2 per default). Using a time based rate
 rather than e.g. a fixed percentage rate allows the sampler to adapt to the load
 of the service.
@@ -30,21 +30,21 @@ package `github.com/repo/services/svc`
 package main
 
 import (
-       "context"
+        "context"
 
-       "goa.design/clue/log"
-       "goa.design/clue/trace"
-       	goahttp "goa.design/goa/v3/http"
+        "goa.design/clue/log"
+        "goa.design/clue/trace"
+        goahttp "goa.design/goa/v3/http"
 
-       "github.com/repo/services/svc"
+        "github.com/repo/services/svc"
         httpsvrgen "github.com/repo/services/svc/gen/http/svc/server"
-       	grpcsvrgen "github.com/repo/services/svc/gen/grpc/svc/server"
-       	svcgen "github.com/repo/services/svc/gen/svc"
+        grpcsvrgen "github.com/repo/services/svc/gen/grpc/svc/server"
+        svcgen "github.com/repo/services/svc/gen/svc"
 )
 
 func main() {
         // Initialize the log context
-	ctx := log.With(log.Context(context.Background()), "svc", svcgen.ServiceName)
+        ctx := log.With(log.Context(context.Background()), "svc", svcgen.ServiceName)
         // Create the service (user code)
         svc := svc.New(ctx)
         // Wrap the service with Goa endpoints
@@ -202,4 +202,3 @@ trace.Succeed(ctx)
 trace.RecordError(ctx, err)
 trace.Fail(ctx, "operation failed")
 ```
-
