@@ -60,26 +60,26 @@ import (
         "context"
         "database/sql"
 
-       "goa.design/clue/health"
-       "goa.design/clue/log"
-       goahttp "goa.design/goa/v3/http"
+        "goa.design/clue/health"
+        "goa.design/clue/log"
+        goahttp "goa.design/goa/v3/http"
 
         "github.com/repo/services/svc/clients/storage"
-       	httpsvrgen "github.com/repo/services/svc/gen/http/svc/server"
-       	svcgen "github.com/repo/services/svc/gen/svc"
+        httpsvrgen "github.com/repo/services/svc/gen/http/svc/server"
+        svcgen "github.com/repo/services/svc/gen/svc"
 )
 
 func main() {
         // Initialize the log context
-	ctx := log.With(log.Context(context.Background()), "svc", svcgen.ServiceName)
+        ctx := log.With(log.Context(context.Background()), "svc", svcgen.ServiceName)
 
         // Create service clients used by this service
         // The client object must implement the `health.Pinger` interface
-	// dsn := ...
-	con, err := sql.Open("clickhouse", dsn)
-	if err != nil {
-		log.Error(ctx, "could not connect to clickhouse", "err", err.Error())
-	}
+        // dsn := ...
+        con, err := sql.Open("clickhouse", dsn)
+        if err != nil {
+                log.Error(ctx, "could not connect to clickhouse", "err", err.Error())
+        }
         stc := storage.New(con)
 
         // Create the service (user code)
@@ -93,9 +93,9 @@ func main() {
         httpsvrgen.Mount(mux, httpsvr)
 
         // ** Mount health check handler **
-	check := health.Handler(health.NewChecker(stc))
-	mux.Handle("GET", "/healthz", check)
-	mux.Handle("GET", "/livez", check)
+        check := health.Handler(health.NewChecker(stc))
+        mux.Handle("GET", "/healthz", check)
+        mux.Handle("GET", "/livez", check)
 
         // ... start HTTP server
 }
@@ -107,16 +107,16 @@ Creating an health check HTTP handler is as simple as:
   2. wrapping it in a HTTP handler using the `Handler` function
 
 The `NewChecker` function accepts a list of dependencies to be checked that must
-implement by the `Pinger` interface. 
+implement by the `Pinger` interface.
 
 ```go
 // Pinger makes it possible to ping a downstream service.
 Pinger interface {
-	// Name of remote service.
-	Name() string
-	// Ping the remote service, return a non nil error if the
-	// service is not available.
-	Ping(context.Context) error
+        // Name of remote service.
+        Name() string
+        // Ping the remote service, return a non nil error if the
+        // service is not available.
+        Ping(context.Context) error
 }
 ```
 
@@ -137,19 +137,16 @@ methods to the client struct:
 ```go
 // SQL database client used by service.
 type client struct {
-	db *sql.DB
+        db *sql.DB
 }
 
 // Ping implements the `health.Pinger` interface.
 func (c *client) Ping(ctx context.Context) error {
-	return c.db.PingContext(ctx)
+        return c.db.PingContext(ctx)
 }
 
 // Name implements the `health.Pinger` interface.
 func (c *client) Name() string {
-	return "PostgreSQL" // ClickHouse, MySQL, etc.
+        return "PostgreSQL" // ClickHouse, MySQL, etc.
 }
 ```
-
-
-

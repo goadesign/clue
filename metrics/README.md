@@ -19,17 +19,17 @@ import (
 
         "goa.design/clue/metrics"
         "goa.design/clue/log"
-       	goahttp "goa.design/goa/v3/http"
+        goahttp "goa.design/goa/v3/http"
 
-       	"github.com/repo/services/svc"
+        "github.com/repo/services/svc"
         httpsvrgen "github.com/repo/services/svc/gen/http/svc/server"
-       	grpcsvrgen "github.com/repo/services/svc/gen/grpc/svc/server"
-       	svcgen "github.com/repo/services/svc/gen/svc"
+        grpcsvrgen "github.com/repo/services/svc/gen/grpc/svc/server"
+        svcgen "github.com/repo/services/svc/gen/svc"
 )
 
 func main() {
         // Initialize the log context
-	ctx := log.With(log.Context(context.Background()), "svc", svcgen.ServiceName)
+        ctx := log.With(log.Context(context.Background()), "svc", svcgen.ServiceName)
         // Create the service (user code)
         svc := svc.New(ctx)
         // Wrap the service with Goa endpoints
@@ -63,9 +63,9 @@ func main() {
 
 The `metrics` functions used to instrument the service are:
 
-* `HTTP`: creates a middleware that metricss an HTTP handler.
-* `UnaryServerInterceptor`: creates an interceptor that metricss gRPC unary server methods.
-* `StreamServerInterceptor`: creates an interceptor that metricss gRPC stream server methods.
+* `HTTP`: creates a middleware that meters an HTTP handler.
+* `UnaryServerInterceptor`: creates an interceptor that meters gRPC unary server methods.
+* `StreamServerInterceptor`: creates an interceptor that meters gRPC stream server methods.
 * `Handler`: creates a HTTP handler that exposes Prometheus metrics.
 
 ## HTTP Metrics

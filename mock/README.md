@@ -12,7 +12,7 @@ dependency mocks that run in-memory.
 Conceptually a test may want to verify that a service method is called multiple
 times with different values each time. The mock package `Add` method can be used
 by the test to record each method call and verify that the correct values are
-used. 
+used.
 
 Alternatively (or complementarily) the `Set` method defines a mock that
 is used for all method calls by the test. If both `Add` and `Set` are used by
@@ -61,12 +61,12 @@ prices, err := mock.GetPrices(ctx, firstHour, lastHour, nodeID)
 
 // Validate prices and err
 if err != nil {
-	t.Errorf("GetPrices returned %v", err)
+        t.Errorf("GetPrices returned %v", err)
 }
 
 // Make sure entire sequence has been consumed (in this example there is only
 // one call).
 if mock.HasMore() {
-	t.Error("GetPrices was not called")
+        t.Error("GetPrices was not called")
 }
 ```
