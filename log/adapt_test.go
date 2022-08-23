@@ -5,6 +5,8 @@ import (
 	"context"
 	"testing"
 	"time"
+
+	"github.com/aws/smithy-go/logging"
 )
 
 func TestAsGoaMiddlwareLogger(t *testing.T) {
@@ -130,5 +132,36 @@ func TestAsStdLogger(t *testing.T) {
 	}
 	if exited != 1 {
 		t.Errorf("got %d, want %d", exited, 1)
+	}
+}
+
+func TestAsAWSLogger(t *testing.T) {
+	restore := timeNow
+	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
+	defer func() { timeNow = restore }()
+	var buf bytes.Buffer
+	ctx := Context(context.Background(), WithOutput(&buf), WithDebug())
+	var logger logging.Logger = AsAWSLogger(ctx)
+
+	logger.Logf(logging.Classification("INFO"), "hello %s", "world")
+	want := "time=2022-01-09T20:29:45Z level=info msg=\"hello world\"\n"
+	if buf.String() != want {
+		t.Errorf("got %q, want %q", buf.String(), want)
+	}
+
+	buf.Reset()
+	logger.Logf(logging.Classification("DEBUG"), "hello world")
+	want = "time=2022-01-09T20:29:45Z level=debug msg=\"hello world\"\n"
+	if buf.String() != want {
+		t.Errorf("got %q, want %q", buf.String(), want)
+	}
+
+	buf.Reset()
+	pctx := context.WithValue(context.Background(), "key", "small")
+	logger = logger.(logging.ContextLogger).WithContext(pctx)
+	logger.Logf(logging.Classification("INFO"), "hello %v world", logger.(*AWSLogger).Context.Value("key"))
+	want = "time=2022-01-09T20:29:45Z level=info msg=\"hello small world\"\n"
+	if buf.String() != want {
+		t.Errorf("got %q, want %q", buf.String(), want)
 	}
 }
