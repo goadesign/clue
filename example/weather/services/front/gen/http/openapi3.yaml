@@ -1,242 +1,235 @@
 openapi: 3.0.3
 info:
-  title: Weather Forecast Service API
-  description: The weather forecast service API produces weather forecasts from US-based
-    IPs. It uses IP location to find the appropriate weather station.
-  version: "1.0"
+    title: Weather Forecast Service API
+    description: The weather forecast service API produces weather forecasts from US-based IPs. It uses IP location to find the appropriate weather station.
+    version: "1.0"
 servers:
-- url: http://localhost:80
-  description: Default server for Weather
+    - url: http://localhost:80
+      description: Default server for Weather
 paths:
-  /forecast/{ip}:
-    get:
-      tags:
-      - front
-      summary: forecast front
-      description: Retrieve weather forecast for given IP
-      operationId: front#forecast
-      parameters:
-      - name: ip
-        in: path
-        required: true
-        schema:
-          type: string
-          example: 26.102.183.14
-          format: ip
-        example: 169.98.225.210
-      responses:
-        "200":
-          description: OK response.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Forecast'
-              example:
-                location:
-                  city: San Francisco
-                  lat: 37.8267
-                  long: -122.4233
-                  state: CA
-                periods:
-                - endTime: "2020-01-01T00:00:00Z"
-                  name: Morning
-                  startTime: "2020-01-01T00:00:00Z"
-                  summary: Clear
-                  temperature: 70
-                  temperatureUnit: F
-                - endTime: "2020-01-01T00:00:00Z"
-                  name: Morning
-                  startTime: "2020-01-01T00:00:00Z"
-                  summary: Clear
-                  temperature: 70
-                  temperatureUnit: F
-                - endTime: "2020-01-01T00:00:00Z"
-                  name: Morning
-                  startTime: "2020-01-01T00:00:00Z"
-                  summary: Clear
-                  temperature: 70
-                  temperatureUnit: F
-        "400":
-          description: Bad Request response.
-          content:
-            application/vnd.goa.error:
-              schema:
-                $ref: '#/components/schemas/Error'
-              example:
+    /forecast/{ip}:
+        get:
+            tags:
+                - front
+            summary: forecast front
+            description: Retrieve weather forecast for given IP
+            operationId: front#forecast
+            parameters:
+                - name: ip
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                    example: 26.102.183.14
+                    format: ip
+                  example: 169.98.225.210
+            responses:
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Forecast'
+                            example:
+                                location:
+                                    city: San Francisco
+                                    lat: 37.8267
+                                    long: -122.4233
+                                    state: CA
+                                periods:
+                                    - endTime: "2020-01-01T00:00:00Z"
+                                      name: Morning
+                                      startTime: "2020-01-01T00:00:00Z"
+                                      summary: Clear
+                                      temperature: 70
+                                      temperatureUnit: F
+                                    - endTime: "2020-01-01T00:00:00Z"
+                                      name: Morning
+                                      startTime: "2020-01-01T00:00:00Z"
+                                      summary: Clear
+                                      temperature: 70
+                                      temperatureUnit: F
+                                    - endTime: "2020-01-01T00:00:00Z"
+                                      name: Morning
+                                      startTime: "2020-01-01T00:00:00Z"
+                                      summary: Clear
+                                      temperature: 70
+                                      temperatureUnit: F
+                "400":
+                    description: 'not_usa: IP address is not in the US'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+components:
+    schemas:
+        Error:
+            type: object
+            properties:
+                fault:
+                    type: boolean
+                    description: Is the error a server-side fault?
+                    example: false
+                id:
+                    type: string
+                    description: ID is a unique identifier for this particular occurrence of the problem.
+                    example: 123abc
+                message:
+                    type: string
+                    description: Message is a human-readable explanation specific to this occurrence of the problem.
+                    example: parameter 'p' must be an integer
+                name:
+                    type: string
+                    description: Name is the name of this class of errors.
+                    example: bad_request
+                temporary:
+                    type: boolean
+                    description: Is the error temporary?
+                    example: true
+                timeout:
+                    type: boolean
+                    description: Is the error a timeout?
+                    example: false
+            description: IP address is not in the US
+            example:
                 id: 3F1FKVRR
                 message: Value of ID must be an integer
                 name: bad_request
-components:
-  schemas:
-    Error:
-      type: object
-      properties:
-        fault:
-          type: boolean
-          description: Is the error a server-side fault?
-          example: false
-        id:
-          type: string
-          description: ID is a unique identifier for this particular occurrence of
-            the problem.
-          example: 123abc
-        message:
-          type: string
-          description: Message is a human-readable explanation specific to this occurrence
-            of the problem.
-          example: parameter 'p' must be an integer
-        name:
-          type: string
-          description: Name is the name of this class of errors.
-          example: bad_request
-        temporary:
-          type: boolean
-          description: Is the error temporary?
-          example: true
-        timeout:
-          type: boolean
-          description: Is the error a timeout?
-          example: false
-      description: IP address is not in the US
-      example:
-        id: 3F1FKVRR
-        message: Value of ID must be an integer
-        name: bad_request
-      required:
-      - name
-      - id
-      - message
-      - temporary
-      - timeout
-      - fault
-    Forecast:
-      type: object
-      properties:
-        location:
-          $ref: '#/components/schemas/Location'
-        periods:
-          type: array
-          items:
-            $ref: '#/components/schemas/Period'
-          description: Weather forecast periods
-          example:
-          - endTime: "2020-01-01T00:00:00Z"
-            name: Morning
-            startTime: "2020-01-01T00:00:00Z"
-            summary: Clear
-            temperature: 70
-            temperatureUnit: F
-          - endTime: "2020-01-01T00:00:00Z"
-            name: Morning
-            startTime: "2020-01-01T00:00:00Z"
-            summary: Clear
-            temperature: 70
-            temperatureUnit: F
-          - endTime: "2020-01-01T00:00:00Z"
-            name: Morning
-            startTime: "2020-01-01T00:00:00Z"
-            summary: Clear
-            temperature: 70
-            temperatureUnit: F
-      example:
-        location:
-          city: San Francisco
-          lat: 37.8267
-          long: -122.4233
-          state: CA
-        periods:
-        - endTime: "2020-01-01T00:00:00Z"
-          name: Morning
-          startTime: "2020-01-01T00:00:00Z"
-          summary: Clear
-          temperature: 70
-          temperatureUnit: F
-        - endTime: "2020-01-01T00:00:00Z"
-          name: Morning
-          startTime: "2020-01-01T00:00:00Z"
-          summary: Clear
-          temperature: 70
-          temperatureUnit: F
-      required:
-      - location
-      - periods
-    Location:
-      type: object
-      properties:
-        city:
-          type: string
-          description: City
-          example: San Francisco
-        lat:
-          type: number
-          description: Latitude
-          example: 37.8267
-          format: double
-        long:
-          type: number
-          description: Longitude
-          example: -122.4233
-          format: double
-        state:
-          type: string
-          description: State
-          example: CA
-      description: Geographical location
-      example:
-        city: San Francisco
-        lat: 37.8267
-        long: -122.4233
-        state: CA
-      required:
-      - lat
-      - long
-      - city
-      - state
-    Period:
-      type: object
-      properties:
-        endTime:
-          type: string
-          description: End time
-          example: "2020-01-01T00:00:00Z"
-          format: date-time
-        name:
-          type: string
-          description: Period name
-          example: Morning
-        startTime:
-          type: string
-          description: Start time
-          example: "2020-01-01T00:00:00Z"
-          format: date-time
-        summary:
-          type: string
-          description: Summary
-          example: Clear
-        temperature:
-          type: integer
-          description: Temperature
-          example: 70
-          format: int64
-        temperatureUnit:
-          type: string
-          description: Temperature unit
-          example: F
-      description: Weather forecast period
-      example:
-        endTime: "2020-01-01T00:00:00Z"
-        name: Morning
-        startTime: "2020-01-01T00:00:00Z"
-        summary: Clear
-        temperature: 70
-        temperatureUnit: F
-      required:
-      - name
-      - startTime
-      - endTime
-      - temperature
-      - temperatureUnit
-      - summary
+            required:
+                - name
+                - id
+                - message
+                - temporary
+                - timeout
+                - fault
+        Forecast:
+            type: object
+            properties:
+                location:
+                    $ref: '#/components/schemas/Location'
+                periods:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Period'
+                    description: Weather forecast periods
+                    example:
+                        - endTime: "2020-01-01T00:00:00Z"
+                          name: Morning
+                          startTime: "2020-01-01T00:00:00Z"
+                          summary: Clear
+                          temperature: 70
+                          temperatureUnit: F
+                        - endTime: "2020-01-01T00:00:00Z"
+                          name: Morning
+                          startTime: "2020-01-01T00:00:00Z"
+                          summary: Clear
+                          temperature: 70
+                          temperatureUnit: F
+                        - endTime: "2020-01-01T00:00:00Z"
+                          name: Morning
+                          startTime: "2020-01-01T00:00:00Z"
+                          summary: Clear
+                          temperature: 70
+                          temperatureUnit: F
+            example:
+                location:
+                    city: San Francisco
+                    lat: 37.8267
+                    long: -122.4233
+                    state: CA
+                periods:
+                    - endTime: "2020-01-01T00:00:00Z"
+                      name: Morning
+                      startTime: "2020-01-01T00:00:00Z"
+                      summary: Clear
+                      temperature: 70
+                      temperatureUnit: F
+                    - endTime: "2020-01-01T00:00:00Z"
+                      name: Morning
+                      startTime: "2020-01-01T00:00:00Z"
+                      summary: Clear
+                      temperature: 70
+                      temperatureUnit: F
+            required:
+                - location
+                - periods
+        Location:
+            type: object
+            properties:
+                city:
+                    type: string
+                    description: City
+                    example: San Francisco
+                lat:
+                    type: number
+                    description: Latitude
+                    example: 37.8267
+                    format: double
+                long:
+                    type: number
+                    description: Longitude
+                    example: -122.4233
+                    format: double
+                state:
+                    type: string
+                    description: State
+                    example: CA
+            description: Geographical location
+            example:
+                city: San Francisco
+                lat: 37.8267
+                long: -122.4233
+                state: CA
+            required:
+                - lat
+                - long
+                - city
+                - state
+        Period:
+            type: object
+            properties:
+                endTime:
+                    type: string
+                    description: End time
+                    example: "2020-01-01T00:00:00Z"
+                    format: date-time
+                name:
+                    type: string
+                    description: Period name
+                    example: Morning
+                startTime:
+                    type: string
+                    description: Start time
+                    example: "2020-01-01T00:00:00Z"
+                    format: date-time
+                summary:
+                    type: string
+                    description: Summary
+                    example: Clear
+                temperature:
+                    type: integer
+                    description: Temperature
+                    example: 70
+                    format: int64
+                temperatureUnit:
+                    type: string
+                    description: Temperature unit
+                    example: F
+            description: Weather forecast period
+            example:
+                endTime: "2020-01-01T00:00:00Z"
+                name: Morning
+                startTime: "2020-01-01T00:00:00Z"
+                summary: Clear
+                temperature: 70
+                temperatureUnit: F
+            required:
+                - name
+                - startTime
+                - endTime
+                - temperature
+                - temperatureUnit
+                - summary
 tags:
-- name: front
-  description: Public HTTP frontend
+    - name: front
+      description: Public HTTP frontend

@@ -8,7 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -172,7 +172,7 @@ func (c *client) doWithRetries(ctx context.Context, req *http.Request) (*http.Re
 		retries++
 	}
 	if resp.StatusCode != http.StatusOK {
-		msg, err := ioutil.ReadAll(resp.Body)
+		msg, err := io.ReadAll(resp.Body)
 		if err != nil {
 			msg = []byte("unknown error")
 		}
