@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -96,7 +95,7 @@ func (c *client) getLocation(ctx context.Context, ip string) (io.ReadCloser, err
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		msg, err := ioutil.ReadAll(resp.Body)
+		msg, err := io.ReadAll(resp.Body)
 		if err != nil {
 			msg = []byte("unknown error")
 		}

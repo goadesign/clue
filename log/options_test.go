@@ -3,7 +3,7 @@ package log
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -50,7 +50,7 @@ func TestWithDebug(t *testing.T) {
 
 func TestWithOutput(t *testing.T) {
 	opts := defaultOptions()
-	w := ioutil.Discard
+	w := io.Discard
 	WithOutput(w)(opts)
 	if fmt.Sprintf("%p", opts.w) != fmt.Sprintf("%p", w) {
 		t.Errorf("got output %p, expected %p", opts.w, w)
@@ -78,7 +78,7 @@ func TestIsTracing(t *testing.T) {
 		t.Errorf("expected IsTracing to return false")
 	}
 
-	exp, _ := stdouttrace.New(stdouttrace.WithWriter(ioutil.Discard))
+	exp, _ := stdouttrace.New(stdouttrace.WithWriter(io.Discard))
 	tp := trace.NewTracerProvider(trace.WithBatcher(exp))
 	defer tp.Shutdown(context.Background())
 	otel.SetTracerProvider(tp)

@@ -1,66 +1,66 @@
 swagger: "2.0"
 info:
-  title: ""
-  description: metrics test service
-  version: ""
+    title: ""
+    description: metrics test service
+    version: ""
 host: localhost:80
 consumes:
-- application/json
-- application/xml
-- application/gob
+    - application/json
+    - application/xml
+    - application/gob
 produces:
-- application/json
-- application/xml
-- application/gob
+    - application/json
+    - application/xml
+    - application/gob
 paths:
-  /{i}:
-    post:
-      tags:
-      - test
-      summary: http_method test
-      operationId: test#http_method
-      parameters:
-      - name: i
-        in: path
-        description: Int operand
-        required: true
-        type: integer
-      - name: http_method_request_body
-        in: body
-        required: true
-        schema:
-          $ref: '#/definitions/TestHTTPMethodRequestBody'
-      responses:
-        "200":
-          description: OK response.
-          schema:
-            $ref: '#/definitions/TestHTTPMethodResponseBody'
-      schemes:
-      - http
+    /{i}:
+        post:
+            tags:
+                - test
+            summary: http_method test
+            operationId: test#http_method
+            parameters:
+                - name: i
+                  in: path
+                  description: Int operand
+                  required: true
+                  type: integer
+                - name: http_method_request_body
+                  in: body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/TestHTTPMethodRequestBody'
+            responses:
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/TestHTTPMethodResponseBody'
+            schemes:
+                - http
 definitions:
-  TestHTTPMethodRequestBody:
-    title: TestHTTPMethodRequestBody
-    type: object
-    properties:
-      s:
-        type: string
-        description: String operand
-        example: Eos nulla ut doloremque.
-    example:
-      s: Placeat quam dolores est corporis nulla ipsam.
-  TestHTTPMethodResponseBody:
-    title: TestHTTPMethodResponseBody
-    type: object
-    properties:
-      i:
-        type: integer
-        description: Int operand
-        example: 8526503336960817370
-        format: int64
-      s:
-        type: string
-        description: String operand
-        example: Esse perspiciatis officiis a reprehenderit quam consequatur.
-    example:
-      i: 3221232481350240723
-      s: Vel esse illo quos doloremque provident consequatur.
+    TestHTTPMethodRequestBody:
+        title: TestHTTPMethodRequestBody
+        type: object
+        properties:
+            s:
+                type: string
+                description: String operand
+                example: Eos nulla ut doloremque.
+        example:
+            s: Placeat quam dolores est corporis nulla ipsam.
+    TestHTTPMethodResponseBody:
+        title: TestHTTPMethodResponseBody
+        type: object
+        properties:
+            i:
+                type: integer
+                description: Int operand
+                example: 8526503336960817370
+                format: int64
+            s:
+                type: string
+                description: String operand
+                example: Esse perspiciatis officiis a reprehenderit quam consequatur.
+        example:
+            i: 3221232481350240723
+            s: Vel esse illo quos doloremque provident consequatur.

@@ -135,6 +135,8 @@ func TestAsStdLogger(t *testing.T) {
 	}
 }
 
+type ctxkey string
+
 func TestAsAWSLogger(t *testing.T) {
 	restore := timeNow
 	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
@@ -157,9 +159,10 @@ func TestAsAWSLogger(t *testing.T) {
 	}
 
 	buf.Reset()
-	pctx := context.WithValue(context.Background(), "key", "small")
+	key := ctxkey("key")
+	pctx := context.WithValue(context.Background(), key, "small")
 	logger = logger.(logging.ContextLogger).WithContext(pctx)
-	logger.Logf(logging.Classification("INFO"), "hello %v world", logger.(*AWSLogger).Context.Value("key"))
+	logger.Logf(logging.Classification("INFO"), "hello %v world", logger.(*AWSLogger).Context.Value(key))
 	want = "time=2022-01-09T20:29:45Z level=info msg=\"hello small world\"\n"
 	if buf.String() != want {
 		t.Errorf("got %q, want %q", buf.String(), want)
