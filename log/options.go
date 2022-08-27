@@ -6,7 +6,6 @@ import (
 	"os"
 	"runtime"
 	"strconv"
-	"syscall"
 
 	"golang.org/x/term"
 
@@ -113,7 +112,7 @@ func WithFunc(fn func(context.Context) []KV) LogOption {
 
 // IsTerminal returns true if the process is running in a terminal.
 func IsTerminal() bool {
-	return term.IsTerminal(syscall.Stdin)
+	return term.IsTerminal(int(os.Stdout.Fd()))
 }
 
 // defaultOptions returns a new options struct with default values.
