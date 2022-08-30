@@ -19,7 +19,7 @@ require (
 	goa.design/goa/v3 v3.8.3
 	goa.design/model v1.7.9
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035
-	google.golang.org/grpc v1.48.0
+	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1
 )
 
