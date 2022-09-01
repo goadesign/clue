@@ -27,10 +27,9 @@ func New() *Mock {
 	}
 }
 
-// Next returns the next mock for the function with the given name. It first
-// consumes any sequence then returns any permanent mock. Next returns nil if
-// there is no sequence or the sequence has been fully consumed, and there is
-// no permanent mock.
+// If there is no mock left in the sequence then Next returns the permanent mock
+// for name if any, nil otherwise.  If there are mocks left in the sequence then
+// Next returns the next mock if its name is name, nil otherwise.
 func (m *Mock) Next(name string) interface{} {
 	m.lock.Lock()
 	defer m.lock.Unlock()
