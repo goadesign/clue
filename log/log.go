@@ -43,8 +43,9 @@ const (
 
 // Be kind to tests
 var (
-	timeNow = time.Now
-	osExit  = os.Exit
+	timeNow   = time.Now
+	timeSince = time.Since
+	osExit    = os.Exit
 )
 
 // Debug writes the key/value pairs to the log output if the log context is
