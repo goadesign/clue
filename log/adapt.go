@@ -25,6 +25,11 @@ type (
 	}
 )
 
+// Make Goa use clue's request ID context key.
+func init() {
+	middleware.RequestIDKey = RequestIDKey
+}
+
 // AsGoaMiddlewareLogger creates a Goa middleware compatible logger that can be used when
 // configuring Goa HTTP or gRPC servers.
 //
