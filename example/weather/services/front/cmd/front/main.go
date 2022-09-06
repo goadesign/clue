@@ -79,7 +79,9 @@ func main() {
 	// 3. Create clients
 	lcc, err := grpc.DialContext(ctx, *locatorAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(trace.UnaryClientInterceptor(ctx)))
+		grpc.WithChainUnaryInterceptor(
+			trace.UnaryClientInterceptor(ctx),
+			log.UnaryClientInterceptor()))
 	if err != nil {
 		log.Errorf(ctx, err, "failed to connect to locator")
 		os.Exit(1)
@@ -87,7 +89,9 @@ func main() {
 	lc := locator.New(lcc)
 	fcc, err := grpc.DialContext(ctx, *forecasterAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(trace.UnaryClientInterceptor(ctx)))
+		grpc.WithChainUnaryInterceptor(
+			trace.UnaryClientInterceptor(ctx),
+			log.UnaryClientInterceptor()))
 	if err != nil {
 		log.Errorf(ctx, err, "failed to connect to forecast")
 		os.Exit(1)

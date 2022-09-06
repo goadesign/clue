@@ -71,7 +71,7 @@ func main() {
 
 	// 4. Create clients
 	c := &http.Client{Transport: trace.Client(ctx, http.DefaultTransport)}
-	wc := weathergov.New(c)
+	wc := weathergov.New(log.Client(c))
 
 	// 5. Create service & endpoints
 	svc := forecaster.New(wc)

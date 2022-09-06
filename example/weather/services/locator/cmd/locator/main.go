@@ -71,7 +71,7 @@ func main() {
 
 	// 4. Create clients
 	c := &http.Client{Transport: trace.Client(ctx, http.DefaultTransport)}
-	ipc := ipapi.New(c)
+	ipc := ipapi.New(log.Client(c))
 
 	// 5. Create service & endpoints
 	svc := locator.New(ipc)

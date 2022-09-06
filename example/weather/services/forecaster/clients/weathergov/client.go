@@ -24,6 +24,11 @@ type (
 		Ping(ctx context.Context) error
 	}
 
+	// Doer is an interface for making HTTP requests.
+	Doer interface {
+		Do(req *http.Request) (*http.Response, error)
+	}
+
 	// Forecast represents the forecast for a given location.
 	Forecast struct {
 		// Location is the location of the forecast.
@@ -62,7 +67,7 @@ type (
 
 	// client implements Client.
 	client struct {
-		c *http.Client
+		c Doer
 	}
 
 	// point represents the response from the Weather.gov API /point endpoint.
@@ -98,7 +103,7 @@ type (
 const baseURL = "https://api.weather.gov"
 
 // New returns a new client for the Weather.gov API.
-func New(c *http.Client) Client {
+func New(c Doer) Client {
 	return &client{c: c}
 }
 

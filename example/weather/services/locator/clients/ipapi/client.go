@@ -22,6 +22,11 @@ type (
 		Ping(ctx context.Context) error
 	}
 
+	// Doer is an interface for making HTTP requests.
+	Doer interface {
+		Do(req *http.Request) (*http.Response, error)
+	}
+
 	// WorldLocation represents the geographical location of an IP address.
 	WorldLocation struct {
 		// Lat is the latitude of the location.
@@ -38,7 +43,7 @@ type (
 
 	// client implements Client.
 	client struct {
-		c     *http.Client
+		c     Doer
 		cache map[string]*WorldLocation
 	}
 )
@@ -47,7 +52,7 @@ type (
 const baseURL = "http://ip-api.com/json"
 
 // New returns a new client for the ipapi.co API.
-func New(c *http.Client) Client {
+func New(c Doer) Client {
 	return &client{c: c, cache: make(map[string]*WorldLocation)}
 }
 
