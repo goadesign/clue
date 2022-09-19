@@ -3,7 +3,7 @@ module goa.design/clue
 go 1.19
 
 require (
-	github.com/aws/smithy-go v1.13.2
+	github.com/aws/smithy-go v1.13.3
 	github.com/dimfeld/httptreemux/v5 v5.4.0
 	github.com/go-logfmt/logfmt v0.5.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
@@ -11,11 +11,11 @@ require (
 	github.com/prometheus/client_model v0.2.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.34.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.34.0
-	go.opentelemetry.io/otel v1.9.0
+	go.opentelemetry.io/otel v1.10.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.9.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.9.0
 	go.opentelemetry.io/otel/sdk v1.9.0
-	go.opentelemetry.io/otel/trace v1.9.0
+	go.opentelemetry.io/otel/trace v1.10.0
 	goa.design/goa/v3 v3.8.5
 	goa.design/model v1.7.9
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035
