@@ -43,7 +43,7 @@ func main() {
 	if log.IsTerminal() {
 		format = log.FormatTerminal
 	}
-	ctx := log.Context(context.Background(), log.WithFormat(format))
+	ctx := log.Context(context.Background(), log.WithFormat(format), log.WithFunc(trace.Log))
 	ctx = log.With(ctx, log.KV{"svc", genlocator.ServiceName})
 	if *debug {
 		ctx = log.Context(ctx, log.WithDebug())
