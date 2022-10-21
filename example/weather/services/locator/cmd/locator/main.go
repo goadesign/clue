@@ -70,8 +70,8 @@ func main() {
 	ctx = metrics.Context(ctx, genlocator.ServiceName)
 
 	// 4. Create clients
-	c := &http.Client{Transport: trace.Client(ctx, http.DefaultTransport)}
-	ipc := ipapi.New(log.Client(c))
+	c := &http.Client{Transport: log.Client(trace.Client(ctx, http.DefaultTransport))}
+	ipc := ipapi.New(c)
 
 	// 5. Create service & endpoints
 	svc := locator.New(ipc)
