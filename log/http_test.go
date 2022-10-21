@@ -59,7 +59,7 @@ func TestClient(t *testing.T) {
 		{"no logger", true, nil, nil, ""},
 		{"success", false, nil, nil, successLogs},
 		{"error", false, fmt.Errorf("error"), nil, errorLogs},
-		{"error with status", false, fmt.Errorf("error"), WithErrorStatus(200), statusLogs},
+		{"error with status", false, nil, WithErrorStatus(200), statusLogs},
 	}
 	now := timeNow
 	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
@@ -77,12 +77,14 @@ func TestClient(t *testing.T) {
 			}
 			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) { rw.Write([]byte(`OK`)) }))
 			defer server.Close()
-			client := Client(server.Client())
+			client := server.Client()
 			if c.clientErr != nil {
-				client = Client(&errorClient{err: c.clientErr})
+				client.Transport = &errorClient{err: c.clientErr}
 			}
 			if c.opt != nil {
-				client = Client(server.Client(), c.opt)
+				client.Transport = Client(client.Transport, c.opt)
+			} else {
+				client.Transport = Client(client.Transport)
 			}
 
 			req, _ := http.NewRequest("GET", server.URL, nil)
@@ -120,6 +122,6 @@ type errorClient struct {
 	err error
 }
 
-func (c *errorClient) Do(req *http.Request) (*http.Response, error) {
+func (c *errorClient) RoundTrip(req *http.Request) (*http.Response, error) {
 	return nil, c.err
 }

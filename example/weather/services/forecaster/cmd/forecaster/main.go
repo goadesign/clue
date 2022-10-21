@@ -70,8 +70,8 @@ func main() {
 	ctx = metrics.Context(ctx, genforecaster.ServiceName)
 
 	// 4. Create clients
-	c := &http.Client{Transport: trace.Client(ctx, http.DefaultTransport)}
-	wc := weathergov.New(log.Client(c))
+	c := &http.Client{Transport: log.Client(trace.Client(ctx, http.DefaultTransport))}
+	wc := weathergov.New(c)
 
 	// 5. Create service & endpoints
 	svc := forecaster.New(wc)

@@ -10,11 +10,6 @@ import (
 )
 
 type (
-	// Doer is a client that can execute HTTP requests.
-	Doer interface {
-		Do(*http.Request) (*http.Response, error)
-	}
-
 	// HTTPLogOption is a function that applies a configuration option to log
 	// HTTP middleware.
 	HTTPLogOption func(*httpLogOptions)
@@ -30,9 +25,10 @@ type (
 	httpClientOptions struct {
 		iserr func(int) bool
 	}
-	// client wraps an HTTP client and logs requests and responses.
+
+	// client wraps an HTTP roundtripper and logs requests and responses.
 	client struct {
-		Doer
+		http.RoundTripper
 		options *httpClientOptions
 	}
 )
@@ -62,16 +58,16 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 	}
 }
 
-// Client returns a HTTP client that wraps the given doer and log requests and
-// responses using the clue logger stored in the request context.
-func Client(doer Doer, opts ...HTTPClientLogOption) Doer {
+// Client wraps the given roundtripper and log requests and responses using the
+// clue logger stored in the request context.
+func Client(t http.RoundTripper, opts ...HTTPClientLogOption) http.RoundTripper {
 	options := &httpClientOptions{
 		iserr: func(status int) bool { return status >= 400 },
 	}
 	for _, o := range opts {
 		o(options)
 	}
-	return &client{Doer: doer, options: options}
+	return &client{RoundTripper: t, options: options}
 }
 
 // WithPathFilter adds a path filter to the HTTP middleware. Requests whose path
@@ -91,14 +87,14 @@ func WithErrorStatus(status int) HTTPClientLogOption {
 	}
 }
 
-// Do executes the given HTTP request and logs the request and response. The
+// RoundTrip executes the given HTTP request and logs the request and response. The
 // request context must be initialized with a clue logger.
-func (c *client) Do(req *http.Request) (resp *http.Response, err error) {
+func (c *client) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	msgKV := KV{K: MessageKey, V: "finished client HTTP request"}
 	methKV := KV{K: HTTPMethodKey, V: req.Method}
 	urlKV := KV{K: HTTPURLKey, V: req.URL.String()}
 	then := timeNow()
-	resp, err = c.Doer.Do(req)
+	resp, err = c.RoundTripper.RoundTrip(req)
 	if err != nil {
 		Error(req.Context(), err, msgKV, methKV, urlKV)
 		return
