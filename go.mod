@@ -8,7 +8,7 @@ require (
 	github.com/go-logfmt/logfmt v0.5.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/prometheus/client_golang v1.13.0
-	github.com/prometheus/client_model v0.2.0
+	github.com/prometheus/client_model v0.3.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.36.3
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.36.3
 	go.opentelemetry.io/otel v1.11.1
