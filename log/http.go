@@ -1,8 +1,10 @@
 package log
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 
@@ -23,7 +25,8 @@ type (
 	}
 
 	httpClientOptions struct {
-		iserr func(int) bool
+		iserr      func(int) bool
+		logErrBody bool
 	}
 
 	// client wraps an HTTP roundtripper and logs requests and responses.
@@ -87,6 +90,14 @@ func WithErrorStatus(status int) HTTPClientLogOption {
 	}
 }
 
+// WithLogBodyOnError returns a HTTP client logger option that configures the
+// logger to log the response body when the response status code is an error.
+func WithLogBodyOnError() HTTPClientLogOption {
+	return func(o *httpClientOptions) {
+		o.logErrBody = true
+	}
+}
+
 // RoundTrip executes the given HTTP request and logs the request and response. The
 // request context must be initialized with a clue logger.
 func (c *client) RoundTrip(req *http.Request) (resp *http.Response, err error) {
@@ -103,7 +114,17 @@ func (c *client) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	statusKV := KV{K: HTTPStatusKey, V: resp.Status}
 	durKV := KV{K: HTTPDurationKey, V: ms}
 	if c.options.iserr(resp.StatusCode) {
-		Error(req.Context(), fmt.Errorf(resp.Status), msgKV, methKV, urlKV, statusKV, durKV)
+		if c.options.logErrBody {
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				Error(req.Context(), err, msgKV, methKV, urlKV, statusKV, durKV)
+				return resp, nil
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(body))
+			Error(req.Context(), fmt.Errorf(resp.Status), msgKV, methKV, urlKV, statusKV, durKV, KV{K: HTTPBodyKey, V: string(body)})
+		} else {
+			Error(req.Context(), fmt.Errorf(resp.Status), msgKV, methKV, urlKV, statusKV, durKV)
+		}
 		return
 	}
 	Print(req.Context(), msgKV, methKV, urlKV, statusKV, durKV)

@@ -12,6 +12,7 @@ var (
 	HTTPURLKey      = "http.url"
 	HTTPStatusKey   = "http.status"
 	HTTPDurationKey = "http.time_ms"
+	HTTPBodyKey     = "http.body"
 	GRPCServiceKey  = "grpc.service"
 	GRPCMethodKey   = "grpc.method"
 	GRPCCodeKey     = "grpc.code"
