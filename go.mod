@@ -11,11 +11,11 @@ require (
 	github.com/prometheus/client_model v0.3.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.36.4
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.36.4
-	go.opentelemetry.io/otel v1.11.1
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.11.1
+	go.opentelemetry.io/otel v1.11.2
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.11.2
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.11.1
-	go.opentelemetry.io/otel/sdk v1.11.1
-	go.opentelemetry.io/otel/trace v1.11.1
+	go.opentelemetry.io/otel/sdk v1.11.2
+	go.opentelemetry.io/otel/trace v1.11.2
 	goa.design/goa/v3 v3.10.2
 	goa.design/model v1.7.9
 	golang.org/x/term v0.2.0
@@ -25,7 +25,7 @@ require (
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
+	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dimfeld/httppath v0.0.0-20170720192232-ee938bf73598 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
@@ -43,8 +43,8 @@ require (
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/zach-klippenstein/goregen v0.0.0-20160303162051-795b5e3961ea // indirect
-	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.11.1 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.11.1 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.11.2 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.11.2 // indirect
 	go.opentelemetry.io/otel/metric v0.33.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
