@@ -26,19 +26,17 @@ var timeSince = time.Since
 // HTTP returns a middlware that metricss requests. The context must have
 // been initialized with Context. HTTP collects the following metrics:
 //
-//    * `http.server.duration`: Histogram of request durations in milliseconds.
-//    * `http.server.active_requests`: UpDownCounter of active requests.
-//    * `http.server.request.size`: Histogram of request sizes in bytes.
-//    * `http.server.response.size`: Histogram of response sizes in bytes.
+//   - `http.server.duration`: Histogram of request durations in milliseconds.
+//   - `http.server.active_requests`: UpDownCounter of active requests.
+//   - `http.server.request.size`: Histogram of request sizes in bytes.
+//   - `http.server.response.size`: Histogram of response sizes in bytes.
 //
 // All the metrics have the following labels:
 //
-//    * `goa.method`: The method name as specified in the Goa design.
-//    * `goa.service`: The service name as specified in the Goa design.
-//    * `http.verb`: The HTTP verb (`GET`, `POST` etc.).
-//    * `http.host`: The value of the HTTP host header.
-//    * `http.path`: The HTTP path.
-//    * `http.status_code`: The HTTP status code.
+//   - `http.verb`: The HTTP verb (`GET`, `POST` etc.).
+//   - `http.host`: The value of the HTTP host header.
+//   - `http.path`: The HTTP path.
+//   - `http.status_code`: The HTTP status code.
 //
 // Errors collecting or serving metrics are logged to the logger in the context
 // if any.
