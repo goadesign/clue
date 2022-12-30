@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"goa.design/goa/v3/middleware"
+	goa "goa.design/goa/v3/pkg"
 )
 
 func TestHTTP(t *testing.T) {
@@ -42,6 +43,45 @@ func TestHTTP(t *testing.T) {
 
 	if buf.String() != expected {
 		t.Errorf("got %s, want %s", buf.String(), expected)
+	}
+}
+
+func TestEndpoint(t *testing.T) {
+	now := timeNow
+	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
+	defer func() { timeNow = now }()
+	endpoint := func(ctx context.Context, req interface{}) (interface{}, error) {
+		Printf(ctx, "test")
+		return nil, nil
+	}
+	cases := []struct {
+		name     string
+		sname    string
+		mname    string
+		expected string
+	}{
+		{"service and method name", "Service", "Method", `{"time":"2022-01-09T20:29:45Z","level":"info","goa.service":"Service","goa.method":"Method","msg":"test"}`},
+		{"no service name", "", "Method", `{"time":"2022-01-09T20:29:45Z","level":"info","goa.method":"Method","msg":"test"}`},
+		{"no method name", "Service", "", `{"time":"2022-01-09T20:29:45Z","level":"info","goa.service":"Service","msg":"test"}`},
+		{"no service or method name", "", "", `{"time":"2022-01-09T20:29:45Z","level":"info","msg":"test"}`},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+			if c.sname != "" {
+				ctx = context.WithValue(ctx, goa.ServiceKey, c.sname)
+			}
+			if c.mname != "" {
+				ctx = context.WithValue(ctx, goa.MethodKey, c.mname)
+			}
+
+			Endpoint(endpoint)(ctx, nil)
+
+			if buf.String() != c.expected+"\n" {
+				t.Errorf("got %s, want %s", buf.String(), c.expected)
+			}
+		})
 	}
 }
 
