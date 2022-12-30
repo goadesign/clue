@@ -101,6 +101,7 @@ func main() {
 	// 4. Create service & endpoints
 	svc := front.New(fc, lc)
 	endpoints := genfront.NewEndpoints(svc)
+	endpoints.Use(log.Endpoint)
 
 	// 5. Create transport
 	mux := goahttp.NewMuxer()

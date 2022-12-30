@@ -76,6 +76,7 @@ func main() {
 	// 5. Create service & endpoints
 	svc := locator.New(ipc)
 	endpoints := genlocator.NewEndpoints(svc)
+	endpoints.Use(log.Endpoint)
 
 	// 6. Create transport
 	server := gengrpc.New(endpoints, nil)

@@ -67,10 +67,10 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 func Endpoint(e goa.Endpoint) goa.Endpoint {
 	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		if s := ctx.Value(goa.ServiceKey); s != nil {
-			ctx = With(ctx, KV{K: "goa.service", V: s})
+			ctx = With(ctx, KV{K: GoaServiceKey, V: s})
 		}
 		if m := ctx.Value(goa.MethodKey); m != nil {
-			ctx = With(ctx, KV{K: "goa.method", V: m})
+			ctx = With(ctx, KV{K: GoaMethodKey, V: m})
 		}
 		return e(ctx, req)
 	}
