@@ -76,6 +76,7 @@ func main() {
 	// 5. Create service & endpoints
 	svc := forecaster.New(wc)
 	endpoints := genforecaster.NewEndpoints(svc)
+	endpoints.Use(log.Endpoint)
 
 	// 6. Create transport
 	server := gengrpc.New(endpoints, nil)
