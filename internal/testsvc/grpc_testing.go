@@ -48,7 +48,7 @@ func SetupGRPC(t *testing.T, opts ...GRPCOption) (c GRPClient, stop func()) {
 	}
 
 	// Create test gRPC server
-	s := svc{grpcfn: options.grpcfn, streamfn: options.streamfn}
+	s := Service{GRPCFunc: options.grpcfn, StreamFunc: options.streamfn}
 	endpoints := test.NewEndpoints(&s)
 	svr := server.New(endpoints, nil, nil)
 	server := grpc.NewServer(options.serverOptions...)

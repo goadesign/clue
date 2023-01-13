@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/dimfeld/httptreemux/v5"
+	"goa.design/clue/debug"
 	"goa.design/clue/health"
 	"goa.design/clue/log"
 	"goa.design/clue/metrics"
@@ -37,7 +38,7 @@ func main() {
 		locatorAddr          = flag.String("locator-addr", ":8082", "Locator service address")
 		locatorHealthAddr    = flag.String("locator-health-addr", ":8083", "Locator service health-check address")
 		agentaddr            = flag.String("agent-addr", ":4317", "Grafana agent listen address")
-		debug                = flag.Bool("debug", false, "Enable debug logs")
+		debugf               = flag.Bool("debug", false, "Enable debug logs")
 	)
 	flag.Parse()
 
@@ -48,7 +49,7 @@ func main() {
 	}
 	ctx := log.Context(context.Background(), log.WithFormat(format), log.WithFunc(trace.Log))
 	ctx = log.With(ctx, log.KV{K: "svc", V: genfront.ServiceName})
-	if *debug {
+	if *debugf {
 		ctx = log.Context(ctx, log.WithDebug())
 		log.Debugf(ctx, "debug logs enabled")
 	}
@@ -101,12 +102,14 @@ func main() {
 	// 4. Create service & endpoints
 	svc := front.New(fc, lc)
 	endpoints := genfront.NewEndpoints(svc)
+	endpoints.Use(debug.LogPayloads())
 	endpoints.Use(log.Endpoint)
 
 	// 5. Create transport
 	mux := goahttp.NewMuxer()
 	mux.Use(metrics.HTTP(ctx))
 	handler := trace.HTTP(ctx)(mux)                                            // 5. Trace request
+	handler = debug.MountDebugLogEnabler("/debug", debug.Adapt(mux))(handler)  // 4. Enable debug logs toggling
 	handler = goahttpmiddleware.LogContext(log.AsGoaMiddlewareLogger)(handler) // 3. Log request and response
 	handler = log.HTTP(ctx)(handler)                                           // 2. Add logger to request context (with request ID key)
 	handler = goahttpmiddleware.RequestID()(handler)                           // 1. Add request ID to context

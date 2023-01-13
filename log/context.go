@@ -44,3 +44,15 @@ func MustContainLogger(logCtx context.Context) {
 		panic("provided a context without a logger. Use log.Context")
 	}
 }
+
+// DebugEnabled returns true if the given context has debug logging enabled.
+func DebugEnabled(ctx context.Context) bool {
+	v := ctx.Value(ctxLogger)
+	if v == nil {
+		return false
+	}
+	l := v.(*logger)
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	return l.options.debug
+}

@@ -45,7 +45,7 @@ func SetupHTTP(t *testing.T, opts ...HTTPOption) (c HTTPClient, stop func()) {
 	}
 
 	// Create test HTTP server
-	svc := &svc{httpfn: options.fn}
+	svc := &Service{HTTPFunc: options.fn}
 	endpoints := test.NewEndpoints(svc)
 	mux := goahttp.NewMuxer()
 	svr := server.New(endpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	"goa.design/clue/debug"
 	"goa.design/clue/health"
 	"goa.design/clue/log"
 	"goa.design/clue/metrics"
@@ -34,7 +35,7 @@ func main() {
 		grpcaddr  = flag.String("grpc-addr", ":8080", "gRPC listen address")
 		httpaddr  = flag.String("http-addr", ":8081", "HTTP listen address (health checks and metrics)")
 		agentaddr = flag.String("agent-addr", ":4317", "Grafana agent listen address")
-		debug     = flag.Bool("debug", false, "Enable debug logs")
+		debugf    = flag.Bool("debug", false, "Enable debug logs")
 	)
 	flag.Parse()
 
@@ -45,7 +46,7 @@ func main() {
 	}
 	ctx := log.Context(context.Background(), log.WithFormat(format), log.WithFunc(trace.Log))
 	ctx = log.With(ctx, log.KV{"svc", genforecaster.ServiceName})
-	if *debug {
+	if *debugf {
 		ctx = log.Context(ctx, log.WithDebug())
 		log.Debugf(ctx, "debug logs enabled")
 	}
@@ -76,6 +77,7 @@ func main() {
 	// 5. Create service & endpoints
 	svc := forecaster.New(wc)
 	endpoints := genforecaster.NewEndpoints(svc)
+	endpoints.Use(debug.LogPayloads())
 	endpoints.Use(log.Endpoint)
 
 	// 6. Create transport
@@ -84,6 +86,7 @@ func main() {
 		grpcmiddleware.WithUnaryServerChain(
 			goagrpcmiddleware.UnaryRequestID(),
 			log.UnaryServerInterceptor(ctx),
+			debug.UnaryServerInterceptor(),
 			goagrpcmiddleware.UnaryServerLogContext(log.AsGoaMiddlewareLogger),
 			metrics.UnaryServerInterceptor(ctx),
 			trace.UnaryServerInterceptor(ctx),
@@ -96,12 +99,15 @@ func main() {
 		}
 	}
 
-	// 7. Setup health check and metrics
+	// 7. Setup health check, metrics and debug endpoints
 	check := log.HTTP(ctx)(health.Handler(health.NewChecker(wc)))
-	http.Handle("/healthz", check)
-	http.Handle("/livez", check)
-	http.Handle("/metrics", metrics.Handler(ctx))
-	httpsvr := &http.Server{Addr: *httpaddr}
+	mux := http.NewServeMux()
+	debug.MountPprofHandlers(mux)
+	mux.Handle("/healthz", check)
+	mux.Handle("/livez", check)
+	mux.Handle("/metrics", metrics.Handler(ctx))
+	handler := debug.MountDebugLogEnabler("/debug", mux)(mux)
+	httpsvr := &http.Server{Addr: *httpaddr, Handler: handler}
 
 	// 8. Start gRPC and HTTP servers
 	errc := make(chan error)
