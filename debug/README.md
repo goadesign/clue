@@ -1,7 +1,5 @@
 # debug: Inspect Microservices at Runtime
 
-[![Go Report Card](https://goreportcard.com/badge/goa.design/clue/debug)](https://goreportcard.com/report/goa.design/clue/debug) 
-
 [![Build Status](https://github.com/goadesign/clue/workflows/CI/badge.svg?branch=main&event=push)](https://github.com/goadesign/clue/actions?query=branch%3Amain+event%3Apush)
 [![Go Reference](https://pkg.go.dev/badge/goa.design/clue/debug.svg)](https://pkg.go.dev/goa.design/clue/debug)
 
