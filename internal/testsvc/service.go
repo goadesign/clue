@@ -18,10 +18,10 @@ type (
 		Close() error
 	}
 
-	svc struct {
-		httpfn   UnaryFunc
-		grpcfn   UnaryFunc
-		streamfn StreamFunc
+	Service struct {
+		HTTPFunc   UnaryFunc
+		GRPCFunc   UnaryFunc
+		StreamFunc StreamFunc
 	}
 
 	adapter struct {
@@ -29,8 +29,8 @@ type (
 	}
 )
 
-func (s *svc) HTTPMethod(ctx context.Context, req *test.Fields) (res *test.Fields, err error) {
-	if s.httpfn == nil {
+func (s *Service) HTTPMethod(ctx context.Context, req *test.Fields) (res *test.Fields, err error) {
+	if s.HTTPFunc == nil {
 		return
 	}
 
@@ -40,7 +40,7 @@ func (s *svc) HTTPMethod(ctx context.Context, req *test.Fields) (res *test.Field
 		*r = Fields(*req)
 	}
 	var resp *Fields
-	resp, err = s.httpfn(ctx, r)
+	resp, err = s.HTTPFunc(ctx, r)
 	if resp != nil {
 		res = &test.Fields{}
 		*res = test.Fields(*resp)
@@ -48,8 +48,8 @@ func (s *svc) HTTPMethod(ctx context.Context, req *test.Fields) (res *test.Field
 	return
 }
 
-func (s *svc) GrpcMethod(ctx context.Context, req *test.Fields) (res *test.Fields, err error) {
-	if s.grpcfn == nil {
+func (s *Service) GrpcMethod(ctx context.Context, req *test.Fields) (res *test.Fields, err error) {
+	if s.GRPCFunc == nil {
 		return
 	}
 
@@ -59,7 +59,7 @@ func (s *svc) GrpcMethod(ctx context.Context, req *test.Fields) (res *test.Field
 		*r = Fields(*req)
 	}
 	var resp *Fields
-	resp, err = s.grpcfn(ctx, r)
+	resp, err = s.GRPCFunc(ctx, r)
 	if resp != nil {
 		res = &test.Fields{}
 		*res = test.Fields(*resp)
@@ -67,9 +67,9 @@ func (s *svc) GrpcMethod(ctx context.Context, req *test.Fields) (res *test.Field
 	return
 }
 
-func (s *svc) GrpcStream(ctx context.Context, stream test.GrpcStreamServerStream) (err error) {
-	if s.streamfn != nil {
-		return s.streamfn(ctx, adapter{stream})
+func (s *Service) GrpcStream(ctx context.Context, stream test.GrpcStreamServerStream) (err error) {
+	if s.StreamFunc != nil {
+		return s.StreamFunc(ctx, adapter{stream})
 	}
 	return nil
 }

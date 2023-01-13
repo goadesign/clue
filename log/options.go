@@ -61,6 +61,13 @@ func WithDebug() LogOption {
 	}
 }
 
+// WithNoDebug disables debug logging.
+func WithNoDebug() LogOption {
+	return func(o *options) {
+		o.debug = false
+	}
+}
+
 // WithOutput sets the log output.
 func WithOutput(w io.Writer) LogOption {
 	return func(o *options) {
