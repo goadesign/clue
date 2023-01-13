@@ -48,6 +48,15 @@ func TestWithDebug(t *testing.T) {
 	}
 }
 
+func TestWithNoDebug(t *testing.T) {
+	opts := defaultOptions()
+	WithDebug()(opts)
+	WithNoDebug()(opts)
+	if opts.debug {
+		t.Errorf("expected debug to be disabled")
+	}
+}
+
 func TestWithOutput(t *testing.T) {
 	opts := defaultOptions()
 	w := io.Discard
