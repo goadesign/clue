@@ -26,6 +26,7 @@ works best when used in microservices written using
   [OpenTelemetry](https://opentelemetry.io/) specification to trace requests.
 * Debugging: the [debug](debug/) package makes it possible to troubleshoot
   and profile services at runtime.
+
 The [weather](example/weather) example illustrates how to use `clue` to
 instrument a system of Goa microservices. The example comes with a set of
 scripts that can be used to compile and start the system as well as a complete
