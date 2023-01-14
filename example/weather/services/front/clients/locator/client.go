@@ -6,6 +6,7 @@ import (
 	goa "goa.design/goa/v3/pkg"
 	"google.golang.org/grpc"
 
+	"goa.design/clue/debug"
 	genclient "goa.design/clue/example/weather/services/locator/gen/grpc/locator/client"
 	genlocator "goa.design/clue/example/weather/services/locator/gen/locator"
 )
@@ -40,7 +41,7 @@ type (
 // New instantiates a new locator service client.
 func New(cc *grpc.ClientConn) Client {
 	c := genclient.NewClient(cc, grpc.WaitForReady(true))
-	return &client{c.GetLocation()}
+	return &client{debug.LogPayloads()(c.GetLocation())}
 }
 
 // GetLocation returns the location for the given IP address.

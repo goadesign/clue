@@ -157,6 +157,7 @@ func TestDebugPayloads(t *testing.T) {
 		{"debug error", newDebugLogContext(), nil, testErr, `payload={"S":"test","I":1} `, "test error"},
 		{"maxsize", newDebugLogContext(), WithMaxSize(1), nil, `payload={ result={ `, ""},
 		{"format", newDebugLogContext(), WithFormat(formatTest), nil, `payload=test result=test `, ""},
+		{"client", newDebugLogContext(), WithClient(), nil, `client-payload={"S":"test","I":1} client-result={"S":"test","I":1} `, ""},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

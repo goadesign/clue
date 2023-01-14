@@ -18,6 +18,7 @@ type (
 	options struct {
 		maxsize int // maximum number of bytes in a single log message or value
 		format  FormatFunc
+		client  bool
 	}
 )
 
@@ -36,6 +37,14 @@ func WithFormat(fn FormatFunc) LogPayloadsOption {
 func WithMaxSize(n int) LogPayloadsOption {
 	return func(o *options) {
 		o.maxsize = n
+	}
+}
+
+// WithClient prefixes the log keys with "client-". This is useful when
+// logging client requests and responses.
+func WithClient() LogPayloadsOption {
+	return func(o *options) {
+		o.client = true
 	}
 }
 
