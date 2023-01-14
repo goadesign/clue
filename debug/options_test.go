@@ -32,6 +32,14 @@ func TestWithMaxSize(t *testing.T) {
 	}
 }
 
+func TestWithClient(t *testing.T) {
+	opts := defaultOptions()
+	WithClient()(opts)
+	if !opts.client {
+		t.Errorf("got client %v, expected true", opts.client)
+	}
+}
+
 func TestFormatJSON(t *testing.T) {
 	ctx := context.Background()
 	js := FormatJSON(ctx, map[string]string{"foo": "bar"})

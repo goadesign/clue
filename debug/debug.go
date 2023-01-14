@@ -97,6 +97,12 @@ func LogPayloads(opts ...LogPayloadsOption) func(goa.Endpoint) goa.Endpoint {
 				opt(options)
 			}
 		}
+		reqKey := "payload"
+		resKey := "result"
+		if options.client {
+			reqKey = "client-" + reqKey
+			resKey = "client-" + resKey
+		}
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
 			if !log.DebugEnabled(ctx) {
 				return next(ctx, req)
@@ -105,7 +111,7 @@ func LogPayloads(opts ...LogPayloadsOption) func(goa.Endpoint) goa.Endpoint {
 			if len(reqs) > options.maxsize {
 				reqs = reqs[:options.maxsize]
 			}
-			log.Debug(ctx, log.KV{K: "payload", V: reqs})
+			log.Debug(ctx, log.KV{K: reqKey, V: reqs})
 			res, err := next(ctx, req)
 			if err != nil {
 				return nil, err
@@ -114,7 +120,7 @@ func LogPayloads(opts ...LogPayloadsOption) func(goa.Endpoint) goa.Endpoint {
 			if len(ress) > options.maxsize {
 				ress = ress[:options.maxsize]
 			}
-			log.Debug(ctx, log.KV{K: "result", V: ress})
+			log.Debug(ctx, log.KV{K: resKey, V: ress})
 			return res, nil
 		}
 	}
