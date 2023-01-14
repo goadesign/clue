@@ -41,7 +41,7 @@ type (
 // New instantiates a new locator service client.
 func New(cc *grpc.ClientConn) Client {
 	c := genclient.NewClient(cc, grpc.WaitForReady(true))
-	return &client{debug.LogPayloads()(c.GetLocation())}
+	return &client{debug.LogPayloads(debug.WithClient())(c.GetLocation())}
 }
 
 // GetLocation returns the location for the given IP address.

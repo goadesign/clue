@@ -63,7 +63,7 @@ type (
 // New instantiates a new forecast service client.
 func New(cc *grpc.ClientConn) Client {
 	c := genclient.NewClient(cc, grpc.WaitForReady(true))
-	return &client{debug.LogPayloads()(c.Forecast())}
+	return &client{debug.LogPayloads(debug.WithClient())(c.Forecast())}
 }
 
 // Forecast returns the forecast for the given location or current location if
