@@ -39,11 +39,12 @@ func TestMountDebugLogEnabler(t *testing.T) {
 		name         string
 		enable       bool
 		disable      bool
+		expectedResp string
 		expectedLogs string
 	}{
-		{"default", false, false, "test=info "},
-		{"enable debug", true, false, "test=info test=debug "},
-		{"disable debug", false, true, "test=info "},
+		{"default", false, false, "", "test=info "},
+		{"enable debug", true, false, `{"debug-logs":"enabled"}`, "debug-logs=enabled test=info test=debug "},
+		{"disable debug", false, true, `{"debug-logs":"disabled"}`, "debug-logs=disabled test=info "},
 	}
 
 	for _, c := range steps {
@@ -52,8 +53,8 @@ func TestMountDebugLogEnabler(t *testing.T) {
 			if status != http.StatusOK {
 				t.Errorf("%s: got status %d, expected %d", c.name, status, http.StatusOK)
 			}
-			if resp != "" {
-				t.Errorf("%s: got body %q, expected %q", c.name, resp, "")
+			if resp != c.expectedResp {
+				t.Errorf("%s: got body %q, expected %q", c.name, resp, c.expectedResp)
 			}
 		}
 		if c.disable {
@@ -61,8 +62,8 @@ func TestMountDebugLogEnabler(t *testing.T) {
 			if status != http.StatusOK {
 				t.Errorf("%s: got status %d, expected %d", c.name, status, http.StatusOK)
 			}
-			if resp != "" {
-				t.Errorf("%s: got body %q, expected %q", c.name, resp, "")
+			if resp != c.expectedResp {
+				t.Errorf("%s: got body %q, expected %q", c.name, resp, c.expectedResp)
 			}
 		}
 		buf.Reset()
