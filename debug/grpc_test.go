@@ -25,8 +25,8 @@ func TestUnaryServerInterceptor(t *testing.T) {
 		expectedLogs    string
 	}{
 		{"no debug logs", false, ""},
-		{"debug logs", true, "debug-logs=enabled debug=message "},
-		{"revert to no debug logs", false, "debug-logs=disabled "},
+		{"debug logs", true, "debug-logs=true debug=message "},
+		{"revert to no debug logs", false, "debug-logs=false "},
 	}
 	for _, c := range steps {
 		wantDebugEnabled = c.enableDebugLogs
@@ -54,8 +54,8 @@ func TestStreamServerInterceptor(t *testing.T) {
 		expectedLogs    string
 	}{
 		{"no debug logs", false, ""},
-		{"debug logs", true, "debug=enabled debug=message "},
-		{"revert to no debug logs", false, "debug=disabled "},
+		{"debug logs", true, "debug=true debug=message "},
+		{"revert to no debug logs", false, "debug=false "},
 	}
 	for _, step := range steps {
 		wantDebugEnabled = step.enableDebugLogs
