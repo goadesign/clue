@@ -3,6 +3,8 @@ package debug
 import (
 	"bytes"
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"google.golang.org/grpc"
@@ -18,24 +20,36 @@ func TestUnaryServerInterceptor(t *testing.T) {
 		testsvc.WithServerOptions(grpc.ChainUnaryInterceptor(log.UnaryServerInterceptor(ctx), UnaryServerInterceptor())),
 		testsvc.WithUnaryFunc(logUnaryMethod))
 	defer stop()
+	mux := http.NewServeMux()
+	MountDebugLogEnabler(mux)
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
 
 	steps := []struct {
-		name            string
-		enableDebugLogs bool
-		expectedLogs    string
+		name         string
+		on           bool
+		off          bool
+		expectedLogs string
 	}{
-		{"no debug logs", false, ""},
-		{"debug logs", true, "debug=message "},
-		{"revert to no debug logs", false, ""},
+		{"start", false, false, ""},
+		{"turn debug logs on", true, false, "debug=message "},
+		{"with debug logs on", false, false, "debug=message "},
+		{"turn debug logs off", false, true, ""},
+		{"with debug logs off", false, false, ""},
 	}
-	for _, c := range steps {
-		debugLogs = c.enableDebugLogs
+	for _, step := range steps {
+		if step.on {
+			makeRequest(t, ts.URL+"/debug?debug-logs=on")
+		}
+		if step.off {
+			makeRequest(t, ts.URL+"/debug?debug-logs=off")
+		}
 		_, err := cli.GRPCMethod(context.Background(), nil)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-		if buf.String() != c.expectedLogs {
-			t.Errorf("expected log %q, got %q", c.expectedLogs, buf.String())
+		if buf.String() != step.expectedLogs {
+			t.Errorf("expected log %q, got %q", step.expectedLogs, buf.String())
 		}
 		buf.Reset()
 	}

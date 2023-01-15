@@ -15,75 +15,70 @@ import (
 )
 
 func TestMountDebugLogEnabler(t *testing.T) {
-	mux := http.NewServeMux()
-	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-		log.Info(r.Context(), log.KV{K: "test", V: "info"})
-		log.Debug(r.Context(), log.KV{K: "test", V: "debug"})
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	})
-	handler = MountDebugLogEnabler("/debug", mux)(handler)
-	var buf bytes.Buffer
-	ctx := log.Context(context.Background(), log.WithOutput(&buf), log.WithFormat(logKeyValsOnly))
-	log.FlushAndDisableBuffering(ctx)
-	handler = log.HTTP(ctx)(handler)
-	mux.Handle("/", handler)
-	ts := httptest.NewServer(mux)
-	defer ts.Close()
-
-	steps := []struct {
+	cases := []struct {
 		name         string
-		enable       bool
-		disable      bool
+		prefix       string
+		query        string
+		onval        string
+		offval       string
+		url          string
 		expectedResp string
-		expectedLogs string
 	}{
-		{"default", false, false, "", "test=info "},
-		{"enable debug", true, false, `{"debug-logs":true}`, "test=info test=debug "},
-		{"disable debug", false, true, `{"debug-logs":false}`, "test=info "},
+		{"defaults", "", "", "", "", "/debug", `{"debug-logs":"off"}`},
+		{"defaults-enable", "", "", "", "", "/debug?debug-logs=on", `{"debug-logs":"on"}`},
+		{"defaults-disable", "", "", "", "", "/debug?debug-logs=off", `{"debug-logs":"off"}`},
+		{"prefix", "test", "", "", "", "/test", `{"debug-logs":"off"}`},
+		{"prefix-enable", "test", "", "", "", "/test?debug-logs=on", `{"debug-logs":"on"}`},
+		{"prefix-disable", "test", "", "", "", "/test?debug-logs=off", `{"debug-logs":"off"}`},
+		{"query", "", "debug", "", "", "/debug", `{"debug":"off"}`},
+		{"query-enable", "", "debug", "", "", "/debug?debug=on", `{"debug":"on"}`},
+		{"query-disable", "", "debug", "", "", "/debug?debug=off", `{"debug":"off"}`},
+		{"onval-enable", "", "", "foo", "", "/debug?debug-logs=foo", `{"debug-logs":"foo"}`},
+		{"offval-disable", "", "", "", "bar", "/debug?debug-logs=bar", `{"debug-logs":"bar"}`},
+		{"prefix-query-enable", "test", "debug", "", "", "/test?debug=on", `{"debug":"on"}`},
+		{"prefix-query-disable", "test", "debug", "", "", "/test?debug=off", `{"debug":"off"}`},
+		{"prefix-onval-enable", "test", "", "foo", "", "/test?debug-logs=foo", `{"debug-logs":"foo"}`},
+		{"prefix-offval-disable", "test", "", "", "bar", "/test?debug-logs=bar", `{"debug-logs":"bar"}`},
+		{"prefix-query-onval-enable", "test", "debug", "foo", "", "/test?debug=foo", `{"debug":"foo"}`},
+		{"prefix-query-offval-disable", "test", "debug", "", "bar", "/test?debug=bar", `{"debug":"bar"}`},
 	}
 
-	for _, c := range steps {
-		if c.enable {
-			status, resp := makeRequest(t, ts.URL+"/debug?debug-logs=true")
-			if status != http.StatusOK {
-				t.Errorf("%s: got status %d, expected %d", c.name, status, http.StatusOK)
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			mux := http.NewServeMux()
+			var options []DebugLogEnablerOption
+			if c.prefix != "" {
+				options = append(options, WithPath(c.prefix))
 			}
-			if resp != c.expectedResp {
-				t.Errorf("%s: got body %q, expected %q", c.name, resp, c.expectedResp)
+			if c.query != "" {
+				options = append(options, WithQuery(c.query))
 			}
-		}
-		if c.disable {
-			status, resp := makeRequest(t, ts.URL+"/debug?debug-logs=false")
-			if status != http.StatusOK {
-				t.Errorf("%s: got status %d, expected %d", c.name, status, http.StatusOK)
+			if c.onval != "" {
+				options = append(options, WithOnValue(c.onval))
 			}
-			if resp != c.expectedResp {
-				t.Errorf("%s: got body %q, expected %q", c.name, resp, c.expectedResp)
+			if c.offval != "" {
+				options = append(options, WithOffValue(c.offval))
 			}
-		}
-		buf.Reset()
+			MountDebugLogEnabler(mux, options...)
+			ts := httptest.NewServer(mux)
+			defer ts.Close()
 
-		status, resp := makeRequest(t, ts.URL)
-		if status != http.StatusOK {
-			t.Errorf("%s: got status %d, expected %d", c.name, status, http.StatusOK)
-		}
-		if resp != "OK" {
-			t.Errorf("%s: got body %q, expected %q", c.name, resp, "OK")
-		}
-		if buf.String() != c.expectedLogs {
-			t.Errorf("%s: got logs %q, expected %q", c.name, buf.String(), c.expectedLogs)
-		}
+			status, resp := makeRequest(t, ts.URL+c.url)
+
+			if status != http.StatusOK {
+				t.Errorf("%s: got status %d, expected %d", c.name, status, http.StatusOK)
+			}
+			if resp != c.expectedResp {
+				t.Errorf("%s: got body %q, expected %q", c.name, resp, c.expectedResp)
+			}
+		})
 	}
 }
 
 func TestMountPprofHandlers(t *testing.T) {
 	mux := http.NewServeMux()
 	MountPprofHandlers(mux)
+	MountPprofHandlers(mux, WithPrefix("test"))
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			w.WriteHeader(http.StatusNotFound)
@@ -106,6 +101,7 @@ func TestMountPprofHandlers(t *testing.T) {
 
 	paths := []string{
 		"/debug/pprof/",
+		"/test/",
 		"/debug/pprof/allocs",
 		"/debug/pprof/block",
 		"/debug/pprof/cmdline",

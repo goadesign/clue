@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
+	"strings"
 
 	goa "goa.design/goa/v3/pkg"
 
@@ -26,38 +27,38 @@ var (
 	pprofEnabled bool
 )
 
-// MountDebugLogEnabler mounts an endpoint under the given prefix and returns a
-// HTTP middleware that manages debug logs. The endpoint accepts a single query
-// parameter "debug-logs". If the parameter is set to "true" then debug logs are
-// enabled for requests made to handlers returned by the middleware. If the
-// parameter is set to "false" then debug logs are disabled. In all other cases
-// the endpoint returns the current debug logs status.
-func MountDebugLogEnabler(prefix string, mux Muxer) func(http.Handler) http.Handler {
-	mux.Handle(prefix, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Query().Get("debug-logs") {
-		case "true":
+// MountDebugLogEnabler mounts an endpoint under "/debug" and returns a HTTP
+// middleware that manages the status of debug logs. The endpoint accepts a
+// single query parameter "debug-logs". If the parameter is set to "on" then
+// debug logs are enabled. If the parameter is set to "off" then debug logs are
+// disabled. In all other cases the endpoint returns the current debug logs
+// status. The path, query parameter name and values can be changed using the
+// WithPath, WithQuery, WithOnValue and WithOffValue options.
+//
+// Note: the endpoint merely controls the status of debug logs. It does not
+// actually configure the current logger. The logger is configured by the
+// middleware returned by the HTTP function or by the gRPC interceptors returned
+// by the UnaryServerInterceptor and StreamServerInterceptor functions.
+func MountDebugLogEnabler(mux Muxer, opts ...DebugLogEnablerOption) {
+	o := defaultDebugLogEnablerOptions()
+	for _, opt := range opts {
+		opt(o)
+	}
+	if !strings.HasPrefix(o.path, "/") {
+		o.path = "/" + o.path
+	}
+	mux.Handle(o.path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if q := r.URL.Query().Get(o.query); q == o.onval {
 			debugLogs = true
-			w.Write([]byte(`{"debug-logs":true}`))
-		case "false":
+		} else if q == o.offval {
 			debugLogs = false
-			w.Write([]byte(`{"debug-logs":false}`))
-		default:
-			w.Write([]byte(`{"debug-logs":` + fmt.Sprintf("%t", debugLogs) + `}`))
+		}
+		if debugLogs {
+			w.Write([]byte(fmt.Sprintf(`{"%s":"%s"}`, o.query, o.onval)))
+		} else {
+			w.Write([]byte(fmt.Sprintf(`{"%s":"%s"}`, o.query, o.offval)))
 		}
 	}))
-	return func(next http.Handler) http.Handler {
-		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if debugLogs {
-				ctx := log.Context(r.Context(), log.WithDebug())
-				r = r.WithContext(ctx)
-			} else {
-				ctx := log.Context(r.Context(), log.WithNoDebug())
-				r = r.WithContext(ctx)
-			}
-			next.ServeHTTP(w, r)
-		})
-		return handler
-	}
 }
 
 // MountPprofHandlers mounts pprof handlers under /debug/pprof/. The list of
@@ -77,14 +78,25 @@ func MountDebugLogEnabler(prefix string, mux Muxer) func(http.Handler) http.Hand
 //
 // See the pprof package documentation for more information.
 //
+// The path prefix ("/debug/pprof/") can be changed using WithPprofPrefix.
 // Note: do not call this function on production servers accessible to the
 // public!  It exposes sensitive information about the server.
-func MountPprofHandlers(mux Muxer) {
-	mux.HandleFunc("/debug/pprof/", pprof.Index)
-	mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+func MountPprofHandlers(mux Muxer, opts ...PprofOption) {
+	o := defaultPprofOptions()
+	for _, opt := range opts {
+		opt(o)
+	}
+	if !strings.HasPrefix(o.prefix, "/") {
+		o.prefix = "/" + o.prefix
+	}
+	if !strings.HasSuffix(o.prefix, "/") {
+		o.prefix = o.prefix + "/"
+	}
+	mux.HandleFunc(o.prefix, pprof.Index)
+	mux.HandleFunc(o.prefix+"cmdline", pprof.Cmdline)
+	mux.HandleFunc(o.prefix+"profile", pprof.Profile)
+	mux.HandleFunc(o.prefix+"symbol", pprof.Symbol)
+	mux.HandleFunc(o.prefix+"trace", pprof.Trace)
 }
 
 // LogPayloads returns a Goa endpoint middleware that logs request payloads and
@@ -94,7 +106,7 @@ func MountPprofHandlers(mux Muxer) {
 // standard JSON marshaller. It only marshals if debug logs are enabled.
 func LogPayloads(opts ...LogPayloadsOption) func(goa.Endpoint) goa.Endpoint {
 	return func(next goa.Endpoint) goa.Endpoint {
-		options := defaultOptions()
+		options := defaultLogPayloadsOptions()
 		for _, opt := range opts {
 			if opt != nil {
 				opt(options)

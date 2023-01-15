@@ -102,12 +102,12 @@ func main() {
 	// 7. Setup health check, metrics and debug endpoints
 	check := log.HTTP(ctx)(health.Handler(health.NewChecker(ipc)))
 	mux := http.NewServeMux()
+	debug.MountDebugLogEnabler(mux)
 	debug.MountPprofHandlers(mux)
 	mux.Handle("/healthz", check)
 	mux.Handle("/livez", check)
 	mux.Handle("/metrics", metrics.Handler(ctx))
-	handler := debug.MountDebugLogEnabler("/debug", mux)(mux)
-	httpsvr := &http.Server{Addr: *httpaddr, Handler: handler}
+	httpsvr := &http.Server{Addr: *httpaddr, Handler: mux}
 
 	// 8. Start gRPC and HTTP servers
 	errc := make(chan error)

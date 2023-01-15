@@ -9,7 +9,8 @@ import (
 )
 
 // UnaryServerInterceptor return an interceptor that manages whether debug log
-// entries are written.
+// entries are written. This interceptor should be used in conjunction with the
+// MountDebugLogEnabler function.
 func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -28,7 +29,8 @@ func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 
 // StreamServerInterceptor returns a stream interceptor that manages whether
 // debug log entries are written. Note: a change in the debug setting is
-// effective only for the next stream request.
+// effective only for the next stream request. This interceptor should be used
+// in conjunction with the MountDebugLogEnabler function.
 func StreamServerInterceptor() grpc.StreamServerInterceptor {
 	return func(
 		srv interface{},
