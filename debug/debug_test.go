@@ -43,13 +43,13 @@ func TestMountDebugLogEnabler(t *testing.T) {
 		expectedLogs string
 	}{
 		{"default", false, false, "", "test=info "},
-		{"enable debug", true, false, `{"debug-logs":true}`, "debug-logs=true test=info test=debug "},
-		{"disable debug", false, true, `{"debug-logs":false}`, "debug-logs=false test=info "},
+		{"enable debug", true, false, `{"debug-logs":true}`, "test=info test=debug "},
+		{"disable debug", false, true, `{"debug-logs":false}`, "test=info "},
 	}
 
 	for _, c := range steps {
 		if c.enable {
-			status, resp := makeRequest(t, ts.URL+"/debug?enable=on")
+			status, resp := makeRequest(t, ts.URL+"/debug?debug-logs=true")
 			if status != http.StatusOK {
 				t.Errorf("%s: got status %d, expected %d", c.name, status, http.StatusOK)
 			}
@@ -58,7 +58,7 @@ func TestMountDebugLogEnabler(t *testing.T) {
 			}
 		}
 		if c.disable {
-			status, resp := makeRequest(t, ts.URL+"/debug?enable=off")
+			status, resp := makeRequest(t, ts.URL+"/debug?debug-logs=false")
 			if status != http.StatusOK {
 				t.Errorf("%s: got status %d, expected %d", c.name, status, http.StatusOK)
 			}

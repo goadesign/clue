@@ -25,11 +25,11 @@ func TestUnaryServerInterceptor(t *testing.T) {
 		expectedLogs    string
 	}{
 		{"no debug logs", false, ""},
-		{"debug logs", true, "debug-logs=true debug=message "},
-		{"revert to no debug logs", false, "debug-logs=false "},
+		{"debug logs", true, "debug=message "},
+		{"revert to no debug logs", false, ""},
 	}
 	for _, c := range steps {
-		wantDebugEnabled = c.enableDebugLogs
+		debugLogs = c.enableDebugLogs
 		_, err := cli.GRPCMethod(context.Background(), nil)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
@@ -54,11 +54,11 @@ func TestStreamServerInterceptor(t *testing.T) {
 		expectedLogs    string
 	}{
 		{"no debug logs", false, ""},
-		{"debug logs", true, "debug=true debug=message "},
-		{"revert to no debug logs", false, "debug=false "},
+		{"debug logs", true, "debug=message "},
+		{"revert to no debug logs", false, ""},
 	}
 	for _, step := range steps {
-		wantDebugEnabled = step.enableDebugLogs
+		debugLogs = step.enableDebugLogs
 		stream, err := cli.GRPCStream(context.Background())
 		if err != nil {
 			t.Errorf("%s: unexpected error: %v", step.name, err)

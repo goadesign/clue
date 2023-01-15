@@ -19,11 +19,8 @@ type Muxer interface {
 }
 
 var (
-	// wantDebugEnabled is true if debug logs should be enabled.
-	wantDebugEnabled bool
-
-	// debugEnabled is true if debug logs are currently enabled.
-	debugEnabled bool
+	// debugLogs is true if debug logs should be enabled.
+	debugLogs bool
 
 	// pprofEnabled is true if pprof handlers are enabled.
 	pprofEnabled bool
@@ -31,35 +28,31 @@ var (
 
 // MountDebugLogEnabler mounts an endpoint under the given prefix and returns a
 // HTTP middleware that manages debug logs. The endpoint accepts a single query
-// parameter "enable". If the parameter is set to "on" then debug logs are
+// parameter "debug-logs". If the parameter is set to "true" then debug logs are
 // enabled for requests made to handlers returned by the middleware. If the
-// parameter is set to "off" then debug logs are disabled. In all other cases
+// parameter is set to "false" then debug logs are disabled. In all other cases
 // the endpoint returns the current debug logs status.
 func MountDebugLogEnabler(prefix string, mux Muxer) func(http.Handler) http.Handler {
 	mux.Handle(prefix, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Query().Get("enable") {
-		case "on":
-			wantDebugEnabled = true
+		switch r.URL.Query().Get("debug-logs") {
+		case "true":
+			debugLogs = true
 			w.Write([]byte(`{"debug-logs":true}`))
-		case "off":
-			wantDebugEnabled = false
+		case "false":
+			debugLogs = false
 			w.Write([]byte(`{"debug-logs":false}`))
 		default:
-			w.Write([]byte(`{"debug-logs":` + fmt.Sprintf("%t", debugEnabled) + `}`))
+			w.Write([]byte(`{"debug-logs":` + fmt.Sprintf("%t", debugLogs) + `}`))
 		}
 	}))
 	return func(next http.Handler) http.Handler {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if wantDebugEnabled && !debugEnabled {
+			if debugLogs {
 				ctx := log.Context(r.Context(), log.WithDebug())
-				log.Debug(ctx, log.KV{K: "debug-logs", V: true})
 				r = r.WithContext(ctx)
-				debugEnabled = true
-			} else if !wantDebugEnabled && debugEnabled {
-				log.Debug(r.Context(), log.KV{K: "debug-logs", V: false})
+			} else {
 				ctx := log.Context(r.Context(), log.WithNoDebug())
 				r = r.WithContext(ctx)
-				debugEnabled = false
 			}
 			next.ServeHTTP(w, r)
 		})
