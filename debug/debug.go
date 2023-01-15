@@ -2,6 +2,7 @@ package debug
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/pprof"
 
@@ -32,27 +33,30 @@ var (
 // HTTP middleware that manages debug logs. The endpoint accepts a single query
 // parameter "enable". If the parameter is set to "on" then debug logs are
 // enabled for requests made to handlers returned by the middleware. If the
-// parameter is set to "off" then debug logs are disabled.
+// parameter is set to "off" then debug logs are disabled. In all other cases
+// the endpoint returns the current debug logs status.
 func MountDebugLogEnabler(prefix string, mux Muxer) func(http.Handler) http.Handler {
 	mux.Handle(prefix, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Query().Get("enable") {
 		case "on":
 			wantDebugEnabled = true
-			w.Write([]byte("{\"debug-logs\":\"enabled\"}"))
+			w.Write([]byte(`{"debug-logs":true}`))
 		case "off":
 			wantDebugEnabled = false
-			w.Write([]byte("{\"debug-logs\":\"disabled\"}"))
+			w.Write([]byte(`{"debug-logs":false}`))
+		default:
+			w.Write([]byte(`{"debug-logs":` + fmt.Sprintf("%t", debugEnabled) + `}`))
 		}
 	}))
 	return func(next http.Handler) http.Handler {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if wantDebugEnabled && !debugEnabled {
 				ctx := log.Context(r.Context(), log.WithDebug())
-				log.Debug(ctx, log.KV{K: "debug-logs", V: "enabled"})
+				log.Debug(ctx, log.KV{K: "debug-logs", V: true})
 				r = r.WithContext(ctx)
 				debugEnabled = true
 			} else if !wantDebugEnabled && debugEnabled {
-				log.Debug(r.Context(), log.KV{K: "debug-logs", V: "disabled"})
+				log.Debug(r.Context(), log.KV{K: "debug-logs", V: false})
 				ctx := log.Context(r.Context(), log.WithNoDebug())
 				r = r.WithContext(ctx)
 				debugEnabled = false

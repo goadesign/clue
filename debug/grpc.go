@@ -19,10 +19,10 @@ func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	) (interface{}, error) {
 		if wantDebugEnabled && !debugEnabled {
 			ctx = log.Context(ctx, log.WithDebug())
-			log.Debug(ctx, log.KV{K: "debug-logs", V: "enabled"})
+			log.Debug(ctx, log.KV{K: "debug-logs", V: true})
 			debugEnabled = true
 		} else if !wantDebugEnabled && debugEnabled {
-			log.Debug(ctx, log.KV{K: "debug-logs", V: "disabled"})
+			log.Debug(ctx, log.KV{K: "debug-logs", V: false})
 			ctx = log.Context(ctx, log.WithNoDebug())
 			debugEnabled = false
 		}
@@ -43,10 +43,10 @@ func StreamServerInterceptor() grpc.StreamServerInterceptor {
 		ctx := stream.Context()
 		if wantDebugEnabled && !debugEnabled {
 			ctx = log.Context(ctx, log.WithDebug())
-			log.Debug(ctx, log.KV{K: "debug", V: "enabled"})
+			log.Debug(ctx, log.KV{K: "debug", V: true})
 			debugEnabled = true
 		} else if !wantDebugEnabled && debugEnabled {
-			log.Debug(ctx, log.KV{K: "debug", V: "disabled"})
+			log.Debug(ctx, log.KV{K: "debug", V: false})
 			ctx = log.Context(ctx, log.WithNoDebug())
 			debugEnabled = false
 		}

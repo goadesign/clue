@@ -43,8 +43,8 @@ func TestMountDebugLogEnabler(t *testing.T) {
 		expectedLogs string
 	}{
 		{"default", false, false, "", "test=info "},
-		{"enable debug", true, false, `{"debug-logs":"enabled"}`, "debug-logs=enabled test=info test=debug "},
-		{"disable debug", false, true, `{"debug-logs":"disabled"}`, "debug-logs=disabled test=info "},
+		{"enable debug", true, false, `{"debug-logs":true}`, "debug-logs=true test=info test=debug "},
+		{"disable debug", false, true, `{"debug-logs":false}`, "debug-logs=false test=info "},
 	}
 
 	for _, c := range steps {
