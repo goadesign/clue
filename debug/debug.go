@@ -38,17 +38,23 @@ func MountDebugLogEnabler(prefix string, mux Muxer) func(http.Handler) http.Hand
 		switch r.URL.Query().Get("enable") {
 		case "on":
 			wantDebugEnabled = true
+			w.Write([]byte("{\"debug-logs\":\"enabled\"}"))
 		case "off":
 			wantDebugEnabled = false
+			w.Write([]byte("{\"debug-logs\":\"disabled\"}"))
 		}
 	}))
 	return func(next http.Handler) http.Handler {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if wantDebugEnabled && !debugEnabled {
-				r = r.WithContext(log.Context(r.Context(), log.WithDebug()))
+				ctx := log.Context(r.Context(), log.WithDebug())
+				log.Debug(ctx, log.KV{K: "debug-logs", V: "enabled"})
+				r = r.WithContext(ctx)
 				debugEnabled = true
 			} else if !wantDebugEnabled && debugEnabled {
-				r = r.WithContext(log.Context(r.Context(), log.WithNoDebug()))
+				log.Debug(r.Context(), log.KV{K: "debug-logs", V: "disabled"})
+				ctx := log.Context(r.Context(), log.WithNoDebug())
+				r = r.WithContext(ctx)
 				debugEnabled = false
 			}
 			next.ServeHTTP(w, r)
