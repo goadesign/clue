@@ -12,7 +12,17 @@ type muxAdapter struct {
 }
 
 // HTTP methods supported by the adapter.
-var httpMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "CONNECT", "OPTIONS", "TRACE"}
+var httpMethods = []string{
+	http.MethodGet,
+	http.MethodHead,
+	http.MethodPost,
+	http.MethodPut,
+	http.MethodPatch,
+	http.MethodDelete,
+	http.MethodConnect,
+	http.MethodOptions,
+	http.MethodTrace,
+}
 
 // Adapt returns a debug.Muxer adapter for the given goahttp.Muxer.
 func Adapt(m goahttp.Muxer) Muxer {
