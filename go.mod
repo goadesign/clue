@@ -16,7 +16,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.12.0
 	go.opentelemetry.io/otel/sdk v1.12.0
 	go.opentelemetry.io/otel/trace v1.12.0
-	goa.design/goa/v3 v3.10.2
+	goa.design/goa/v3 v3.11.0
 	goa.design/model v1.8.0
 	golang.org/x/term v0.4.0
 	google.golang.org/grpc v1.52.3
@@ -42,7 +42,7 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/prometheus/common v0.39.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
-	github.com/sergi/go-diff v1.2.0 // indirect
+	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/zach-klippenstein/goregen v0.0.0-20160303162051-795b5e3961ea // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.12.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.12.0 // indirect
