@@ -64,11 +64,10 @@ func (m *method) Parameters() string {
 		if n, _ := b.WriteString(p.Name()); n == 0 {
 			fmt.Fprintf(b, "a%v", i)
 		}
-		b.WriteString(" ")
 		if m.Method.Variadic() && i == last {
-			b.WriteString("..." + m.typeNames[p.Type()][2:])
-		} else {
-			b.WriteString(m.typeNames[p.Type()])
+			b.WriteString(" ..." + m.typeNames[p.Type()][2:])
+		} else if !(i+1 < len(ps) && p.Type() == ps[i+1].Type()) {
+			b.WriteString(" " + m.typeNames[p.Type()])
 		}
 		parameters = append(parameters, b.String())
 	}
@@ -97,15 +96,21 @@ func (m *method) ParameterVars() string {
 func (m *method) Results() string {
 	var (
 		results []string
+		rs      = m.Method.Results()
 		named   bool
 	)
-	for _, r := range m.Method.Results() {
+	for i, r := range rs {
 		var b strings.Builder
 		if n, _ := b.WriteString(r.Name()); n > 0 {
 			named = true
-			b.WriteString(" ")
 		}
-		b.WriteString(m.typeNames[r.Type()])
+		if named {
+			if !(i+1 < len(rs) && r.Type() == rs[i+1].Type()) {
+				b.WriteString(" " + m.typeNames[r.Type()])
+			}
+		} else {
+			b.WriteString(m.typeNames[r.Type()])
+		}
 		results = append(results, b.String())
 	}
 	switch len(results) {
