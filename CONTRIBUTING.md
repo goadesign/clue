@@ -12,7 +12,7 @@ Below are some guidelines to follow when contributing to this project:
   and follow the checklist presented in the issue description section. A simple
   code snippet that reproduces your issue helps immensely.
 * If you know how to fix your bug, we highly encourage PR contributions. See
-  [How Can I Get Started section](#how-can-i-get-started?) on how to submit a PR.
+  [How Can I Get Started section](#how-can-i-get-started) on how to submit a PR.
 * For feature requests and submitting major changes, [open an issue](https://github.com/goadesign/clue/issues/new)
   or hop on to our slack channel (see <https://goa.design> to join) to discuss
   the feature first.
