@@ -47,11 +47,13 @@ func (m *method) TypeParameters() (typeParameters []Type) {
 
 func (m *method) Parameters() (parameters []Value) {
 	for _, p := range m.funcType.Params.List {
-		var ident *ast.Ident
+		idents := []*ast.Ident{nil}
 		if p.Names != nil {
-			ident = p.Names[0]
+			idents = p.Names
 		}
-		parameters = append(parameters, newValue(m.p, ident, p.Type))
+		for _, ident := range idents {
+			parameters = append(parameters, newValue(m.p, ident, p.Type))
+		}
 	}
 	return
 }
@@ -59,11 +61,13 @@ func (m *method) Parameters() (parameters []Value) {
 func (m *method) Results() (results []Value) {
 	if m.funcType.Results != nil {
 		for _, r := range m.funcType.Results.List {
-			var ident *ast.Ident
+			idents := []*ast.Ident{nil}
 			if r.Names != nil {
-				ident = r.Names[0]
+				idents = r.Names
 			}
-			results = append(results, newValue(m.p, ident, r.Type))
+			for _, ident := range idents {
+				results = append(results, newValue(m.p, ident, r.Type))
+			}
 		}
 	}
 	return
