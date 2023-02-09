@@ -25,8 +25,9 @@ type (
 	}
 )
 
-func LoadPackages(patterns []string) ([]Package, error) {
+func LoadPackages(patterns []string, dir string) ([]Package, error) {
 	c := &packages.Config{
+		Dir:  dir,
 		Mode: packages.NeedName | packages.NeedFiles | packages.NeedImports | packages.NeedTypes | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedModule,
 	}
 
@@ -52,7 +53,10 @@ func (p *package_) PkgPath() string {
 }
 
 func (p *package_) ModPath() string {
-	return p.p.Module.Path
+	if p.p.Module != nil {
+		return p.p.Module.Path
+	}
+	return ""
 }
 
 func (p *package_) Interfaces() ([]Interface, error) {

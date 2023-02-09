@@ -12,8 +12,8 @@ import (
 	"goa.design/clue/mock/cmd/cmg/pkg/parse"
 )
 
-func Generate(ctx context.Context, patterns []string) error {
-	ps, err := parse.LoadPackages(patterns)
+func Generate(ctx context.Context, patterns []string, dir string) error {
+	ps, err := parse.LoadPackages(patterns, dir)
 	if err != nil {
 		log.Error(ctx, err)
 		return err

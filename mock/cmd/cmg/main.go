@@ -67,7 +67,7 @@ func main() {
 		} else {
 			ctx = log.Context(ctx)
 		}
-		err := cluemockgen.Generate(ctx, args)
+		err := cluemockgen.Generate(ctx, args, "")
 		if err != nil {
 			os.Exit(1)
 		}
