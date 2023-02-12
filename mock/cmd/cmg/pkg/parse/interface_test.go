@@ -2,7 +2,6 @@ package parse
 
 import (
 	"go/ast"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -89,7 +88,7 @@ func TestInterface_File(t *testing.T) {
 
 func TestInterface_Methods(t *testing.T) {
 	ps, err := packages.Load(&packages.Config{
-		Dir:  filepath.Join(".", "_tests"),
+		Dir:  "_tests",
 		Mode: packages.NeedName | packages.NeedFiles | packages.NeedImports | packages.NeedTypes | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedModule,
 	}, "./doer")
 	require.NoError(t, err)

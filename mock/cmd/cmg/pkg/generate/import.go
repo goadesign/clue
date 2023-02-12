@@ -25,16 +25,16 @@ type (
 func newImport(pkgPath string, args ...string) Import {
 	var pkgName, alias string
 	switch len(args) {
-	case 2:
-		pkgName = args[0]
-		alias = args[1]
+	case 0:
+		pkgName = path.Base(pkgPath)
 	case 1:
 		pkgName = args[0]
 		if pkgName != path.Base(pkgPath) {
 			alias = pkgName
 		}
-	case 0:
-		pkgName = path.Base(pkgPath)
+	case 2:
+		pkgName = args[0]
+		alias = args[1]
 	}
 	return &import_{pkgPath: pkgPath, pkgName: pkgName, alias: alias}
 }

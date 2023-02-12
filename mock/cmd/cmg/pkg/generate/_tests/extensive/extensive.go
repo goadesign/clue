@@ -1,0 +1,36 @@
+package extensive
+
+import (
+	"io"
+	"unsafe"
+
+	goa "goa.design/goa/v3/pkg"
+
+	imported "example.com/c/d/extensive/aliased"
+)
+
+type (
+	Extensive interface {
+		Simple(int, string) float64
+		NoResult()
+		MultipleResults() (bool, complex64, complex128, string, unsafe.Pointer, error)
+		NamedResult() (err error)
+		RepeatedTypes(a, b int, c, d float64) (e, f int, g, h float64, err error)
+		Variadic(args ...string)
+		ComplexTypes([5]string, []string, map[string]string, *string, chan int, chan<- int, <-chan int) ([5]string, []string, map[string]string, *string, chan int, chan<- int, <-chan int)
+		MoreComplexTypes(interface{}, interface {
+			io.ReadWriter
+			A(int) error
+			B()
+		}, struct {
+			Struct
+			A, B int
+			C    float64
+		}, func(int) (bool, error))
+		NamedTypes(Struct, Array, io.Reader, imported.Type, goa.Endpoint) (Struct, Array, io.Reader, imported.Type, goa.Endpoint)
+		VariableConflicts(f, m uint)
+	}
+
+	Struct struct{}
+	Array  [5]Struct
+)

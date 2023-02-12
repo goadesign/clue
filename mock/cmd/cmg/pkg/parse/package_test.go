@@ -35,7 +35,7 @@ func TestLoadPackages(t *testing.T) {
 
 			assert := assert.New(t)
 
-			packages, err := LoadPackages(tc.Patterns, filepath.Join(".", "_tests"))
+			packages, err := LoadPackages(tc.Patterns, "_tests")
 			if tc.ExpectedErr != "" {
 				assert.ErrorContains(err, tc.ExpectedErr)
 			} else if assert.NoError(err) && assert.Len(packages, len(tc.Expected)) {
@@ -160,7 +160,7 @@ func TestPackage_Interfaces(t *testing.T) {
 
 			assert := assert.New(t)
 
-			packages, err := LoadPackages([]string{tc.Pattern}, filepath.Join(".", "_tests"))
+			packages, err := LoadPackages([]string{tc.Pattern}, "_tests")
 			if assert.NoError(err) && assert.Len(packages, 1) {
 				interfaces, err := packages[0].Interfaces()
 				if tc.ExpectedErr != "" {

@@ -101,7 +101,7 @@ func generateFile(ctx context.Context, p parse.Package, file string, interfaces 
 	defer f.Close()
 
 	mocks := generate.NewMocks("mock", p, interfaces, Version)
-	if err := mocks.Render(ctx, f); err != nil {
+	if err := mocks.Render(f); err != nil {
 		log.Error(ctx, err)
 		return err
 	}

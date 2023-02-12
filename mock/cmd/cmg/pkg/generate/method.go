@@ -2,6 +2,7 @@ package generate
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"goa.design/clue/mock/cmd/cmg/pkg/parse"
@@ -13,6 +14,8 @@ type (
 		Func() string
 		Add() string
 		Set() string
+		InterfaceVar() string
+		FuncVar() string
 		Parameters() string
 		ParameterVars() string
 		Results() string
@@ -22,13 +25,18 @@ type (
 	method struct {
 		parse.Method
 
-		func_, add, set      string
-		typeNames, typeZeros typeMap
+		func_, add, set, interfaceVar, funcVar string
+		typeNames, typeZeros                   typeMap
 	}
 )
 
 func newMethod(m parse.Method, i parse.Interface, typeNames, typeZeros typeMap, stdImports, extImports, intImports importMap, modPath string) Method {
-	for _, t := range append(m.Parameters(), m.Results()...) {
+	parameterVars := make(map[string]struct{})
+	for _, t := range m.Parameters() {
+		parameterVars[t.Name()] = struct{}{}
+		addType(t.Type(), typeNames, typeZeros, stdImports, extImports, intImports, modPath)
+	}
+	for _, t := range m.Results() {
 		addType(t.Type(), typeNames, typeZeros, stdImports, extImports, intImports, modPath)
 	}
 	return &method{
@@ -36,6 +44,8 @@ func newMethod(m parse.Method, i parse.Interface, typeNames, typeZeros typeMap, 
 		i.Name() + m.Name() + "Func",
 		"Add" + m.Name(),
 		"Set" + m.Name(),
+		uniqueVar("m", parameterVars),
+		uniqueVar("f", parameterVars),
 		typeNames,
 		typeZeros,
 	}
@@ -53,6 +63,14 @@ func (m *method) Set() string {
 	return m.set
 }
 
+func (m *method) InterfaceVar() string {
+	return m.interfaceVar
+}
+
+func (m *method) FuncVar() string {
+	return m.funcVar
+}
+
 func (m *method) Parameters() string {
 	var (
 		parameters []string
@@ -62,7 +80,7 @@ func (m *method) Parameters() string {
 	for i, p := range ps {
 		b := &strings.Builder{}
 		if n, _ := b.WriteString(p.Name()); n == 0 {
-			fmt.Fprintf(b, "a%v", i)
+			fmt.Fprintf(b, "p%v", i)
 		}
 		if m.Method.Variadic() && i == last {
 			b.WriteString(" ..." + m.typeNames[p.Type()][2:])
@@ -83,7 +101,7 @@ func (m *method) ParameterVars() string {
 	for i, p := range ps {
 		v := p.Name()
 		if v == "" {
-			v = fmt.Sprintf("a%v", i)
+			v = fmt.Sprintf("p%v", i)
 		}
 		if m.Method.Variadic() && i == last {
 			v = v + "..."
@@ -132,4 +150,17 @@ func (m *method) ZeroResults() string {
 		results = append(results, m.typeZeros[r.Type()])
 	}
 	return strings.Join(results, ", ")
+}
+
+func uniqueVar(prefix string, vars map[string]struct{}) string {
+	v := prefix
+	if _, ok := vars[v]; ok {
+		for i := 1; i <= math.MaxInt; i++ {
+			v = fmt.Sprintf("%v%v", prefix, i)
+			if _, ok = vars[v]; !ok {
+				break
+			}
+		}
+	}
+	return v
 }

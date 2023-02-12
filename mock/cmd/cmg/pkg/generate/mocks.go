@@ -1,7 +1,6 @@
 package generate
 
 import (
-	"context"
 	_ "embed"
 	"io"
 	"sort"
@@ -20,7 +19,7 @@ type (
 		Interfaces() []Interface
 		ToolVersion() string
 		ToolCommandLine() string
-		Render(ctx context.Context, w io.Writer) error
+		Render(w io.Writer) error
 	}
 
 	ToolVersionFunc func() string
@@ -113,6 +112,6 @@ func (m *mocks) ToolCommandLine() string {
 	return "$ cmg gen " + m.pkgPath
 }
 
-func (m *mocks) Render(ctx context.Context, w io.Writer) error {
+func (m *mocks) Render(w io.Writer) error {
 	return mocksTmpl.Execute(w, m)
 }

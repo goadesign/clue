@@ -52,15 +52,15 @@ func ({{ $interface.Var }} *{{ $interface.Name }}) {{ .Set }}(f {{ .Func }}) {
 	{{ $interface.Var }}.m.Set("{{ .Name }}", f)
 }
 
-func ({{ $interface.Var }} *{{ $interface.Name }}) {{ .Name }}({{ .Parameters }}){{ if .Results }} {{ .Results }}{{ end }} {
-	if f := {{ $interface.Var }}.m.Next("{{ .Name }}"); f != nil {
-		{{ if .Results }}return {{ end }}f.({{ .Func }})({{ .ParameterVars }})
+func ({{ .InterfaceVar }} *{{ $interface.Name }}) {{ .Name }}({{ .Parameters }}){{ if .Results }} {{ .Results }}{{ end }} {
+	if {{ .FuncVar }} := {{ .InterfaceVar }}.m.Next("{{ .Name }}"); {{ .FuncVar }} != nil {
+		{{ if .Results }}return {{ end }}{{ .FuncVar }}.({{ .Func }})({{ .ParameterVars }})
 {{- if not .Results }}
 		return
 {{- end }}
 	}
-	{{ $interface.Var }}.t.Helper()
-	{{ $interface.Var }}.t.Error("unexpected {{ .Name }} call")
+	{{ .InterfaceVar }}.t.Helper()
+	{{ .InterfaceVar }}.t.Error("unexpected {{ .Name }} call")
 {{- if .ZeroResults }}
 	return {{ .ZeroResults }}
 {{- end }}

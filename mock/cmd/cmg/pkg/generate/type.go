@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"bytes"
 	"fmt"
 	"go/types"
 	"strings"
@@ -37,8 +38,29 @@ func (ta *typeAdder) name(tt types.Type) (name string) {
 			default:
 				name = t.Name()
 			}
+		case *types.Chan:
+			switch t.Dir() {
+			case types.SendRecv:
+				name = "chan " + ta.name(t.Elem())
+			case types.SendOnly:
+				name = "chan<- " + ta.name(t.Elem())
+			case types.RecvOnly:
+				name = "<-chan " + ta.name(t.Elem())
+			}
 		case *types.Interface:
-			// TODO
+			if t.Empty() {
+				name = "interface{}"
+			} else {
+				es := make([]string, 0, t.NumEmbeddeds()+t.NumExplicitMethods())
+				for i := 0; i < t.NumEmbeddeds(); i++ {
+					es = append(es, ta.name(t.EmbeddedType(i)))
+				}
+				for i := 0; i < t.NumExplicitMethods(); i++ {
+					m := t.ExplicitMethod(i)
+					es = append(es, fmt.Sprintf("%v%v", m.Name(), ta.name(m.Type())[4:]))
+				}
+				name = fmt.Sprintf("interface{%v}", strings.Join(es, "; "))
+			}
 		case *types.Map:
 			name = fmt.Sprintf("map[%v]%v", ta.name(t.Key()), ta.name(t.Elem()))
 		case *types.Named:
@@ -52,15 +74,24 @@ func (ta *typeAdder) name(tt types.Type) (name string) {
 		case *types.Pointer:
 			name = "*" + ta.name(t.Elem())
 		case *types.Signature:
-			// TODO
-			b := &strings.Builder{}
-			name = b.String()
+			b := &bytes.Buffer{}
+			types.WriteSignature(b, t, nil)
+			name = "func" + b.String()
 		case *types.Slice:
 			name = "[]" + ta.name(t.Elem())
 		case *types.Struct:
-			// TODO
+			fs := make([]string, 0, t.NumFields())
+			for i := 0; i < t.NumFields(); i++ {
+				f := t.Field(i)
+				if f.Embedded() {
+					fs = append(fs, ta.name(f.Type()))
+				} else {
+					fs = append(fs, fmt.Sprintf("%v %v", f.Name(), ta.name(f.Type())))
+				}
+			}
+			name = fmt.Sprintf("struct{%v}", strings.Join(fs, "; "))
 		default:
-			panic(fmt.Sprintf("unknown name for type: %#v (%T)", t, t))
+			panic(fmt.Errorf("unknown name for type: %#v (%T)", t, t))
 		}
 		ta.names[tt] = name
 	}
@@ -78,7 +109,7 @@ func (ta *typeAdder) zero(tt types.Type) (zero string) {
 			case types.Bool:
 				zero = "false"
 			case types.Complex64, types.Complex128:
-				zero = "0+0i"
+				zero = "0i"
 			case types.String:
 				zero = `""`
 			case types.UnsafePointer:
@@ -89,9 +120,14 @@ func (ta *typeAdder) zero(tt types.Type) (zero string) {
 		case *types.Chan, *types.Interface, *types.Map, *types.Pointer, *types.Signature, *types.Slice:
 			zero = "nil"
 		case *types.Named:
-			zero = ta.zero(t.Underlying())
+			switch t.Underlying().(type) {
+			case *types.Array, *types.Struct:
+				zero = ta.name(t) + "{}"
+			default:
+				zero = ta.zero(t.Underlying())
+			}
 		default:
-			panic(fmt.Sprintf("unknown zero for type: %#v (%T)", t, t))
+			panic(fmt.Errorf("unknown zero for type: %#v (%T)", t, t))
 		}
 		ta.zeros[tt] = zero
 	}
