@@ -100,44 +100,6 @@ func TestMethod_IsExported(t *testing.T) {
 	}
 }
 
-func TestMethod_TypeParameters(t *testing.T) {
-	p := &packages.Package{}
-	cases := []struct {
-		Name     string
-		FuncType *ast.FuncType
-		Expected []Type
-	}{
-		{
-			Name: "success",
-			FuncType: &ast.FuncType{TypeParams: &ast.FieldList{List: []*ast.Field{
-				{
-					Names: []*ast.Ident{ast.NewIdent("K")},
-					Type:  ast.NewIdent("comparable"),
-				},
-				{
-					Names: []*ast.Ident{ast.NewIdent("V")},
-					Type:  ast.NewIdent("any"),
-				},
-			}}},
-			Expected: []Type{
-				newType(p, ast.NewIdent("K"), ast.NewIdent("comparable")),
-				newType(p, ast.NewIdent("V"), ast.NewIdent("any")),
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		tc := tc
-		t.Run(tc.Name, func(t *testing.T) {
-			t.Parallel()
-
-			method := newMethod(p, nil, tc.FuncType, false)
-			parameters := method.TypeParameters()
-			assert.Equal(t, tc.Expected, parameters)
-		})
-	}
-}
-
 func TestMethod_Parameters(t *testing.T) {
 	p := &packages.Package{}
 	cases := []struct {

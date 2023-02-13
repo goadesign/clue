@@ -33,14 +33,21 @@ type (
 	ExtensiveMoreComplexTypesFunc  func(p0 interface{}, p1 interface{io.ReadWriter; A(int) error; B()}, p2 struct{extensive.Struct; A int; B int; C float64}, p3 func(int) (bool, error))
 	ExtensiveNamedTypesFunc        func(p0 extensive.Struct, p1 extensive.Array, p2 io.Reader, p3 imported.Type, p4 goa.Endpoint) (extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint)
 	ExtensiveVariableConflictsFunc func(f, m uint)
-)
 
-var (
-	_ extensive.Extensive = (*Extensive)(nil)
+	Generic[K comparable, V ~int | bool | string, X, Y any] struct {
+		m *mock.Mock
+		t *testing.T
+	}
+
+	GenericSimpleFunc[K comparable, V ~int | bool | string, X, Y any] func(k K, v V, x X, y Y) (K, V, X, Y)
 )
 
 func NewExtensive(t *testing.T) *Extensive {
-	return &Extensive{mock.New(), t}
+	var (
+		m                     = &Extensive{mock.New(), t}
+		_ extensive.Extensive = m
+	)
+	return m
 }
 
 func (m *Extensive) AddSimple(f ExtensiveSimpleFunc) {
@@ -214,5 +221,34 @@ func (m1 *Extensive) VariableConflicts(f, m uint) {
 }
 
 func (m *Extensive) HasMore() bool {
+	return m.m.HasMore()
+}
+
+func NewGeneric[K comparable, V ~int | bool | string, X, Y any](t *testing.T) *Generic[K, V, X, Y] {
+	var (
+		m                               = &Generic[K, V, X, Y]{mock.New(), t}
+		_ extensive.Generic[K, V, X, Y] = m
+	)
+	return m
+}
+
+func (m *Generic[K, V, X, Y]) AddSimple(f GenericSimpleFunc[K, V, X, Y]) {
+	m.m.Add("Simple", f)
+}
+
+func (m *Generic[K, V, X, Y]) SetSimple(f GenericSimpleFunc[K, V, X, Y]) {
+	m.m.Set("Simple", f)
+}
+
+func (m *Generic[K, V, X, Y]) Simple(k K, v V, x X, y Y) (K, V, X, Y) {
+	if f := m.m.Next("Simple"); f != nil {
+		return f.(GenericSimpleFunc[K, V, X, Y])(k, v, x, y)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Simple call")
+	return *new(K), *new(V), *new(X), *new(Y)
+}
+
+func (m *Generic[K, V, X, Y]) HasMore() bool {
 	return m.m.HasMore()
 }

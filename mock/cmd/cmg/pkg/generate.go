@@ -50,9 +50,14 @@ func generatePackage(ctx context.Context, p parse.Package) error {
 		ctx := log.With(ctx, log.KV{K: "interface name", V: i.Name()})
 		log.Print(ctx, log.KV{K: "is exported", V: i.IsExported()}, log.KV{K: "file", V: i.File()})
 		if i.IsExported() {
-			var unexportedMethods []string
+			var (
+				exportedMethods   = 0
+				unexportedMethods []string
+			)
 			for _, method := range i.Methods() {
-				if !method.IsExported() {
+				if method.IsExported() {
+					exportedMethods++
+				} else {
 					unexportedMethods = append(unexportedMethods, method.Name())
 				}
 			}
@@ -60,6 +65,9 @@ func generatePackage(ctx context.Context, p parse.Package) error {
 				err = fmt.Errorf("unexported methods: %v", strings.Join(unexportedMethods, ", "))
 				log.Error(ctx, err)
 				return err
+			}
+			if exportedMethods <= 0 {
+				continue
 			}
 			interfacesByFile[i.File()] = append(interfacesByFile[i.File()], i)
 		}

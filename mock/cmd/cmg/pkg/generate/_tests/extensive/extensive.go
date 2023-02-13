@@ -31,6 +31,10 @@ type (
 		VariableConflicts(f, m uint)
 	}
 
+	Generic[K comparable, V ~int | bool | string, X, Y any] interface {
+		Simple(k K, v V, x X, y Y) (K, V, X, Y)
+	}
+
 	Struct struct{}
 	Array  [5]Struct
 )

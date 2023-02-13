@@ -49,7 +49,7 @@ func (ta *typeAdder) name(tt types.Type) (name string) {
 			}
 		case *types.Interface:
 			if t.Empty() {
-				name = "interface{}"
+				name = t.String()
 			} else {
 				es := make([]string, 0, t.NumEmbeddeds()+t.NumExplicitMethods())
 				for i := 0; i < t.NumEmbeddeds(); i++ {
@@ -90,6 +90,19 @@ func (ta *typeAdder) name(tt types.Type) (name string) {
 				}
 			}
 			name = fmt.Sprintf("struct{%v}", strings.Join(fs, "; "))
+		case *types.TypeParam:
+			name = t.Obj().Name()
+		case *types.Union:
+			ts := make([]string, 0, t.Len())
+			for i := 0; i < t.Len(); i++ {
+				term := t.Term(i)
+				if term.Tilde() {
+					ts = append(ts, "~"+ta.name(term.Type()))
+				} else {
+					ts = append(ts, ta.name(term.Type()))
+				}
+			}
+			name = strings.Join(ts, " | ")
 		default:
 			panic(fmt.Errorf("unknown name for type: %#v (%T)", t, t))
 		}
@@ -126,6 +139,10 @@ func (ta *typeAdder) zero(tt types.Type) (zero string) {
 			default:
 				zero = ta.zero(t.Underlying())
 			}
+		case *types.TypeParam:
+			zero = fmt.Sprintf("*new(%v)", t.Obj().Name())
+		case *types.Union:
+			// the zero value for a type constraint union will not be used
 		default:
 			panic(fmt.Errorf("unknown zero for type: %#v (%T)", t, t))
 		}

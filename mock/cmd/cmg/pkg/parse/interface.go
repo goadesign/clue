@@ -12,6 +12,7 @@ type (
 		Name() string
 		IsExported() bool
 		File() string
+		TypeParameters() []Type
 		Methods() []Method
 	}
 
@@ -37,6 +38,17 @@ func (i *interface_) IsExported() bool {
 
 func (i *interface_) File() string {
 	return i.file
+}
+
+func (i *interface_) TypeParameters() (typeParameters []Type) {
+	if i.typeSpec.TypeParams != nil {
+		for _, tp := range i.typeSpec.TypeParams.List {
+			for _, ident := range tp.Names {
+				typeParameters = append(typeParameters, newType(i.p, ident, tp.Type))
+			}
+		}
+	}
+	return
 }
 
 func (i *interface_) Methods() (methods []Method) {

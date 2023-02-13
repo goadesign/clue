@@ -104,7 +104,7 @@ func (m *method) ParameterVars() string {
 			v = fmt.Sprintf("p%v", i)
 		}
 		if m.Method.Variadic() && i == last {
-			v = v + "..."
+			v += "..."
 		}
 		vars = append(vars, v)
 	}

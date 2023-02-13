@@ -10,7 +10,6 @@ type (
 	Method interface {
 		Name() string
 		IsExported() bool
-		TypeParameters() []Type
 		Parameters() []Value
 		Results() []Value
 		Variadic() bool
@@ -34,15 +33,6 @@ func (m *method) Name() string {
 
 func (m *method) IsExported() bool {
 	return m.ident.IsExported()
-}
-
-func (m *method) TypeParameters() (typeParameters []Type) {
-	if m.funcType.TypeParams != nil {
-		for _, tp := range m.funcType.TypeParams.List {
-			typeParameters = append(typeParameters, newType(m.p, tp.Names[0], tp.Type))
-		}
-	}
-	return
 }
 
 func (m *method) Parameters() (parameters []Value) {

@@ -2,6 +2,7 @@ package parse
 
 import (
 	"go/ast"
+	"go/types"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -9,6 +10,7 @@ import (
 type (
 	Type interface {
 		Name() string
+		Constraint() types.Type
 	}
 
 	type_ struct {
@@ -24,4 +26,8 @@ func newType(p *packages.Package, ident *ast.Ident, typeType ast.Expr) Type {
 
 func (t *type_) Name() string {
 	return t.ident.Name
+}
+
+func (t *type_) Constraint() types.Type {
+	return t.p.TypesInfo.Types[t.typeType].Type
 }
