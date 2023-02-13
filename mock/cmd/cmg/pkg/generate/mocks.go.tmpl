@@ -26,7 +26,7 @@ type (
 		t *testing.T
 	}
 {{ range .Methods }}
-	{{ .Func | printf $interface.MaxFuncLenFmt }}{{ $interface.TypeParameters }} func({{ .Parameters }}){{ if .Results }} {{ .Results }}{{ end }}
+	{{ printf "%v%v" .Func $interface.TypeParameters | printf $interface.MaxFuncLenFmt }} func({{ .Parameters }}){{ if .Results }} {{ .Results }}{{ end }}
 {{- end }}
 {{- end }}
 )

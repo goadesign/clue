@@ -86,6 +86,45 @@ func TestInterface_File(t *testing.T) {
 	}
 }
 
+func TestInterface_TypeParameters(t *testing.T) {
+	p := &packages.Package{}
+	cases := []struct {
+		Name     string
+		TypeSpec *ast.TypeSpec
+		Expected []Type
+	}{
+		{
+			Name: "success",
+			TypeSpec: &ast.TypeSpec{TypeParams: &ast.FieldList{List: []*ast.Field{
+				{
+					Names: []*ast.Ident{ast.NewIdent("K")},
+					Type:  ast.NewIdent("comparable"),
+				},
+				{
+					Names: []*ast.Ident{ast.NewIdent("V"), ast.NewIdent("X")},
+					Type:  ast.NewIdent("any"),
+				},
+			}}},
+			Expected: []Type{
+				newType(p, ast.NewIdent("K"), ast.NewIdent("comparable")),
+				newType(p, ast.NewIdent("V"), ast.NewIdent("any")),
+				newType(p, ast.NewIdent("X"), ast.NewIdent("any")),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
+
+			i := newInterface(p, "", tc.TypeSpec, nil)
+			parameters := i.TypeParameters()
+			assert.Equal(t, tc.Expected, parameters)
+		})
+	}
+}
+
 func TestInterface_Methods(t *testing.T) {
 	ps, err := packages.Load(&packages.Config{
 		Dir:  "_tests",

@@ -26,13 +26,22 @@ type (
 			Struct
 			A, B int
 			C    float64
+		}, func(int) (bool, error)) (interface{}, interface {
+			io.ReadWriter
+			A(int) error
+			B()
+		}, struct {
+			Struct
+			A, B int
+			C    float64
 		}, func(int) (bool, error))
-		NamedTypes(Struct, Array, io.Reader, imported.Type, goa.Endpoint) (Struct, Array, io.Reader, imported.Type, goa.Endpoint)
+		NamedTypes(Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array]) (Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array])
 		VariableConflicts(f, m uint)
 	}
 
 	Generic[K comparable, V ~int | bool | string, X, Y any] interface {
 		Simple(k K, v V, x X, y Y) (K, V, X, Y)
+		Complex(map[K]V, []X, *Y) (map[K]V, []X, *Y)
 	}
 
 	Struct struct{}

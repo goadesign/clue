@@ -30,8 +30,8 @@ type (
 	ExtensiveRepeatedTypesFunc     func(a, b int, c, d float64) (e, f int, g, h float64, err error)
 	ExtensiveVariadicFunc          func(args ...string)
 	ExtensiveComplexTypesFunc      func(p0 [5]string, p1 []string, p2 map[string]string, p3 *string, p4 chan int, p5 chan<- int, p6 <-chan int) ([5]string, []string, map[string]string, *string, chan int, chan<- int, <-chan int)
-	ExtensiveMoreComplexTypesFunc  func(p0 interface{}, p1 interface{io.ReadWriter; A(int) error; B()}, p2 struct{extensive.Struct; A int; B int; C float64}, p3 func(int) (bool, error))
-	ExtensiveNamedTypesFunc        func(p0 extensive.Struct, p1 extensive.Array, p2 io.Reader, p3 imported.Type, p4 goa.Endpoint) (extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint)
+	ExtensiveMoreComplexTypesFunc  func(p0 interface{}, p1 interface{io.ReadWriter; A(int) error; B()}, p2 struct{extensive.Struct; A int; B int; C float64}, p3 func(int) (bool, error)) (interface{}, interface{io.ReadWriter; A(int) error; B()}, struct{extensive.Struct; A int; B int; C float64}, func(int) (bool, error))
+	ExtensiveNamedTypesFunc        func(p0 extensive.Struct, p1 extensive.Array, p2 io.Reader, p3 imported.Type, p4 goa.Endpoint, p5 extensive.Generic[uint, string, extensive.Struct, extensive.Array]) (extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])
 	ExtensiveVariableConflictsFunc func(f, m uint)
 
 	Generic[K comparable, V ~int | bool | string, X, Y any] struct {
@@ -39,7 +39,8 @@ type (
 		t *testing.T
 	}
 
-	GenericSimpleFunc[K comparable, V ~int | bool | string, X, Y any] func(k K, v V, x X, y Y) (K, V, X, Y)
+	GenericSimpleFunc[K comparable, V ~int | bool | string, X, Y any]  func(k K, v V, x X, y Y) (K, V, X, Y)
+	GenericComplexFunc[K comparable, V ~int | bool | string, X, Y any] func(p0 map[K]V, p1 []X, p2 *Y) (map[K]V, []X, *Y)
 )
 
 func NewExtensive(t *testing.T) *Extensive {
@@ -177,13 +178,13 @@ func (m *Extensive) SetMoreComplexTypes(f ExtensiveMoreComplexTypesFunc) {
 	m.m.Set("MoreComplexTypes", f)
 }
 
-func (m *Extensive) MoreComplexTypes(p0 interface{}, p1 interface{io.ReadWriter; A(int) error; B()}, p2 struct{extensive.Struct; A int; B int; C float64}, p3 func(int) (bool, error)) {
+func (m *Extensive) MoreComplexTypes(p0 interface{}, p1 interface{io.ReadWriter; A(int) error; B()}, p2 struct{extensive.Struct; A int; B int; C float64}, p3 func(int) (bool, error)) (interface{}, interface{io.ReadWriter; A(int) error; B()}, struct{extensive.Struct; A int; B int; C float64}, func(int) (bool, error)) {
 	if f := m.m.Next("MoreComplexTypes"); f != nil {
-		f.(ExtensiveMoreComplexTypesFunc)(p0, p1, p2, p3)
-		return
+		return f.(ExtensiveMoreComplexTypesFunc)(p0, p1, p2, p3)
 	}
 	m.t.Helper()
 	m.t.Error("unexpected MoreComplexTypes call")
+	return nil, nil, struct{extensive.Struct; A int; B int; C float64}{}, nil
 }
 
 func (m *Extensive) AddNamedTypes(f ExtensiveNamedTypesFunc) {
@@ -194,13 +195,13 @@ func (m *Extensive) SetNamedTypes(f ExtensiveNamedTypesFunc) {
 	m.m.Set("NamedTypes", f)
 }
 
-func (m *Extensive) NamedTypes(p0 extensive.Struct, p1 extensive.Array, p2 io.Reader, p3 imported.Type, p4 goa.Endpoint) (extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint) {
+func (m *Extensive) NamedTypes(p0 extensive.Struct, p1 extensive.Array, p2 io.Reader, p3 imported.Type, p4 goa.Endpoint, p5 extensive.Generic[uint, string, extensive.Struct, extensive.Array]) (extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array]) {
 	if f := m.m.Next("NamedTypes"); f != nil {
-		return f.(ExtensiveNamedTypesFunc)(p0, p1, p2, p3, p4)
+		return f.(ExtensiveNamedTypesFunc)(p0, p1, p2, p3, p4, p5)
 	}
 	m.t.Helper()
 	m.t.Error("unexpected NamedTypes call")
-	return extensive.Struct{}, extensive.Array{}, nil, 0, nil
+	return extensive.Struct{}, extensive.Array{}, nil, 0, nil, nil
 }
 
 func (m *Extensive) AddVariableConflicts(f ExtensiveVariableConflictsFunc) {
@@ -247,6 +248,23 @@ func (m *Generic[K, V, X, Y]) Simple(k K, v V, x X, y Y) (K, V, X, Y) {
 	m.t.Helper()
 	m.t.Error("unexpected Simple call")
 	return *new(K), *new(V), *new(X), *new(Y)
+}
+
+func (m *Generic[K, V, X, Y]) AddComplex(f GenericComplexFunc[K, V, X, Y]) {
+	m.m.Add("Complex", f)
+}
+
+func (m *Generic[K, V, X, Y]) SetComplex(f GenericComplexFunc[K, V, X, Y]) {
+	m.m.Set("Complex", f)
+}
+
+func (m *Generic[K, V, X, Y]) Complex(p0 map[K]V, p1 []X, p2 *Y) (map[K]V, []X, *Y) {
+	if f := m.m.Next("Complex"); f != nil {
+		return f.(GenericComplexFunc[K, V, X, Y])(p0, p1, p2)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Complex call")
+	return nil, nil, nil
 }
 
 func (m *Generic[K, V, X, Y]) HasMore() bool {

@@ -71,6 +71,13 @@ func (ta *typeAdder) name(tt types.Type) (name string) {
 			} else {
 				name = o.Name()
 			}
+			if tas := t.TypeArgs(); tas != nil {
+				as := make([]string, 0, tas.Len())
+				for i := 0; i < tas.Len(); i++ {
+					as = append(as, ta.name(tas.At(i)))
+				}
+				name += "[" + strings.Join(as, ", ") + "]"
+			}
 		case *types.Pointer:
 			name = "*" + ta.name(t.Elem())
 		case *types.Signature:

@@ -35,7 +35,7 @@ func newInterface(i parse.Interface, typeNames, typeZeros typeMap, stdImports, e
 	iface := &interface_{i, nil, 0, typeNames, typeZeros}
 	for _, m := range i.Methods() {
 		method := newMethod(m, i, typeNames, typeZeros, stdImports, extImports, intImports, modPath)
-		if l := len(method.Func()); l > iface.maxFuncLen {
+		if l := len(method.Func() + iface.TypeParameters()); l > iface.maxFuncLen {
 			iface.maxFuncLen = l
 		}
 		iface.methods = append(iface.methods, method)
