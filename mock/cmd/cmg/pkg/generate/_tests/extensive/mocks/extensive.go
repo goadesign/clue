@@ -30,7 +30,7 @@ type (
 	ExtensiveRepeatedTypesFunc     func(a, b int, c, d float64) (e, f int, g, h float64, err error)
 	ExtensiveVariadicFunc          func(args ...string)
 	ExtensiveComplexTypesFunc      func(p0 [5]string, p1 []string, p2 map[string]string, p3 *string, p4 chan int, p5 chan<- int, p6 <-chan int) ([5]string, []string, map[string]string, *string, chan int, chan<- int, <-chan int)
-	ExtensiveMoreComplexTypesFunc  func(p0 interface{}, p1 interface{io.ReadWriter; A(int) error; B()}, p2 struct{extensive.Struct; A int; B int; C float64}, p3 func(int) (bool, error)) (interface{}, interface{io.ReadWriter; A(int) error; B()}, struct{extensive.Struct; A int; B int; C float64}, func(int) (bool, error))
+	ExtensiveMoreComplexTypesFunc  func(p0 interface{}, p1 interface{io.ReadWriter; A(int) error; B()}, p2 struct{extensive.Struct; A, B int; C float64}, p3 func(int) (bool, error)) (interface{}, interface{io.ReadWriter; A(int) error; B()}, struct{extensive.Struct; A, B int; C float64}, func(int) (bool, error))
 	ExtensiveNamedTypesFunc        func(p0 extensive.Struct, p1 extensive.Array, p2 io.Reader, p3 imported.Type, p4 goa.Endpoint, p5 extensive.Generic[uint, string, extensive.Struct, extensive.Array]) (extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])
 	ExtensiveVariableConflictsFunc func(f, m uint)
 
@@ -178,13 +178,13 @@ func (m *Extensive) SetMoreComplexTypes(f ExtensiveMoreComplexTypesFunc) {
 	m.m.Set("MoreComplexTypes", f)
 }
 
-func (m *Extensive) MoreComplexTypes(p0 interface{}, p1 interface{io.ReadWriter; A(int) error; B()}, p2 struct{extensive.Struct; A int; B int; C float64}, p3 func(int) (bool, error)) (interface{}, interface{io.ReadWriter; A(int) error; B()}, struct{extensive.Struct; A int; B int; C float64}, func(int) (bool, error)) {
+func (m *Extensive) MoreComplexTypes(p0 interface{}, p1 interface{io.ReadWriter; A(int) error; B()}, p2 struct{extensive.Struct; A, B int; C float64}, p3 func(int) (bool, error)) (interface{}, interface{io.ReadWriter; A(int) error; B()}, struct{extensive.Struct; A, B int; C float64}, func(int) (bool, error)) {
 	if f := m.m.Next("MoreComplexTypes"); f != nil {
 		return f.(ExtensiveMoreComplexTypesFunc)(p0, p1, p2, p3)
 	}
 	m.t.Helper()
 	m.t.Error("unexpected MoreComplexTypes call")
-	return nil, nil, struct{extensive.Struct; A int; B int; C float64}{}, nil
+	return nil, nil, struct{extensive.Struct; A, B int; C float64}{}, nil
 }
 
 func (m *Extensive) AddNamedTypes(f ExtensiveNamedTypesFunc) {

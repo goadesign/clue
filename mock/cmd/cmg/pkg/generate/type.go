@@ -93,7 +93,16 @@ func (ta *typeAdder) name(tt types.Type) (name string) {
 				if f.Embedded() {
 					fs = append(fs, ta.name(f.Type()))
 				} else {
-					fs = append(fs, fmt.Sprintf("%v %v", f.Name(), ta.name(f.Type())))
+					names := f.Name()
+					for j := i + 1; j < t.NumFields(); j++ {
+						nf := t.Field(j)
+						if nf.Embedded() || f.Type() != nf.Type() {
+							break
+						}
+						names += ", " + nf.Name()
+						i++
+					}
+					fs = append(fs, fmt.Sprintf("%v %v", names, ta.name(f.Type())))
 				}
 			}
 			name = fmt.Sprintf("struct{%v}", strings.Join(fs, "; "))
