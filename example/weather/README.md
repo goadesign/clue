@@ -206,7 +206,7 @@ check := health.Handler(health.NewChecker(
 
 The health check and metric handlers are mounted on a separate HTTP handler (the
 global `http` standard library handler) to avoid logging, tracing and otherwise
-instrumenting the correspinding requests.
+instrumenting the corresponding requests.
 
 ```go
 http.Handle("/livez", check)
@@ -246,14 +246,17 @@ func New(cc *grpc.ClientConn) Client {
 }
 ```
 
-The mock is instantiated via the `NewMock` function located in the `mock.go` file:
+The mock is instantiated via the `NewClient` function located in the
+`mocks/client.go` file that is generated using the `cmg` tool:
 
 ```go
-var _ Client = &Mock{}
-
 // NewMock returns a new mock client.
-func NewMock(t *testing.T) *Mock {
-        return &Mock{mock.New(), t}
+func NewClient(t *testing.T) *Client {
+        var (
+                m                     = &Client{mock.New(), t}
+                _ = forecaster.Client = m
+        )
+        return m
 }
 ```
 
@@ -262,43 +265,46 @@ create call sequences and validate them:
 
 ```go
 type (
-               // Mock implementation of the forecast client.
-        Mock struct {
+        // Mock implementation of the forecast client.
+        Client struct {
                 m *mock.Mock
                 t *testing.T
         }
+
+        ClientGetForecastFunc func(ctx context.Context, lat, long float64) (*forecaster.Forecast, error)
 )
 ```
 
 ```go
 // AddGetForecastFunc adds f to the mocked call sequence.
-func (m *Mock) AddGetForecastFunc(f GetForecastFunc) {
+func (m *Client) AddGetForecast(f ClientGetForecastFunc) {
         m.m.Add("GetForecast", f)
 }
 
 // SetGetForecastFunc sets f for all calls to the mocked method.
-func (m *Mock) SetGetForecastFunc(f GetForecastFunc) {
+func (m *Client) SetGetForecast(f ClientGetForecastFunc) {
         m.m.Set("GetForecast", f)
 }
 
 // GetForecast implements the Client interface.
-func (m *Mock) GetForecast(ctx context.Context, lat, long float64) (*Forecast, error) {
+func (m *Client) GetForecast(ctx context.Context, lat, long float64) (*forecaster.Forecast, error) {
         if f := m.m.Next("GetForecast"); f != nil {
-                return f.(GetForecastFunc)(ctx, lat, long)
+                return f.(ClientGetForecastFunc)(ctx, lat, long)
         }
-        m.t.Error("unexpected call to GetForecast")
+        m.t.Helper()
+        m.t.Error("unexpected GetForecast call")
         return nil, nil
 }
 ```
 
-Tests leverage the `AddGetForecastFunc` and `SetGetForecastFunc` methods to
-configure the mock client:
+Tests leverage the `AddGetForecast` and `SetGetForecast` methods to configure
+the mock client:
 
 ```go
-lmock := locator.NewMock(t)
-lmock.AddGetLocationFunc(c.locationFunc) // Mock the locator service.
-fmock := forecaster.NewMock(t)
-fmock.AddGetForecastFunc(c.forecastFunc) // Mock the forecast service.
+lmock := mocklocator.NewClient(t)
+lmock.AddGetLocation(c.locationFunc) // Mock the locator service.
+fmock := mockforecaster.NewClient(t)
+fmock.AddGetForecast(c.forecastFunc) // Mock the forecast service.
 s := New(fmock, lmock) // Create front service instance for testing
 ```
 
