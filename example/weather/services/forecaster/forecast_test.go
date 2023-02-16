@@ -6,14 +6,15 @@ import (
 	"testing"
 
 	"goa.design/clue/example/weather/services/forecaster/clients/weathergov"
+	mockweathergov "goa.design/clue/example/weather/services/forecaster/clients/weathergov/mocks"
 	genforecaster "goa.design/clue/example/weather/services/forecaster/gen/forecaster"
 )
 
 func TestForecast(t *testing.T) {
 	// Create mock call sequence with first successful call returning a
 	// forecast then failing.
-	wc := weathergov.NewMock(t)
-	wc.AddGetForecastFunc(func(ctx context.Context, lat, long float64) (*weathergov.Forecast, error) {
+	wc := mockweathergov.NewClient(t)
+	wc.AddGetForecast(func(ctx context.Context, lat, long float64) (*weathergov.Forecast, error) {
 		// Make sure service passes the right values to the client
 		if lat != latitude {
 			t.Errorf("got latitude %f, expected %f", lat, latitude)
@@ -23,7 +24,7 @@ func TestForecast(t *testing.T) {
 		}
 		return mockForecast, nil
 	})
-	wc.AddGetForecastFunc(func(_ context.Context, _, _ float64) (*weathergov.Forecast, error) {
+	wc.AddGetForecast(func(_ context.Context, _, _ float64) (*weathergov.Forecast, error) {
 		return nil, fmt.Errorf("test failure")
 	})
 
