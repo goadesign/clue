@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"goa.design/clue/example/weather/services/locator/clients/ipapi"
+	mockipapi "goa.design/clue/example/weather/services/locator/clients/ipapi/mocks"
 )
 
 func TestGetIPLocation(t *testing.T) {
@@ -18,11 +19,11 @@ func TestGetIPLocation(t *testing.T) {
 	)
 	// Create mock call sequence with first successful call returning an IP
 	// location then failing.
-	ipc := ipapi.NewMock(t)
-	ipc.AddGetLocationFunc(func(ctx context.Context, ip string) (*ipapi.WorldLocation, error) {
+	ipc := mockipapi.NewClient(t)
+	ipc.AddGetLocation(func(ctx context.Context, ip string) (*ipapi.WorldLocation, error) {
 		return &ipapi.WorldLocation{testLat, testLong, testCity, testRegion, testCountry}, nil
 	})
-	ipc.AddGetLocationFunc(func(ctx context.Context, ip string) (*ipapi.WorldLocation, error) {
+	ipc.AddGetLocation(func(ctx context.Context, ip string) (*ipapi.WorldLocation, error) {
 		return nil, fmt.Errorf("test failure")
 	})
 

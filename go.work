@@ -1,0 +1,7 @@
+go 1.19
+
+use (
+	.
+	./mock/cmd/cmg/pkg/generate/_tests
+	./mock/cmd/cmg/pkg/parse/_tests
+)

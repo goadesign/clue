@@ -18,6 +18,10 @@ Alternatively (or complementarily) the `Set` method defines a mock that
 is used for all method calls by the test. If both `Add` and `Set` are used by
 the test then the mocks recorded by `Add` are used first.
 
+Additionally, there is a `cmg` ([Clue Mock Generator](#clue-mock-generator))
+command line tool that generates dependency mocks from all exported interfaces
+in a given package so they do not need to be written by hand.
+
 ## Usage
 
 ### Creating a Dependency Mock
@@ -69,4 +73,21 @@ if err != nil {
 if mock.HasMore() {
         t.Error("GetPrices was not called")
 }
+```
+
+## Clue Mock Generator
+
+### Installation
+
+```bash
+go install goa.design/clue/mock/cmd/cmg
+```
+
+### Usage
+
+The Clue Mock Generator can be invoked using the same package path syntax as
+other Go tools and it can accept multiple packages:
+
+```bash
+cmg gen ./example/weather/services/...
 ```

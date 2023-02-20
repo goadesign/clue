@@ -6,15 +6,17 @@ import (
 	"testing"
 
 	"goa.design/clue/example/weather/services/front/clients/forecaster"
+	mockforecaster "goa.design/clue/example/weather/services/front/clients/forecaster/mocks"
 	"goa.design/clue/example/weather/services/front/clients/locator"
+	mocklocator "goa.design/clue/example/weather/services/front/clients/locator/mocks"
 	genfront "goa.design/clue/example/weather/services/front/gen/front"
 )
 
 func TestForecast(t *testing.T) {
 	cases := []struct {
 		name         string
-		locationFunc locator.GetLocationFunc
-		forecastFunc forecaster.GetForecastFunc
+		locationFunc mocklocator.ClientGetLocationFunc
+		forecastFunc mockforecaster.ClientGetForecastFunc
 
 		expectedResult *genfront.Forecast2
 		expectedError  error
@@ -26,10 +28,10 @@ func TestForecast(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			lmock := locator.NewMock(t)
-			lmock.AddGetLocationFunc(c.locationFunc)
-			fmock := forecaster.NewMock(t)
-			fmock.AddGetForecastFunc(c.forecastFunc)
+			lmock := mocklocator.NewClient(t)
+			lmock.AddGetLocation(c.locationFunc)
+			fmock := mockforecaster.NewClient(t)
+			fmock.AddGetForecast(c.forecastFunc)
 			s := New(fmock, lmock)
 			result, err := s.Forecast(context.Background(), testIP)
 			if (c.expectedError != nil) && (err.Error() != c.expectedError.Error()) {
@@ -107,7 +109,7 @@ var (
 	errLocation = fmt.Errorf("test location error")
 )
 
-func getLocationInUSFunc(t *testing.T) locator.GetLocationFunc {
+func getLocationInUSFunc(t *testing.T) mocklocator.ClientGetLocationFunc {
 	return func(ctx context.Context, ip string) (*locator.WorldLocation, error) {
 		if ip != testIP {
 			t.Errorf("GetLocation: got %s, expected %s", ip, testIP)
@@ -123,7 +125,7 @@ func getLocationInUSFunc(t *testing.T) locator.GetLocationFunc {
 	}
 }
 
-func getLocationNotInUSFunc(t *testing.T) locator.GetLocationFunc {
+func getLocationNotInUSFunc(t *testing.T) mocklocator.ClientGetLocationFunc {
 	return func(ctx context.Context, ip string) (*locator.WorldLocation, error) {
 		if ip != testIP {
 			t.Errorf("GetLocation: got %s, expected %s", ip, testIP)
@@ -139,7 +141,7 @@ func getLocationNotInUSFunc(t *testing.T) locator.GetLocationFunc {
 	}
 }
 
-func getLocationErrorFunc(t *testing.T) locator.GetLocationFunc {
+func getLocationErrorFunc(t *testing.T) mocklocator.ClientGetLocationFunc {
 	return func(ctx context.Context, ip string) (*locator.WorldLocation, error) {
 		if ip == "" {
 			t.Error("GetLocation: expected non-empty IP")
@@ -149,7 +151,7 @@ func getLocationErrorFunc(t *testing.T) locator.GetLocationFunc {
 	}
 }
 
-func getForecastFunc(t *testing.T) forecaster.GetForecastFunc {
+func getForecastFunc(t *testing.T) mockforecaster.ClientGetForecastFunc {
 	return func(ctx context.Context, lat float64, long float64) (*forecaster.Forecast, error) {
 		if lat != testLocation.Lat || long != testLocation.Long {
 			t.Errorf("GetForecast: expected (%f, %f), got (%f, %f)", testLocation.Lat, testLocation.Long, lat, long)
@@ -165,7 +167,7 @@ func getForecastFunc(t *testing.T) forecaster.GetForecastFunc {
 	}
 }
 
-func getForecastErrorFunc(t *testing.T) forecaster.GetForecastFunc {
+func getForecastErrorFunc(t *testing.T) mockforecaster.ClientGetForecastFunc {
 	return func(ctx context.Context, lat float64, long float64) (*forecaster.Forecast, error) {
 		return nil, errForecast
 	}
