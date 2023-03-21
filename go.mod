@@ -6,7 +6,7 @@ require (
 	github.com/aws/smithy-go v1.13.5
 	github.com/dimfeld/httptreemux/v5 v5.5.0
 	github.com/go-logfmt/logfmt v0.6.0
-	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
+	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/prometheus/client_golang v1.14.0
 	github.com/prometheus/client_model v0.3.0
 	github.com/stretchr/testify v1.8.2
