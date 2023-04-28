@@ -10,6 +10,7 @@ import (
 // response status is 200 if chk.Check() returns a nil error, 503 otherwise.
 func Handler(chk Checker) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		h, healthy := chk.Check(r.Context())
 		b, _ := json.Marshal(h)
 		if healthy {
