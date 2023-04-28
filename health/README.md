@@ -19,7 +19,7 @@ Healthy service example (using the [httpie](https://httpie.org/) command line ut
 http http://localhost:8083/livez
 HTTP/1.1 200 OK
 Content-Length: 109
-Content-Type: text/plain; charset=utf-8
+Content-Type: application/json
 Date: Mon, 17 Jan 2022 23:23:12 GMT
 
 {
@@ -38,7 +38,7 @@ Unhealthy service:
 http http://localhost:8083/livez
 HTTP/1.1 503 Service Unavailable
 Content-Length: 113
-Content-Type: text/plain; charset=utf-8
+Content-Type: application/json
 Date: Mon, 17 Jan 2022 23:23:20 GMT
 
 {
