@@ -82,7 +82,10 @@ func (ta *typeAdder) name(tt types.Type) (name string) {
 			name = "*" + ta.name(t.Elem())
 		case *types.Signature:
 			b := &bytes.Buffer{}
-			types.WriteSignature(b, t, nil)
+			types.WriteSignature(b, t, func(p *types.Package) string {
+				i := addImport(newImport(p.Path(), p.Name()), ta.stdImports, ta.extImports, ta.intImports, ta.modPath)
+				return i.AliasOrPkgName()
+			})
 			name = "func" + b.String()
 		case *types.Slice:
 			name = "[]" + ta.name(t.Elem())
