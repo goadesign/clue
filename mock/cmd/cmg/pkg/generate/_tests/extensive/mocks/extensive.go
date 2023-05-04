@@ -32,6 +32,7 @@ type (
 	ExtensiveComplexTypesFunc      func(p0 [5]string, p1 []string, p2 map[string]string, p3 *string, p4 chan int, p5 chan<- int, p6 <-chan int) ([5]string, []string, map[string]string, *string, chan int, chan<- int, <-chan int)
 	ExtensiveMoreComplexTypesFunc  func(p0 interface{}, p1 interface{io.ReadWriter; A(int) error; B()}, p2 struct{extensive.Struct; A, B int; C float64}, p3 func(int) (bool, error)) (interface{}, interface{io.ReadWriter; A(int) error; B()}, struct{extensive.Struct; A, B int; C float64}, func(int) (bool, error))
 	ExtensiveNamedTypesFunc        func(p0 extensive.Struct, p1 extensive.Array, p2 io.Reader, p3 imported.Type, p4 goa.Endpoint, p5 extensive.Generic[uint, string, extensive.Struct, extensive.Array]) (extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])
+	ExtensiveFuncNamedTypesFunc    func(p0 func(extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])) func(extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])
 	ExtensiveVariableConflictsFunc func(f, m uint)
 
 	Generic[K comparable, V ~int | bool | string, X, Y any] struct {
@@ -202,6 +203,23 @@ func (m *Extensive) NamedTypes(p0 extensive.Struct, p1 extensive.Array, p2 io.Re
 	m.t.Helper()
 	m.t.Error("unexpected NamedTypes call")
 	return extensive.Struct{}, extensive.Array{}, nil, 0, nil, nil
+}
+
+func (m *Extensive) AddFuncNamedTypes(f ExtensiveFuncNamedTypesFunc) {
+	m.m.Add("FuncNamedTypes", f)
+}
+
+func (m *Extensive) SetFuncNamedTypes(f ExtensiveFuncNamedTypesFunc) {
+	m.m.Set("FuncNamedTypes", f)
+}
+
+func (m *Extensive) FuncNamedTypes(p0 func(extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])) func(extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array]) {
+	if f := m.m.Next("FuncNamedTypes"); f != nil {
+		return f.(ExtensiveFuncNamedTypesFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected FuncNamedTypes call")
+	return nil
 }
 
 func (m *Extensive) AddVariableConflicts(f ExtensiveVariableConflictsFunc) {

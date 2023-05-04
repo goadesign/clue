@@ -36,6 +36,7 @@ type (
 			C    float64
 		}, func(int) (bool, error))
 		NamedTypes(Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array]) (Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array])
+		FuncNamedTypes(func(Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array])) func(Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array])
 		VariableConflicts(f, m uint)
 	}
 
