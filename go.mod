@@ -7,7 +7,7 @@ require (
 	github.com/dimfeld/httptreemux/v5 v5.5.0
 	github.com/go-logfmt/logfmt v0.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
-	github.com/prometheus/client_golang v1.15.0
+	github.com/prometheus/client_golang v1.15.1
 	github.com/prometheus/client_model v0.3.0
 	github.com/stretchr/testify v1.8.2
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.41.0
