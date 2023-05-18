@@ -89,7 +89,10 @@ func Infof(ctx context.Context, format string, v ...interface{}) {
 func Error(ctx context.Context, err error, keyvals ...Fielder) {
 	FlushAndDisableBuffering(ctx)
 	if err != nil {
-		keyvals = append(keyvals, KV{ErrorMessageKey, err.Error()})
+		kvs := make([]Fielder, len(keyvals)+1)
+		copy(kvs[1:], keyvals)
+		kvs[0] = KV{ErrorMessageKey, err.Error()}
+		keyvals = kvs
 	}
 	log(ctx, SeverityError, true, keyvals)
 }
