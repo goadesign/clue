@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"goa.design/clue/internal/testsvc"
 	grpcmiddleware "goa.design/goa/v3/grpc/middleware"
 	"goa.design/goa/v3/middleware"
@@ -41,9 +42,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 		`"key1":"value1"`,
 		`"key2":"value2"`)
 
-	if buf.String() != expected {
-		t.Errorf("got %s, want %s", buf.String(), expected)
-	}
+	assert.Equal(t, expected, buf.String())
 }
 
 func TestStreamServerTrace(t *testing.T) {
@@ -80,15 +79,13 @@ func TestStreamServerTrace(t *testing.T) {
 		`"key1":"value1"`,
 		`"key2":"value2"`)
 
-	if buf.String() != expected {
-		t.Errorf("got %s, want %s", buf.String(), expected)
-	}
+	assert.Equal(t, expected, buf.String())
 }
 
 func TestUnaryClientInterceptor(t *testing.T) {
 	successLogs := `time=2022-01-09T20:29:45Z level=info msg="finished client unary call" grpc.service=test.Test grpc.method=GrpcMethod grpc.code=OK grpc.time_ms=42`
-	errorLogs := `time=2022-01-09T20:29:45Z level=error msg="finished client unary call" grpc.service=test.Test grpc.method=GrpcMethod grpc.status=error grpc.code=Unknown grpc.time_ms=42 err="rpc error: code = Unknown desc = error"`
-	statusLogs := `time=2022-01-09T20:29:45Z level=error msg="finished client unary call" grpc.service=test.Test grpc.method=GrpcMethod grpc.status=error grpc.code=Unknown grpc.time_ms=42 err="rpc error: code = Unknown desc = error"`
+	errorLogs := `time=2022-01-09T20:29:45Z level=error err="rpc error: code = Unknown desc = error" msg="finished client unary call" grpc.service=test.Test grpc.method=GrpcMethod grpc.status=error grpc.code=Unknown grpc.time_ms=42`
+	statusLogs := `time=2022-01-09T20:29:45Z level=error err="rpc error: code = Unknown desc = error" msg="finished client unary call" grpc.service=test.Test grpc.method=GrpcMethod grpc.status=error grpc.code=Unknown grpc.time_ms=42`
 	cases := []struct {
 		name      string
 		noLog     bool
@@ -128,9 +125,7 @@ func TestUnaryClientInterceptor(t *testing.T) {
 			cli.GRPCMethod(ctx, &testsvc.Fields{})
 			stop()
 
-			if strings.TrimSpace(buf.String()) != c.expected {
-				t.Errorf("got:\n%s\nwant:\n%s", strings.TrimSpace(buf.String()), c.expected)
-			}
+			assert.Equal(t, strings.TrimSpace(buf.String()), c.expected)
 		})
 	}
 }
@@ -170,9 +165,7 @@ func TestStreamClientInterceptor(t *testing.T) {
 			}
 			stop()
 
-			if strings.TrimSpace(buf.String()) != c.expected {
-				t.Errorf("got:\n%s\nwant:\n%s", strings.TrimSpace(buf.String()), c.expected)
-			}
+			assert.Equal(t, strings.TrimSpace(buf.String()), c.expected)
 		})
 	}
 }

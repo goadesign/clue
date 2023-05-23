@@ -10,6 +10,9 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -49,28 +52,20 @@ func ExampleErrorf() {
 	Errorf(ctx, err, "failure")
 	// Output: ---
 	// time=2022-02-22T17:00:00Z level=info hello=world
-	// time=2022-02-22T17:00:00Z level=error msg=failure err=error
+	// time=2022-02-22T17:00:00Z level=error err=error msg=failure
 }
 
 // Note: if the line number for the call to Infof below changes update the test
 // accordingly.
 func TestFileLocation(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat), WithFileLocation())
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat), WithFileLocation())
 	Infof(ctx, buffered)
-	if len(entries(ctx)) != 1 {
-		t.Fatalf("got %d buffered entries, want 1", len(entries(ctx)))
-	}
+	require.Len(t, entries(ctx), 1)
 	e := (entries(ctx))[0]
-	if len(e.KeyVals) != 2 {
-		t.Errorf("got %d keyvals, want 2", len(e.KeyVals))
-	}
-	if e.KeyVals[0].K != "msg" || e.KeyVals[0].V != "buffered" {
-		t.Errorf("got keyval %q=%q, want msg=buffered", e.KeyVals[0].K, e.KeyVals[0].V)
-	}
-	if e.KeyVals[1].K != "file" || e.KeyVals[1].V != "log/log_test.go:60" {
-		t.Errorf("got keyval %q=%q, want file=log/log_test.go:60", e.KeyVals[1].K, e.KeyVals[1].V)
-	}
+	require.Len(t, e.KeyVals, 2)
+	assert.Equal(t, KV{"msg", buffered}, e.KeyVals[0])
+	assert.Equal(t, KV{"file", "log/log_test.go:63"}, e.KeyVals[1])
 }
 
 func TestSeverity(t *testing.T) {
@@ -83,97 +78,60 @@ func TestSeverity(t *testing.T) {
 	Infof(ctx, "")
 	Errorf(ctx, nil, "")
 	want := "debug:DEBG:\033[37m info:INFO:\033[34m error:ERRO:\033[1;31m "
-	if got := buf.String(); got != want {
-		t.Errorf("got %q, want %q", got, want)
-	}
-
-	if Severity(0).String() != "<INVALID>" {
-		t.Errorf("got %q, want %q", Severity(0).String(), "<INVALID>")
-	}
-	if Severity(0).Code() != "<INVALID>" {
-		t.Errorf("got %q, want %q", Severity(0).Code(), "<INVALID>")
-	}
-	if Severity(0).Color() != "" {
-		t.Errorf("got %q, want empty", Severity(0).Color())
-	}
+	assert.Equal(t, want, buf.String())
+	assert.Equal(t, "<INVALID>", Severity(0).String())
+	assert.Equal(t, "<INVALID>", Severity(0).Code())
+	assert.Empty(t, Severity(0).Color())
 }
 
 func TestBuffering(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat))
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat))
 
 	// Buffering is enabled by default.
 	Infof(ctx, buffered)
-	if len(entries(ctx)) != 1 {
-		t.Errorf("got %d buffered entries, want 1", len(entries(ctx)))
-	} else {
-		e := entries(ctx)[0]
-		if len(e.KeyVals) != 1 {
-			t.Errorf("got %d keyvals, want 1", len(e.KeyVals))
-		} else if kv := e.KeyVals[0]; kv.K != "msg" || kv.V != buffered {
-			t.Errorf("got keyval %v, want %v", kv, KV{"msg", buffered})
-		}
-	}
+	require.Len(t, entries(ctx), 1)
+	e := entries(ctx)[0]
+	require.Len(t, e.KeyVals, 1)
+	assert.Equal(t, KV{"msg", buffered}, e.KeyVals[0])
 
 	// Printf does not buffer.
 	Printf(ctx, printed)
-	if buf.String() != printed {
-		t.Errorf("got printed message %q, want %q", buf.String(), printed)
-	}
+	assert.Equal(t, printed, buf.String())
 
 	// Flush flushes the buffer.
 	FlushAndDisableBuffering(ctx)
-	if len(entries(ctx)) != 0 {
-		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
-	}
-	if buf.String() != printed+buffered {
-		t.Errorf("got printed message %q, want %q", buf.String(), printed+buffered)
-	}
+	assert.Empty(t, entries(ctx))
+	assert.Equal(t, printed+buffered, buf.String())
 
 	// Buffering is disabled after flush.
 	Infof(ctx, printed)
-	if len(entries(ctx)) != 0 {
-		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
-	}
-	if buf.String() != printed+buffered+printed {
-		t.Errorf("got printed message %q, want %q", buf.String(), printed+buffered+printed)
-	}
+	assert.Empty(t, entries(ctx))
+	assert.Equal(t, printed+buffered+printed, buf.String())
 
 	// Flush is idempotent.
 	FlushAndDisableBuffering(ctx)
 	Infof(ctx, printed)
-	if len(entries(ctx)) != 0 {
-		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
-	}
-	if buf.String() != printed+buffered+printed+printed {
-		t.Errorf("got printed message %q, want %q", buf.String(), printed+buffered+printed+printed)
-	}
+	assert.Empty(t, entries(ctx))
+	assert.Equal(t, printed+buffered+printed+printed, buf.String())
 }
 
 func TestBufferingWithError(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat))
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat))
 	err := fmt.Errorf("error")
 
 	// Error flushes the buffer.
 	Infof(ctx, buffered)
 	Errorf(ctx, err, printed)
-	if len(entries(ctx)) != 0 {
-		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
-	}
-	expected := buffered + printed
-	if buf.String() != expected {
-		t.Errorf("got printed message %q, want %q", buf.String(), expected)
-	}
+	assert.Empty(t, entries(ctx))
+	expected := buffered + err.Error() + printed
+	assert.Equal(t, expected, buf.String())
 
 	// Buffering is disabled after error.
 	Infof(ctx, printed)
-	if len(entries(ctx)) != 0 {
-		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
-	}
-	if buf.String() != expected+printed {
-		t.Errorf("got printed message %q, want %q", buf.String(), buffered+printed+printed)
-	}
+	assert.Empty(t, entries(ctx))
+	assert.Equal(t, expected+printed, buf.String())
 }
 
 type ctxTestKey int
@@ -197,20 +155,16 @@ func TestBufferingWithDisableBufferingFunc(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			ctx := Context(context.Background(), WithOutput(&buf),
-				WithFormat(debugFormat), WithDisableBuffering(disableBuffering))
+				WithFormat(testFormat), WithDisableBuffering(disableBuffering))
 
 			Infof(ctx, buffered)
-			if len(entries(ctx)) != 1 {
-				t.Errorf("got %d buffered entries, want 1", len(entries(ctx)))
-			}
+			assert.Len(t, entries(ctx), 1)
 
 			ctx = tc.ctxFunc(context.WithValue(ctx, disableBufferingKey, true))
 			Infof(ctx, printed)
 
 			expected := buffered + printed
-			if buf.String() != expected {
-				t.Errorf("got printed message %q, want %q", buf.String(), expected)
-			}
+			assert.Equal(t, expected, buf.String())
 		})
 	}
 }
@@ -220,19 +174,15 @@ func TestFatal(t *testing.T) {
 	osExit = func(code int) { exitCalled = true }
 	defer func() { osExit = os.Exit }()
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat))
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat))
 	err := fmt.Errorf("error")
 
 	// Fatal flushes the buffer.
 	Infof(ctx, buffered)
 	Fatalf(ctx, err, printed)
-	if len(entries(ctx)) != 0 {
-		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
-	}
-	expected := buffered + printed
-	if buf.String() != expected {
-		t.Errorf("got printed message %q, want %q", buf.String(), expected)
-	}
+	assert.Empty(t, entries(ctx))
+	expected := buffered + err.Error() + printed
+	assert.Equal(t, expected, buf.String())
 
 	if !exitCalled {
 		t.Error("exit not called")
@@ -241,40 +191,28 @@ func TestFatal(t *testing.T) {
 
 func TestDebug(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat))
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat))
 
 	// Debug logs are ignored by default.
 	Debugf(ctx, ignored)
-	if len(entries(ctx)) != 0 {
-		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
-	}
-	if buf.String() != "" {
-		t.Errorf("got printed message %q, want empty", buf.String())
-	}
+	assert.Empty(t, entries(ctx))
+	assert.Empty(t, buf.String())
 
 	// Debug logs are enabled after setting the WithDebug option.
 	ctx = Context(ctx, WithDebug())
 	Debugf(ctx, printed)
-	if len(entries(ctx)) != 0 {
-		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
-	}
-	if buf.String() != printed {
-		t.Errorf("got printed message %q, want %q", buf.String(), printed)
-	}
+	assert.Empty(t, entries(ctx))
+	assert.Equal(t, printed, buf.String())
 
 	// Buffering is disabled in debug mode.
 	Infof(ctx, printed)
-	if len(entries(ctx)) != 0 {
-		t.Errorf("got %d buffered entries, want 0", len(entries(ctx)))
-	}
-	if buf.String() != printed+printed {
-		t.Errorf("got printed message %q, want %q", buf.String(), printed+printed)
-	}
+	assert.Empty(t, entries(ctx))
+	assert.Equal(t, printed+printed, buf.String())
 }
 
 func TestStructuredLogging(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat))
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat))
 
 	// No key-value pair is logged by default.
 	Infof(ctx, buffered)
@@ -364,7 +302,7 @@ func TestDynamicKeyVals(t *testing.T) {
 	kvfunc := func(ctx context.Context) []KV {
 		return []KV{{"key1", "val1"}, {"key2", "val2"}}
 	}
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(debugFormat), WithFunc(kvfunc))
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat), WithFunc(kvfunc))
 	Infof(ctx, buffered)
 	if len(entries(ctx)) != 1 {
 		t.Fatalf("got %d buffered entries, want 1", len(entries(ctx)))
@@ -502,8 +440,12 @@ func TestMaxSize(t *testing.T) {
 	})
 }
 
-func debugFormat(e *Entry) []byte {
-	return []byte(e.KeyVals[0].V.(string))
+func testFormat(e *Entry) []byte {
+	var buf bytes.Buffer
+	for _, kv := range e.KeyVals {
+		fmt.Fprintf(&buf, "%s", kv.V)
+	}
+	return buf.Bytes()
 }
 
 func entries(ctx context.Context) []*Entry {
