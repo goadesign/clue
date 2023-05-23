@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"goa.design/goa/v3/middleware"
 	goa "goa.design/goa/v3/pkg"
 )
@@ -41,9 +42,7 @@ func TestHTTP(t *testing.T) {
 		`"key1":"value1"`,
 		`"key2":"value2"`)
 
-	if buf.String() != expected {
-		t.Errorf("got %s, want %s", buf.String(), expected)
-	}
+	assert.Equal(t, expected, buf.String())
 }
 
 func TestEndpoint(t *testing.T) {
@@ -78,17 +77,15 @@ func TestEndpoint(t *testing.T) {
 
 			Endpoint(endpoint)(ctx, nil)
 
-			if buf.String() != c.expected+"\n" {
-				t.Errorf("got %s, want %s", buf.String(), c.expected)
-			}
+			assert.Equal(t, c.expected+"\n", buf.String())
 		})
 	}
 }
 
 func TestClient(t *testing.T) {
 	successLogs := `time=2022-01-09T20:29:45Z level=info msg="finished client HTTP request" http.method=GET http.url=$URL http.status="200 OK" http.time_ms=42`
-	errorLogs := `time=2022-01-09T20:29:45Z level=error msg="finished client HTTP request" http.method=GET http.url=$URL err=error`
-	statusLogs := `time=2022-01-09T20:29:45Z level=error msg="finished client HTTP request" http.method=GET http.url=$URL http.status="200 OK" http.time_ms=42 err="200 OK"`
+	errorLogs := `time=2022-01-09T20:29:45Z level=error err=error msg="finished client HTTP request" http.method=GET http.url=$URL`
+	statusLogs := `time=2022-01-09T20:29:45Z level=error err="200 OK" msg="finished client HTTP request" http.method=GET http.url=$URL http.status="200 OK" http.time_ms=42`
 	cases := []struct {
 		name      string
 		noLog     bool
@@ -133,9 +130,7 @@ func TestClient(t *testing.T) {
 			client.Do(req)
 
 			expected := strings.ReplaceAll(c.expected, "$URL", server.URL)
-			if strings.TrimSpace(buf.String()) != expected {
-				t.Errorf("got:\n%q\nwant:\n%q", strings.TrimSpace(buf.String()), expected)
-			}
+			assert.Equal(t, strings.TrimSpace(buf.String()), expected)
 		})
 	}
 }
@@ -153,9 +148,7 @@ func TestWithPathFilter(t *testing.T) {
 
 	handler.ServeHTTP(nil, req)
 
-	if buf.String() != "" {
-		t.Errorf("got %s, want empty", buf.String())
-	}
+	assert.Empty(t, buf.String())
 }
 
 type errorClient struct {

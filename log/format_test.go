@@ -6,6 +6,8 @@ import (
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFormat(t *testing.T) {
@@ -202,10 +204,7 @@ func TestFormat(t *testing.T) {
 			var buf bytes.Buffer
 			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(tc.format), WithDebug())
 			tc.logfn(ctx, kvList(tc.keyVals))
-			got := buf.String()
-			if got != tc.want {
-				t.Errorf("got %s, want %s", got, tc.want)
-			}
+			assert.Equal(t, tc.want, buf.String())
 		})
 	}
 
@@ -221,21 +220,21 @@ func TestFormat(t *testing.T) {
 			logfn:   Error,
 			format:  FormatText,
 			keyVals: keyVals,
-			want:    "time=2022-01-09T20:29:45Z level=error " + formattedKeyVals + " err=error\n",
+			want:    "time=2022-01-09T20:29:45Z level=error err=error " + formattedKeyVals + "\n",
 		},
 		{
 			name:    "colored error",
 			logfn:   Error,
 			format:  FormatTerminal,
 			keyVals: keyVals,
-			want:    "\033[1;31mERRO\033[0m[0000] " + coloredKeyVals("\033[1;31m") + " \033[1;31merr\033[0m=error\n",
+			want:    "\033[1;31mERRO\033[0m[0000] " + "\033[1;31merr\033[0m=error " + coloredKeyVals("\033[1;31m") + "\n",
 		},
 		{
 			name:    "json info",
 			logfn:   Error,
 			format:  FormatJSON,
 			keyVals: keyVals,
-			want:    `{"time":"2022-01-09T20:29:45Z","level":"error",` + jsonKeyVals + `,"err":"error"}` + "\n",
+			want:    `{"time":"2022-01-09T20:29:45Z","level":"error","err":"error",` + jsonKeyVals + `}` + "\n",
 		},
 	}
 	for _, tc := range errorCases {
@@ -243,10 +242,7 @@ func TestFormat(t *testing.T) {
 			var buf bytes.Buffer
 			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(tc.format), WithDebug())
 			tc.logfn(ctx, errors.New("error"), kvList(tc.keyVals))
-			got := buf.String()
-			if got != tc.want {
-				t.Errorf("got %s, want %s", got, tc.want)
-			}
+			assert.Equal(t, tc.want, buf.String())
 		})
 	}
 
@@ -290,10 +286,7 @@ func TestFormat(t *testing.T) {
 			var buf bytes.Buffer
 			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(tc.format), WithDebug())
 			tc.logfn(ctx, kvList(tc.keyVals))
-			got := buf.String()
-			if got != tc.want {
-				t.Errorf("got %s, want %s", got, tc.want)
-			}
+			assert.Equal(t, tc.want, buf.String())
 		})
 	}
 }
