@@ -42,21 +42,19 @@ var (
 
 func NewMocks(prefix string, p parse.Package, interfaces []parse.Interface, toolVersionFunc ToolVersionFunc) Mocks {
 	var (
-		m = &mocks{
-			pkgName:         prefix + p.Name(),
-			pkgPath:         p.PkgPath(),
-			pkgImport:       newImport(p.PkgPath(), p.Name()),
-			toolVersionFunc: toolVersionFunc,
-		}
 		stdImports = importMap{"testing": newImport("testing")}
 		extImports = importMap{"mock": newImport("goa.design/clue/mock")}
 		intImports = make(importMap)
 		modPath    = p.ModPath()
-		typeNames  = make(typeMap)
-		typeZeros  = make(typeMap)
+		m          = &mocks{
+			pkgName:         prefix + p.Name(),
+			pkgPath:         p.PkgPath(),
+			pkgImport:       addImport(newImport(p.PkgPath(), p.Name()), stdImports, extImports, intImports, modPath),
+			toolVersionFunc: toolVersionFunc,
+		}
+		typeNames = make(typeMap)
+		typeZeros = make(typeMap)
 	)
-
-	addImport(m.pkgImport, stdImports, extImports, intImports, modPath)
 
 	for _, i := range interfaces {
 		m.interfaces = append(m.interfaces, newInterface(i, typeNames, typeZeros, stdImports, extImports, intImports, modPath))

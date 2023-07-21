@@ -36,8 +36,8 @@ type (
 {{ end }}
 func {{ .Constructor }}{{ .TypeParameters }}(t *testing.T) *{{ .Name }}{{ .TypeParameterVars }} {
 	var (
-		{{ .Var | printf ($import.PkgName | .ConstructorFmt) }} = &{{ .Name }}{{ .TypeParameterVars }}{mock.New(), t}
-		_ {{ $import.PkgName }}.{{ .Name }}{{ .TypeParameterVars }} = m
+		{{ .Var | printf ($import.AliasOrPkgName | .ConstructorFmt) }} = &{{ .Name }}{{ .TypeParameterVars }}{mock.New(), t}
+		_ {{ $import.AliasOrPkgName }}.{{ .Name }}{{ .TypeParameterVars }} = m
 	)
 	return {{ .Var }}
 }
