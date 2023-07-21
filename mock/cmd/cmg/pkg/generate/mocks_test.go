@@ -22,6 +22,11 @@ func TestMocks_Render(t *testing.T) {
 			Pattern:       "./extensive",
 			ExpectedFiles: []string{"extensive.go"},
 		},
+		{
+			Name:          "conflicts",
+			Pattern:       "./conflicts",
+			ExpectedFiles: []string{"conflicts.go"},
+		},
 	}
 
 	for _, tc := range cases {
