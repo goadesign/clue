@@ -17,7 +17,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.16.0
 	go.opentelemetry.io/otel/sdk v1.16.0
 	go.opentelemetry.io/otel/trace v1.16.0
-	goa.design/goa/v3 v3.12.1
+	goa.design/goa/v3 v3.12.3
 	goa.design/model v1.8.0
 	golang.org/x/term v0.10.0
 	golang.org/x/tools v0.11.0
