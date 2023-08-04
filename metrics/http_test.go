@@ -30,7 +30,7 @@ func TestHTTPServerDuration(t *testing.T) {
 
 			reg := NewTestRegistry(t)
 			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg), WithDurationBuckets(buckets))
-			middleware := HTTP(ctx)
+			middleware := HTTP(ctx, nil)
 			cli, stop := testsvc.SetupHTTP(t,
 				testsvc.WithHTTPMiddleware(middleware),
 				testsvc.WithHTTPFunc(noopMethod()))
@@ -60,7 +60,7 @@ func TestHTTPRequestSize(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			reg := NewTestRegistry(t)
 			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg), WithRequestSizeBuckets(buckets))
-			middleware := HTTP(ctx)
+			middleware := HTTP(ctx, nil)
 			cli, stop := testsvc.SetupHTTP(t,
 				testsvc.WithHTTPMiddleware(middleware),
 				testsvc.WithHTTPFunc(noopMethod()))
@@ -91,7 +91,7 @@ func TestHTTPResponseSize(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			reg := NewTestRegistry(t)
 			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg), WithResponseSizeBuckets(buckets))
-			middleware := HTTP(ctx)
+			middleware := HTTP(ctx, nil)
 			cli, stop := testsvc.SetupHTTP(t,
 				testsvc.WithHTTPMiddleware(middleware),
 				testsvc.WithHTTPFunc(stringMethod(c.str)))
@@ -120,7 +120,7 @@ func TestHTTPActiveRequests(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			reg := NewTestRegistry(t)
 			ctx := Context(context.Background(), "testsvc", WithRegisterer(reg))
-			middleware := HTTP(ctx)
+			middleware := HTTP(ctx, nil)
 			chstop := make(chan struct{})
 			var running, done sync.WaitGroup
 			running.Add(c.numReqs)
