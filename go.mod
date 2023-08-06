@@ -58,3 +58,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230629202037-9506855d4529 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace goa.design/goa/v3 => github.com/ryanluu12345/goa/v3 v3.0.0-20230806062212-3626f267e8cd

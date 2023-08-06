@@ -9,6 +9,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"goa.design/goa/v3/http/middleware"
+	goa "goa.design/goa/v3/pkg"
 )
 
 type (
@@ -114,6 +115,10 @@ func HTTP(ctx context.Context, initDetails *InitMetricDetails) func(http.Handler
 			h.ServeHTTP(rw, req)
 
 			labels[labelHTTPStatusCode] = strconv.Itoa(rw.StatusCode)
+			val := ctx.Value(goa.PathPatternKey)
+			if val != nil {
+				labels[labelHTTPPath] = val.(string)
+			}
 
 			reqLength := req.Context().Value(ctxReqLen).(*int)
 			metrics.Durations.With(labels).Observe(float64(timeSince(now).Milliseconds()))

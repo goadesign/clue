@@ -13,6 +13,11 @@ import (
 
 	"github.com/dimfeld/httptreemux/v5"
 	"goa.design/clue/debug"
+	"goa.design/clue/example/weather/services/front"
+	"goa.design/clue/example/weather/services/front/clients/forecaster"
+	"goa.design/clue/example/weather/services/front/clients/locator"
+	genfront "goa.design/clue/example/weather/services/front/gen/front"
+	genhttp "goa.design/clue/example/weather/services/front/gen/http/front/server"
 	"goa.design/clue/health"
 	"goa.design/clue/log"
 	"goa.design/clue/metrics"
@@ -21,12 +26,6 @@ import (
 	goahttpmiddleware "goa.design/goa/v3/http/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"goa.design/clue/example/weather/services/front"
-	"goa.design/clue/example/weather/services/front/clients/forecaster"
-	"goa.design/clue/example/weather/services/front/clients/locator"
-	genfront "goa.design/clue/example/weather/services/front/gen/front"
-	genhttp "goa.design/clue/example/weather/services/front/gen/http/front/server"
 )
 
 func main() {
@@ -108,7 +107,7 @@ func main() {
 	// 5. Create transport
 	mux := goahttp.NewMuxer()
 	debug.MountDebugLogEnabler(debug.Adapt(mux))
-	mux.Use(metrics.HTTP(ctx))
+	mux.Use(metrics.HTTP(ctx, nil))
 	handler := trace.HTTP(ctx)(mux)                                            // 4. Trace request
 	handler = goahttpmiddleware.LogContext(log.AsGoaMiddlewareLogger)(handler) // 3. Log request and response
 	handler = log.HTTP(ctx)(handler)                                           // 2. Add logger to request context (with request ID key)
