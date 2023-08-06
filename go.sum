@@ -95,6 +95,8 @@ github.com/prometheus/common v0.44.0/go.mod h1:ofAIvZbQ1e/nugmZGz4/qCb9Ap1VoSTIO
 github.com/prometheus/procfs v0.10.1 h1:kYK1Va/YMlutzCGazswoHKo//tZVlFpKYh+PymziUAg=
 github.com/prometheus/procfs v0.10.1/go.mod h1:nwNm2aOCAYw8uTR/9bWRREkZFxAUcWzPHWJq+XBB/FM=
 github.com/rogpeppe/go-internal v1.10.0 h1:TMyTOH3F/DB16zRVcYyreMH6GnZZrwQVAoYjRBZyWFQ=
+github.com/ryanluu12345/goa/v3 v3.0.0-20230806062212-3626f267e8cd h1:gSxRlSwD4gEjxTg0GqFY4psHkqjS/8zokcnroTCbTRU=
+github.com/ryanluu12345/goa/v3 v3.0.0-20230806062212-3626f267e8cd/go.mod h1:U7S/hpEp6T7H73DmOPc9f+3JMVQ6sWqje1qAiAna8Ng=
 github.com/sergi/go-diff v1.3.1 h1:xkr+Oxo4BOQKmkn/B9eMK0g5Kg/983T9DqqPHwYqD+8=
 github.com/sergi/go-diff v1.3.1/go.mod h1:aMJSSKb2lpPvRNec0+w3fl7LP9IOFzdc9Pa4NFbPK1I=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
@@ -139,8 +141,6 @@ go.uber.org/goleak v1.1.10/go.mod h1:8a7PlsEVH3e/a/GLqe5IIrQx6GzcnRmZEufDUTk4A7A
 go.uber.org/goleak v1.2.1 h1:NBol2c7O1ZokfZ0LEU9K6Whx/KnwvepVetCUhtKja4A=
 go.uber.org/multierr v1.6.0/go.mod h1:cdWPpRnG4AhwMwsgIHip0KRBQjJy5kYEpYjJxpXp9iU=
 go.uber.org/zap v1.18.1/go.mod h1:xg/QME4nWcxGxrpdeYfq7UvYrLh66cuVKdrbD1XF/NI=
-goa.design/goa/v3 v3.12.3 h1:LHQDUp7t67Ml8pyQc1ywSa14eQ3JaTUBESMgOKF19bI=
-goa.design/goa/v3 v3.12.3/go.mod h1:y78cWNxip293j/ut0fvu8FH+s61ojHKyLbTQumk+BB4=
 goa.design/model v1.8.0 h1:2TsaOgY7LEELkKg37SxZq3AVYP8sv3IyUD26NdmpApY=
 goa.design/model v1.8.0/go.mod h1:3G48kCLhm67BnmsED+ycZTAKON7guJHwNGhaHzow4HE=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
