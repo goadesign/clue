@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -116,6 +117,7 @@ func HTTP(ctx context.Context, initDetails *InitMetricDetails) func(http.Handler
 
 			labels[labelHTTPStatusCode] = strconv.Itoa(rw.StatusCode)
 			val := ctx.Value(goa.PathPatternKey)
+			fmt.Println(val)
 			if val != nil {
 				labels[labelHTTPPath] = val.(string)
 			}
