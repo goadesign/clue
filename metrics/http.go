@@ -6,12 +6,10 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"goa.design/goa/v3/http/middleware"
-	goa "goa.design/goa/v3/pkg"
 )
 
 type (
@@ -75,6 +73,23 @@ func replacePathWithPattern(path string) string {
 	return wildSeg.ReplaceAllString(path, "/.*")
 }
 
+// findMatchingPattern finds the matching pattern string from the endpoint details and returns
+// it. If one cannot be find, it returns an empty string.
+func findMatchingPattern(path string, dtls []*HTTPEndpointDetails) (string, error) {
+	for _, dtl := range dtls {
+		regex, err := regexp.Compile(dtl.Path)
+		if err != nil {
+			return "", err
+		}
+
+		if regex.MatchString(path) {
+			return dtl.Path, nil
+		}
+	}
+
+	return "", nil
+}
+
 // HTTP returns a middlware that metricss requests. The context must have
 // been initialized with Context. HTTP collects the following metrics:
 //
@@ -131,12 +146,20 @@ func HTTP(ctx context.Context, initDetails *InitMetricDetails) func(http.Handler
 
 			h.ServeHTTP(rw, req)
 
-			labels[labelHTTPStatusCode] = strconv.Itoa(rw.StatusCode)
-			val := ctx.Value(goa.PathPatternKey)
-			fmt.Println(val)
-			if val != nil {
-				labels[labelHTTPPath] = val.(string)
+			// Swallow the errors since we have default behavior anyways.
+			if pattern, _ := findMatchingPattern(route, initDetails.EndpointDetails); pattern != "" {
+				fmt.Printf("matched pattern %s\n", pattern)
+				labels[labelHTTPPath] = pattern
 			}
+
+			/*
+				labels[labelHTTPStatusCode] = strconv.Itoa(rw.StatusCode)
+				val := ctx.Value(goa.PathPatternKey)
+				fmt.Println(val)
+				if val != nil {
+					labels[labelHTTPPath] = val.(string)
+				}
+			*/
 
 			reqLength := req.Context().Value(ctxReqLen).(*int)
 			metrics.Durations.With(labels).Observe(float64(timeSince(now).Milliseconds()))
