@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -34,7 +35,7 @@ type HTTPEndpointDetails struct {
 // This is used to figure out which specific metric combination to initialize.
 type InitMetricDetails struct {
 	// EndpointDetails are the HTTP details for each Path + Verb combo.
-	EndpointDetails []HTTPEndpointDetails
+	EndpointDetails []*HTTPEndpointDetails
 	// Host is the host of the actual running server.
 	Host string
 	// StatusCodes are the set of status codes that are possible for the endpoints (i.e. 400, 500, 200)
@@ -65,6 +66,15 @@ func initMetrics(metrics *httpMetrics, initDetails *InitMetricDetails) {
 	}
 }
 
+var wildSeg = regexp.MustCompile(`/{([a-zA-Z0-9_]+)}`)
+
+// replaceWithPattern replaces the path pattern interpolation string with
+// the associated regexp wildcard so that we can easily do string matches
+// on incoming paths.
+func replacePathWithPattern(path string) string {
+	return wildSeg.ReplaceAllString(path, "/.*")
+}
+
 // HTTP returns a middlware that metricss requests. The context must have
 // been initialized with Context. HTTP collects the following metrics:
 //
@@ -89,6 +99,12 @@ func HTTP(ctx context.Context, initDetails *InitMetricDetails) func(http.Handler
 	}
 	metrics := b.(*stateBag).HTTPMetrics()
 	resolver := b.(*stateBag).options.resolver
+
+	// Replace all paths with the relevant path pattern regexp string.
+	for _, path := range initDetails.EndpointDetails {
+		path.Path = replacePathWithPattern(path.Path)
+	}
+
 	initMetrics(metrics, initDetails)
 
 	return func(h http.Handler) http.Handler {

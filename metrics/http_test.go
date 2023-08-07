@@ -183,3 +183,40 @@ func TestLengthReader(t *testing.T) {
 		})
 	}
 }
+
+func TestReplacePathWithPattern(t *testing.T) {
+	cases := []struct {
+		name     string
+		path     string
+		expected string
+	}{
+		{
+			"path pattern match at end",
+			"/api/v1/{cutover}",
+			"/api/v1/.*",
+		},
+		{
+			"path pattern match in the middle",
+			"/api/v1/{id}/connections",
+			"/api/v1/.*/connections",
+		},
+		{
+			"path pattern match in the middle and end",
+			"/api/v1/{id}/connections/{id}",
+			"/api/v1/.*/connections/.*",
+		},
+		{
+			"no replace pattern needed",
+			"/api/v1/status",
+			"/api/v1/status",
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			res := replacePathWithPattern(c.path)
+			if res != c.expected {
+				t.Errorf("result %s doesn't match expected %s", res, c.expected)
+			}
+		})
+	}
+}
