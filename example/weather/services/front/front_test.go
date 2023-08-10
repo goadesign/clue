@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"goa.design/clue/example/weather/services/front/clients/forecaster"
 	mockforecaster "goa.design/clue/example/weather/services/front/clients/forecaster/mocks"
 	"goa.design/clue/example/weather/services/front/clients/locator"
@@ -34,59 +37,17 @@ func TestForecast(t *testing.T) {
 			fmock.AddGetForecast(c.forecastFunc)
 			s := New(fmock, lmock)
 			result, err := s.Forecast(context.Background(), testIP)
-			if (c.expectedError != nil) && (err.Error() != c.expectedError.Error()) {
-				t.Errorf("Forecast: got error %s, expected %s", err, c.expectedError)
+			if c.expectedError != nil {
+				assert.Nil(t, result)
+				require.NotNil(t, err)
+				assert.Equal(t, c.expectedError.Error(), err.Error())
+				return
 			}
-			if !equal(result, c.expectedResult) {
-				t.Errorf("Forecast: got %#v, expected %v", result, c.expectedResult)
-			}
+			assert.NoError(t, err)
+			assert.Equal(t, c.expectedResult, result)
+			assert.False(t, lmock.HasMore())
 		})
 	}
-}
-
-func equal(a, b *genfront.Forecast2) bool {
-	if a == nil && b == nil {
-		return true
-	}
-	if a == nil || b == nil {
-		return false
-	}
-	if a.Location.Lat != b.Location.Lat {
-		return false
-	}
-	if a.Location.Long != b.Location.Long {
-		return false
-	}
-	if a.Location.City != b.Location.City {
-		return false
-	}
-	if a.Location.State != b.Location.State {
-		return false
-	}
-	if len(a.Periods) != len(b.Periods) {
-		return false
-	}
-	for i, p := range a.Periods {
-		if p.Name != b.Periods[i].Name {
-			return false
-		}
-		if p.StartTime != b.Periods[i].StartTime {
-			return false
-		}
-		if p.EndTime != b.Periods[i].EndTime {
-			return false
-		}
-		if p.Temperature != b.Periods[i].Temperature {
-			return false
-		}
-		if p.TemperatureUnit != b.Periods[i].TemperatureUnit {
-			return false
-		}
-		if p.Summary != b.Periods[i].Summary {
-			return false
-		}
-	}
-	return true
 }
 
 var (
@@ -100,9 +61,14 @@ var (
 
 	testForecast = &genfront.Forecast2{
 		Location: testLocation,
-		Periods: []*genfront.Period{
-			{"morning", "2022-01-22T21:57:40+00:00", "2022-01-22T21:57:40+00:00", 10, "C", "cool"},
-		},
+		Periods: []*genfront.Period{{
+			Name:            "morning",
+			StartTime:       "2022-01-22T21:57:40+00:00",
+			EndTime:         "2022-01-22T21:57:40+00:00",
+			Temperature:     10,
+			TemperatureUnit: "C",
+			Summary:         "cool",
+		}},
 	}
 
 	errForecast = fmt.Errorf("test forecast error")
