@@ -46,6 +46,7 @@ func TestForecast(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, c.expectedResult, result)
 			assert.False(t, lmock.HasMore())
+			assert.False(t, fmock.HasMore())
 		})
 	}
 }
@@ -77,10 +78,7 @@ var (
 
 func getLocationInUSFunc(t *testing.T) mocklocator.ClientGetLocationFunc {
 	return func(ctx context.Context, ip string) (*locator.WorldLocation, error) {
-		if ip != testIP {
-			t.Errorf("GetLocation: got %s, expected %s", ip, testIP)
-			return nil, nil
-		}
+		assert.Equal(t, testIP, ip)
 		return &locator.WorldLocation{
 			Lat:     testLocation.Lat,
 			Long:    testLocation.Long,
@@ -93,10 +91,7 @@ func getLocationInUSFunc(t *testing.T) mocklocator.ClientGetLocationFunc {
 
 func getLocationNotInUSFunc(t *testing.T) mocklocator.ClientGetLocationFunc {
 	return func(ctx context.Context, ip string) (*locator.WorldLocation, error) {
-		if ip != testIP {
-			t.Errorf("GetLocation: got %s, expected %s", ip, testIP)
-			return nil, nil
-		}
+		assert.Equal(t, testIP, ip)
 		return &locator.WorldLocation{
 			Lat:     testLocation.Lat,
 			Long:    testLocation.Long,
@@ -109,20 +104,15 @@ func getLocationNotInUSFunc(t *testing.T) mocklocator.ClientGetLocationFunc {
 
 func getLocationErrorFunc(t *testing.T) mocklocator.ClientGetLocationFunc {
 	return func(ctx context.Context, ip string) (*locator.WorldLocation, error) {
-		if ip == "" {
-			t.Error("GetLocation: expected non-empty IP")
-			return nil, nil
-		}
+		assert.NotEmpty(t, ip)
 		return nil, errLocation
 	}
 }
 
 func getForecastFunc(t *testing.T) mockforecaster.ClientGetForecastFunc {
 	return func(ctx context.Context, lat float64, long float64) (*forecaster.Forecast, error) {
-		if lat != testLocation.Lat || long != testLocation.Long {
-			t.Errorf("GetForecast: expected (%f, %f), got (%f, %f)", testLocation.Lat, testLocation.Long, lat, long)
-			return nil, nil
-		}
+		assert.Equal(t, testLocation.Lat, lat)
+		assert.Equal(t, testLocation.Long, long)
 		lval := forecaster.Location(*testForecast.Location)
 		ps := make([]*forecaster.Period, len(testForecast.Periods))
 		for i, p := range testForecast.Periods {
