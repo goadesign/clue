@@ -3,7 +3,7 @@ module goa.design/clue
 go 1.19
 
 require (
-	github.com/aws/smithy-go v1.14.0
+	github.com/aws/smithy-go v1.14.1
 	github.com/dimfeld/httptreemux/v5 v5.5.0
 	github.com/go-logfmt/logfmt v0.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
