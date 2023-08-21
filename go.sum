@@ -136,8 +136,8 @@ go.uber.org/multierr v1.6.0/go.mod h1:cdWPpRnG4AhwMwsgIHip0KRBQjJy5kYEpYjJxpXp9i
 go.uber.org/zap v1.18.1/go.mod h1:xg/QME4nWcxGxrpdeYfq7UvYrLh66cuVKdrbD1XF/NI=
 goa.design/goa/v3 v3.12.4 h1:g3G8yHLk+jyUDNRL2sNg+ZcoQ62zY83rpgagAQ5VmTA=
 goa.design/goa/v3 v3.12.4/go.mod h1:h1vjyGQ+rqWK+VvnqN8oLcpqaHrKIyuY1Vx+jhKodpg=
-goa.design/model v1.8.0 h1:2TsaOgY7LEELkKg37SxZq3AVYP8sv3IyUD26NdmpApY=
-goa.design/model v1.8.0/go.mod h1:3G48kCLhm67BnmsED+ycZTAKON7guJHwNGhaHzow4HE=
+goa.design/model v1.8.1 h1:9Aox67II2ZxOYENMf3oQwjK1LNzIVZJP9o/UJTXX9OY=
+goa.design/model v1.8.1/go.mod h1:Uvum9YXX7tYV5G5d5SLUKcs0hNItsctTGjSagm8ZPc0=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
