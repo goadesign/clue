@@ -17,7 +17,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.16.0
 	go.opentelemetry.io/otel/sdk v1.16.0
 	go.opentelemetry.io/otel/trace v1.16.0
-	goa.design/goa/v3 v3.12.3
+	goa.design/goa/v3 v3.12.4
 	goa.design/model v1.8.0
 	golang.org/x/term v0.11.0
 	golang.org/x/tools v0.12.0
@@ -26,6 +26,7 @@ require (
 )
 
 require (
+	github.com/AnatolyRugalev/goregen v0.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -44,7 +45,6 @@ require (
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
-	github.com/zach-klippenstein/goregen v0.0.0-20160303162051-795b5e3961ea // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.16.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.16.0 // indirect
 	go.opentelemetry.io/otel/metric v1.16.0 // indirect
