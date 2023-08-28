@@ -143,6 +143,8 @@ func TestPackage_Interfaces(t *testing.T) {
 				IsExported bool
 			}{
 				{Name: "Doer", File: "doer.go", IsExported: true},
+				{Name: "EmbeddedDoer", File: "doer.go", IsExported: true},
+				{Name: "ExternalEmbeddedDoer", File: "doer.go", IsExported: true},
 				{Name: "doer", File: "doer.go", IsExported: false},
 			},
 		},
