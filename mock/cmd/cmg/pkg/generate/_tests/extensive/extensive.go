@@ -38,6 +38,13 @@ type (
 		NamedTypes(Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array]) (Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array])
 		FuncNamedTypes(func(Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array])) func(Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array])
 		VariableConflicts(f, m uint)
+
+		Embedded
+		imported.Interface
+	}
+
+	Embedded interface {
+		Embedded(int8) int8
 	}
 
 	Generic[K comparable, V ~int | bool | string, X, Y any] interface {

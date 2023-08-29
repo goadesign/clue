@@ -26,16 +26,21 @@ func (t *fakeType) String() string {
 func TestValue_Name(t *testing.T) {
 	cases := []struct {
 		Name, Expected string
-		Ident          *ast.Ident
+		Value          Value
 	}{
 		{
-			Name:     "empty",
-			Ident:    nil,
+			Name:     "AST empty",
+			Value:    newASTValue(nil, nil, nil),
 			Expected: "",
 		},
 		{
-			Name:     "success",
-			Ident:    ast.NewIdent("a"),
+			Name:     "AST success",
+			Value:    newASTValue(nil, ast.NewIdent("a"), nil),
+			Expected: "a",
+		},
+		{
+			Name:     "types success",
+			Value:    newTypesValue(types.NewVar(0, nil, "a", nil)),
 			Expected: "a",
 		},
 	}
@@ -45,8 +50,7 @@ func TestValue_Name(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
-			value := newValue(nil, tc.Ident, nil)
-			name := value.Name()
+			name := tc.Value.Name()
 			assert.Equal(t, tc.Expected, name)
 		})
 	}
@@ -59,18 +63,21 @@ func TestValue_Type(t *testing.T) {
 	)
 
 	cases := []struct {
-		Name      string
-		Package   *packages.Package
-		ValueType ast.Expr
-		Expected  types.Type
+		Name     string
+		Value    Value
+		Expected types.Type
 	}{
 		{
-			Name: "success",
-			Package: &packages.Package{TypesInfo: &types.Info{Types: map[ast.Expr]types.TypeAndValue{
+			Name: "AST success",
+			Value: newASTValue(&packages.Package{TypesInfo: &types.Info{Types: map[ast.Expr]types.TypeAndValue{
 				stringIdent: {Type: stringType},
-			}}},
-			ValueType: stringIdent,
-			Expected:  stringType,
+			}}}, nil, stringIdent),
+			Expected: stringType,
+		},
+		{
+			Name:     "types success",
+			Value:    newTypesValue(types.NewVar(0, nil, "", stringType)),
+			Expected: stringType,
 		},
 	}
 
@@ -79,8 +86,7 @@ func TestValue_Type(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
-			value := newValue(tc.Package, nil, tc.ValueType)
-			typ := value.Type()
+			typ := tc.Value.Type()
 			assert.Equal(t, tc.Expected, typ)
 		})
 	}

@@ -34,6 +34,15 @@ type (
 	ExtensiveNamedTypesFunc        func(p0 extensive.Struct, p1 extensive.Array, p2 io.Reader, p3 imported.Type, p4 goa.Endpoint, p5 extensive.Generic[uint, string, extensive.Struct, extensive.Array]) (extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])
 	ExtensiveFuncNamedTypesFunc    func(p0 func(extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])) func(extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])
 	ExtensiveVariableConflictsFunc func(f, m uint)
+	ExtensiveEmbeddedFunc          func(p0 int8) int8
+	ExtensiveImportedFunc          func(p0 imported.Type) imported.Type
+
+	Embedded struct {
+		m *mock.Mock
+		t *testing.T
+	}
+
+	EmbeddedEmbeddedFunc func(p0 int8) int8
 
 	Generic[K comparable, V ~int | bool | string, X, Y any] struct {
 		m *mock.Mock
@@ -239,7 +248,70 @@ func (m1 *Extensive) VariableConflicts(f, m uint) {
 	m1.t.Error("unexpected VariableConflicts call")
 }
 
+func (m *Extensive) AddEmbedded(f ExtensiveEmbeddedFunc) {
+	m.m.Add("Embedded", f)
+}
+
+func (m *Extensive) SetEmbedded(f ExtensiveEmbeddedFunc) {
+	m.m.Set("Embedded", f)
+}
+
+func (m *Extensive) Embedded(p0 int8) int8 {
+	if f := m.m.Next("Embedded"); f != nil {
+		return f.(ExtensiveEmbeddedFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Embedded call")
+	return 0
+}
+
+func (m *Extensive) AddImported(f ExtensiveImportedFunc) {
+	m.m.Add("Imported", f)
+}
+
+func (m *Extensive) SetImported(f ExtensiveImportedFunc) {
+	m.m.Set("Imported", f)
+}
+
+func (m *Extensive) Imported(p0 imported.Type) imported.Type {
+	if f := m.m.Next("Imported"); f != nil {
+		return f.(ExtensiveImportedFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Imported call")
+	return 0
+}
+
 func (m *Extensive) HasMore() bool {
+	return m.m.HasMore()
+}
+
+func NewEmbedded(t *testing.T) *Embedded {
+	var (
+		m                    = &Embedded{mock.New(), t}
+		_ extensive.Embedded = m
+	)
+	return m
+}
+
+func (m *Embedded) AddEmbedded(f EmbeddedEmbeddedFunc) {
+	m.m.Add("Embedded", f)
+}
+
+func (m *Embedded) SetEmbedded(f EmbeddedEmbeddedFunc) {
+	m.m.Set("Embedded", f)
+}
+
+func (m *Embedded) Embedded(p0 int8) int8 {
+	if f := m.m.Next("Embedded"); f != nil {
+		return f.(EmbeddedEmbeddedFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Embedded call")
+	return 0
+}
+
+func (m *Embedded) HasMore() bool {
 	return m.m.HasMore()
 }
 

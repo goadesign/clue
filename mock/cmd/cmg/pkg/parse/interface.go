@@ -51,13 +51,33 @@ func (i *interface_) TypeParameters() (typeParameters []Type) {
 	return
 }
 
-func (i *interface_) Methods() (methods []Method) {
-	for _, m := range i.interfaceType.Methods.List {
+func (i *interface_) Methods() []Method {
+	return i.methods(i.interfaceType)
+}
+
+func (i *interface_) methods(it *ast.InterfaceType) (methods []Method) {
+	for _, m := range it.Methods.List {
 		switch t := m.Type.(type) {
 		case *ast.FuncType:
 			for _, n := range m.Names {
 				o, _, _ := types.LookupFieldOrMethod(i.p.Types.Scope().Lookup(i.Name()).Type(), true, i.p.Types, n.Name)
-				methods = append(methods, newMethod(i.p, n, t, o.Type().Underlying().(*types.Signature).Variadic()))
+				methods = append(methods, newASTMethod(i.p, n, t, o.Type().Underlying().(*types.Signature).Variadic()))
+			}
+		case *ast.Ident:
+			switch dt := t.Obj.Decl.(type) {
+			case *ast.TypeSpec:
+				switch t := dt.Type.(type) {
+				case *ast.InterfaceType:
+					methods = append(methods, i.methods(t)...)
+				}
+			}
+		case *ast.SelectorExpr:
+			if tv, ok := i.p.TypesInfo.Types[t]; ok {
+				if ti, ok := tv.Type.Underlying().(*types.Interface); ok {
+					for j := 0; j < ti.NumMethods(); j++ {
+						methods = append(methods, newTypesMethod(ti.Method(j)))
+					}
+				}
 			}
 		}
 	}

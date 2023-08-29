@@ -2,6 +2,7 @@ package parse
 
 import (
 	"go/ast"
+	"go/types"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -134,6 +135,28 @@ func TestInterface_Methods(t *testing.T) {
 	require.Len(t, ps, 1)
 	p := ps[0]
 
+	var (
+		externalDoerSelectorExpr *ast.SelectorExpr
+		externalDoerInterface    *types.Interface
+	)
+	for at, tv := range p.TypesInfo.Types {
+		if se, ok := at.(*ast.SelectorExpr); ok {
+			if i, ok := se.X.(*ast.Ident); ok {
+				if i.Name != "external" {
+					continue
+				}
+				if se.Sel.Name == "Doer" {
+					externalDoerSelectorExpr = se
+					externalDoerInterface, _ = tv.Type.Underlying().(*types.Interface)
+					break
+				}
+			}
+		}
+	}
+	require.NotNil(t, externalDoerSelectorExpr)
+	require.NotNil(t, externalDoerInterface)
+	require.Greater(t, externalDoerInterface.NumMethods(), 0)
+
 	cases := []struct {
 		Name          string
 		TypeSpec      *ast.TypeSpec
@@ -159,7 +182,7 @@ func TestInterface_Methods(t *testing.T) {
 				},
 			}}},
 			Expected: []Method{
-				newMethod(p, ast.NewIdent("Do"), &ast.FuncType{
+				newASTMethod(p, ast.NewIdent("Do"), &ast.FuncType{
 					Params: &ast.FieldList{List: []*ast.Field{
 						{Names: []*ast.Ident{ast.NewIdent("a"), ast.NewIdent("b")}, Type: ast.NewIdent("int")},
 						{Names: []*ast.Ident{ast.NewIdent("c")}, Type: ast.NewIdent("float64")},
@@ -169,6 +192,49 @@ func TestInterface_Methods(t *testing.T) {
 						{Names: []*ast.Ident{ast.NewIdent("err")}, Type: ast.NewIdent("error")},
 					}},
 				}, false),
+			},
+		},
+		{
+			Name:     "embedded interface",
+			TypeSpec: &ast.TypeSpec{Name: ast.NewIdent("EmbeddedDoer")},
+			InterfaceType: &ast.InterfaceType{Methods: &ast.FieldList{List: []*ast.Field{{
+				Type: &ast.Ident{Name: "Doer", Obj: &ast.Object{Kind: ast.Typ, Decl: &ast.TypeSpec{
+					Type: &ast.InterfaceType{Methods: &ast.FieldList{List: []*ast.Field{
+						{
+							Names: []*ast.Ident{ast.NewIdent("Do")},
+							Type: &ast.FuncType{
+								Params: &ast.FieldList{List: []*ast.Field{
+									{Names: []*ast.Ident{ast.NewIdent("a"), ast.NewIdent("b")}, Type: ast.NewIdent("int")},
+									{Names: []*ast.Ident{ast.NewIdent("c")}, Type: ast.NewIdent("float64")},
+								}},
+								Results: &ast.FieldList{List: []*ast.Field{
+									{Names: []*ast.Ident{ast.NewIdent("d"), ast.NewIdent("e")}, Type: ast.NewIdent("int")},
+									{Names: []*ast.Ident{ast.NewIdent("err")}, Type: ast.NewIdent("error")},
+								}},
+							},
+						},
+					}}},
+				}}}}},
+			}},
+			Expected: []Method{
+				newASTMethod(p, ast.NewIdent("Do"), &ast.FuncType{
+					Params: &ast.FieldList{List: []*ast.Field{
+						{Names: []*ast.Ident{ast.NewIdent("a"), ast.NewIdent("b")}, Type: ast.NewIdent("int")},
+						{Names: []*ast.Ident{ast.NewIdent("c")}, Type: ast.NewIdent("float64")},
+					}},
+					Results: &ast.FieldList{List: []*ast.Field{
+						{Names: []*ast.Ident{ast.NewIdent("d"), ast.NewIdent("e")}, Type: ast.NewIdent("int")},
+						{Names: []*ast.Ident{ast.NewIdent("err")}, Type: ast.NewIdent("error")},
+					}},
+				}, false),
+			},
+		},
+		{
+			Name:          "external embedded interface",
+			TypeSpec:      &ast.TypeSpec{Name: ast.NewIdent("ExternalEmbeddedDoer")},
+			InterfaceType: &ast.InterfaceType{Methods: &ast.FieldList{List: []*ast.Field{{Type: externalDoerSelectorExpr}}}},
+			Expected: []Method{
+				newTypesMethod(externalDoerInterface.Method(0)),
 			},
 		},
 	}

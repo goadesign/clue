@@ -13,24 +13,40 @@ type (
 		Type() types.Type
 	}
 
-	value struct {
+	astValue struct {
 		p         *packages.Package
 		ident     *ast.Ident
 		valueType ast.Expr
 	}
+
+	typesValue struct {
+		v *types.Var
+	}
 )
 
-func newValue(p *packages.Package, ident *ast.Ident, valueType ast.Expr) Value {
-	return &value{p: p, ident: ident, valueType: valueType}
+func newASTValue(p *packages.Package, ident *ast.Ident, valueType ast.Expr) Value {
+	return &astValue{p: p, ident: ident, valueType: valueType}
 }
 
-func (v *value) Name() string {
-	if v.ident != nil {
-		return v.ident.Name
+func (av *astValue) Name() string {
+	if av.ident != nil {
+		return av.ident.Name
 	}
 	return ""
 }
 
-func (v *value) Type() types.Type {
-	return v.p.TypesInfo.Types[v.valueType].Type
+func (av *astValue) Type() types.Type {
+	return av.p.TypesInfo.Types[av.valueType].Type
+}
+
+func newTypesValue(v *types.Var) Value {
+	return &typesValue{v: v}
+}
+
+func (tv *typesValue) Name() string {
+	return tv.v.Name()
+}
+
+func (tv *typesValue) Type() types.Type {
+	return tv.v.Type()
 }
