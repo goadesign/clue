@@ -11,6 +11,12 @@ import (
 )
 
 func TestHTTP(t *testing.T) {
+	// Create log context
+	var buf bytes.Buffer
+	ctx := log.Context(context.Background(), log.WithOutput(&buf), log.WithFormat(logKeyValsOnly))
+	log.FlushAndDisableBuffering(ctx)
+
+	// Create HTTP handler
 	mux := http.NewServeMux()
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -20,17 +26,19 @@ func TestHTTP(t *testing.T) {
 		log.Info(r.Context(), log.KV{K: "test", V: "info"})
 		log.Debug(r.Context(), log.KV{K: "test", V: "debug"})
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		w.Write([]byte("OK")) // nolint: errcheck
 	})
+
+	// Mount debug handler and log middleware
 	MountDebugLogEnabler(mux)
-	var buf bytes.Buffer
-	ctx := log.Context(context.Background(), log.WithOutput(&buf), log.WithFormat(logKeyValsOnly))
-	log.FlushAndDisableBuffering(ctx)
 	handler = HTTP()(handler)
-	handler = log.HTTP(ctx)(handler)
+	handler = log.HTTP(ctx, log.WithDisableRequestLogging())(handler)
+
+	// Start test server
 	mux.Handle("/", handler)
 	ts := httptest.NewServer(mux)
 	defer ts.Close()
+
 	steps := []struct {
 		name         string
 		on           bool

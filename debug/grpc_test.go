@@ -17,7 +17,9 @@ func TestUnaryServerInterceptor(t *testing.T) {
 	var buf bytes.Buffer
 	ctx := log.Context(context.Background(), log.WithOutput(&buf), log.WithFormat(logKeyValsOnly))
 	cli, stop := testsvc.SetupGRPC(t,
-		testsvc.WithServerOptions(grpc.ChainUnaryInterceptor(log.UnaryServerInterceptor(ctx), UnaryServerInterceptor())),
+		testsvc.WithServerOptions(grpc.ChainUnaryInterceptor(
+			log.UnaryServerInterceptor(ctx, log.WithDisableCallLogging()),
+			UnaryServerInterceptor())),
 		testsvc.WithUnaryFunc(logUnaryMethod))
 	defer stop()
 	mux := http.NewServeMux()
@@ -59,7 +61,9 @@ func TestStreamServerInterceptor(t *testing.T) {
 	var buf bytes.Buffer
 	ctx := log.Context(context.Background(), log.WithOutput(&buf), log.WithFormat(logKeyValsOnly))
 	cli, stop := testsvc.SetupGRPC(t,
-		testsvc.WithServerOptions(grpc.ChainStreamInterceptor(log.StreamServerInterceptor(ctx), StreamServerInterceptor())),
+		testsvc.WithServerOptions(grpc.ChainStreamInterceptor(
+			log.StreamServerInterceptor(ctx, log.WithDisableCallLogging()),
+			StreamServerInterceptor())),
 		testsvc.WithStreamFunc(echoMethod))
 	defer stop()
 	steps := []struct {

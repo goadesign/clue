@@ -59,7 +59,7 @@ func SetupGRPC(t *testing.T, opts ...GRPCOption) (c GRPClient, stop func()) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	go server.Serve(l)
+	go server.Serve(l) // nolint: errcheck
 
 	// Connect to in-memory server
 	dialOptions := append(options.dialOptions, grpc.WithTransportCredentials(insecure.NewCredentials()))

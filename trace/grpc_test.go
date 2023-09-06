@@ -89,7 +89,7 @@ func TestStreamServerTrace(t *testing.T) {
 	if err := stream.Send(&testsvc.Fields{}); err != nil {
 		t.Errorf("unexpected send error: %v", err)
 	}
-	stream.Recv()
+	stream.Recv() // nolint: errcheck
 	stop()
 	spans := exporter.GetSpans()
 	if len(spans) != 1 {
@@ -121,7 +121,7 @@ func TestStreamServerTraceNoRequestID(t *testing.T) {
 	if err := stream.Send(&testsvc.Fields{}); err != nil {
 		t.Errorf("unexpected send error: %v", err)
 	}
-	stream.Recv()
+	stream.Recv() // nolint: errcheck
 	stop()
 	spans := exporter.GetSpans()
 	if len(spans) != 1 {
@@ -160,7 +160,7 @@ func TestStreamClientTrace(t *testing.T) {
 	if err := stream.Send(&testsvc.Fields{}); err != nil {
 		t.Errorf("unexpected send error: %v", err)
 	}
-	stream.Recv()
+	stream.Recv() // nolint: errcheck
 	cancel()
 	stop()
 	spans := exporter.GetSpans()

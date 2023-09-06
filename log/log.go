@@ -162,7 +162,7 @@ func (l *logger) flush() {
 		return
 	}
 	for _, e := range l.entries {
-		l.options.w.Write(l.options.format(e))
+		l.options.w.Write(l.options.format(e)) // nolint: errcheck
 	}
 	l.entries = nil // free up memory
 	l.flushed = true
@@ -195,7 +195,7 @@ func log(ctx context.Context, sev Severity, buffer bool, fielders []Fielder) {
 
 	e := &Entry{timeNow().UTC(), sev, keyvals}
 	if l.flushed || !buffer {
-		l.options.w.Write(l.options.format(e))
+		l.options.w.Write(l.options.format(e)) // nolint: errcheck
 		return
 	}
 	l.entries = append(l.entries, e)
@@ -300,7 +300,7 @@ func (lw *limitWriter) Write(b []byte) (int, error) {
 	newLen := lw.n + len(b)
 	if newLen > lw.max {
 		b = b[:lw.max-lw.n]
-		lw.Writer.Write(b)
+		lw.Writer.Write(b) // nolint: errcheck
 		return lw.max - lw.n, errTruncated
 	}
 	lw.n = newLen

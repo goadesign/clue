@@ -27,7 +27,7 @@ var TimestampFormatLayout = time.RFC3339
 // FormatText is the default log formatter when not running in a terminal, it
 // prints entries using the logfmt format:
 //
-//    time=TIME level=SEVERITY KEY=VAL KEY=VAL ...
+//	time=TIME level=SEVERITY KEY=VAL KEY=VAL ...
 //
 // Where TIME is the UTC timestamp in RFC3339 format, SEVERITY is one of
 // "debug", "info" or "error", and KEY=VAL are the entry key/value pairs.
@@ -38,8 +38,8 @@ var TimestampFormatLayout = time.RFC3339
 func FormatText(e *Entry) []byte {
 	var b bytes.Buffer
 	enc := logfmt.NewEncoder(&b)
-	enc.EncodeKeyval(TimestampKey, e.Time.Format(TimestampFormatLayout))
-	enc.EncodeKeyval(SeverityKey, e.Severity)
+	enc.EncodeKeyval(TimestampKey, e.Time.Format(TimestampFormatLayout)) // nolint: errcheck
+	enc.EncodeKeyval(SeverityKey, e.Severity)                            // nolint: errcheck
 	for _, kv := range e.KeyVals {
 		// Make logfmt format slices
 		v := kv.V
@@ -49,7 +49,7 @@ func FormatText(e *Entry) []byte {
 			writeJSON(kv.V, &buf)
 			v = buf.String()
 		}
-		enc.EncodeKeyval(kv.K, v)
+		enc.EncodeKeyval(kv.K, v) // nolint: errcheck
 	}
 	b.WriteByte('\n')
 	return b.Bytes()
@@ -58,13 +58,13 @@ func FormatText(e *Entry) []byte {
 // FormatJSON is a log formatter that prints entries using JSON. Entries are
 // formatted as follows:
 //
-//   {
-//     "time": "TIMESTAMP", // UTC timestamp in RFC3339 format
-//     "level": "SEVERITY", // one of DEBUG, INFO or ERROR
-//     "key1": "val1",      // entry key/value pairs
-//     "key2": "val2",
-//     ...
-//   }
+//	{
+//	  "time": "TIMESTAMP", // UTC timestamp in RFC3339 format
+//	  "level": "SEVERITY", // one of DEBUG, INFO or ERROR
+//	  "key1": "val1",      // entry key/value pairs
+//	  "key2": "val2",
+//	  ...
+//	}
 //
 // note: the implementation avoids using reflection (and thus the json package)
 // for efficiency.
@@ -101,7 +101,7 @@ func FormatJSON(e *Entry) []byte {
 // FormatTerminal is a log formatter that prints entries suitable for terminal
 // that supports colors. It prints entries in the following format:
 //
-//    SEVERITY[seconds] key=val key=val ...
+//	SEVERITY[seconds] key=val key=val ...
 //
 // Where SEVERITY is one of DEBG, INFO or ERRO, seconds is the number of seconds
 // since the application started, message is the log message, and key=val are

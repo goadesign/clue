@@ -3,7 +3,9 @@
 set -e
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
-pushd ${GIT_ROOT}
+GOLANGCI_VER=1.53.3
+
+pushd ${GIT_ROOT} > /dev/null
 
 source ./scripts/utils/common.sh
 
@@ -11,7 +13,6 @@ if [[ "$CI" == "" ]]; then
   check_required_cmd "tmux"
 fi
 
-go mod download
-go install honnef.co/go/tools/cmd/staticcheck@latest
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v${GOLANGCI_VER}
 
-popd
+popd > /dev/null

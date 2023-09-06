@@ -2,13 +2,13 @@
 
 set -e
 
-echo "Running tests..."
-
 GIT_ROOT=$(git rev-parse --show-toplevel)
-pushd ${GIT_ROOT}
+pushd ${GIT_ROOT} > /dev/null
 
-staticcheck ./...
+echo "Running static analysis..."
+golangci-lint run
 
+echo "Running tests..."
 go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
-popd
+popd > /dev/null

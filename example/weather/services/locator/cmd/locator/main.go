@@ -12,7 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"goa.design/clue/debug"
 	"goa.design/clue/health"
 	"goa.design/clue/log"
@@ -45,7 +44,7 @@ func main() {
 		format = log.FormatTerminal
 	}
 	ctx := log.Context(context.Background(), log.WithFormat(format), log.WithFunc(trace.Log))
-	ctx = log.With(ctx, log.KV{"svc", genlocator.ServiceName})
+	ctx = log.With(ctx, log.KV{K: "svc", V: genlocator.ServiceName})
 	if *debugf {
 		ctx = log.Context(ctx, log.WithDebug())
 		log.Debugf(ctx, "debug logs enabled")
@@ -83,7 +82,7 @@ func main() {
 	// 6. Create transport
 	server := gengrpc.New(endpoints, nil)
 	grpcsvr := grpc.NewServer(
-		grpcmiddleware.WithUnaryServerChain(
+		grpc.ChainUnaryInterceptor(
 			goagrpcmiddleware.UnaryRequestID(),
 			log.UnaryServerInterceptor(ctx),
 			debug.UnaryServerInterceptor(),
@@ -95,7 +94,7 @@ func main() {
 	reflection.Register(grpcsvr)
 	for svc, info := range grpcsvr.GetServiceInfo() {
 		for _, m := range info.Methods {
-			log.Print(ctx, log.KV{"method", svc + "/" + m.Name})
+			log.Print(ctx, log.KV{K: "method", V: svc + "/" + m.Name})
 		}
 	}
 
@@ -147,7 +146,9 @@ func main() {
 		defer cancel()
 
 		grpcsvr.GracefulStop()
-		httpsvr.Shutdown(ctx)
+		if err := httpsvr.Shutdown(ctx); err != nil {
+			log.Errorf(ctx, err, "failed to shutdown HTTP server")
+		}
 	}()
 
 	// Cleanup

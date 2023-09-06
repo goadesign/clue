@@ -85,7 +85,7 @@ func TestMountPprofHandlers(t *testing.T) {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		w.Write([]byte("OK")) // nolint: errcheck
 	})
 	mux.Handle("/", handler)
 	ts := httptest.NewServer(mux)
@@ -159,7 +159,7 @@ func TestDebugPayloads(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			buf.Reset()
-			svc.HTTPFunc = func(ctx context.Context, f *testsvc.Fields) (*testsvc.Fields, error) {
+			svc.HTTPFunc = func(_ context.Context, f *testsvc.Fields) (*testsvc.Fields, error) {
 				if c.expectedErr != "" {
 					return nil, errors.New(c.expectedErr)
 				}
@@ -209,6 +209,6 @@ func makeRequest(t *testing.T, url string) (int, string) {
 	}
 	defer res.Body.Close()
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(res.Body)
+	buf.ReadFrom(res.Body) // nolint: errcheck
 	return res.StatusCode, buf.String()
 }
