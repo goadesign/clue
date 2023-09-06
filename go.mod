@@ -2,8 +2,6 @@ module goa.design/clue
 
 go 1.21
 
-toolchain go1.21.0
-
 require (
 	github.com/aws/smithy-go v1.14.2
 	github.com/dimfeld/httptreemux/v5 v5.5.0
