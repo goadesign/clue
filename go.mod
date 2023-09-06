@@ -18,7 +18,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.17.0
 	go.opentelemetry.io/otel/trace v1.17.0
 	goa.design/goa/v3 v3.12.4
-	goa.design/model v1.8.1
+	goa.design/model v1.9.0
 	golang.org/x/term v0.11.0
 	golang.org/x/tools v0.12.0
 	google.golang.org/grpc v1.57.0
@@ -36,7 +36,7 @@ require (
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/google/uuid v1.3.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
 	github.com/manveru/faker v0.0.0-20171103152722-9fbc68a78c4d // indirect
