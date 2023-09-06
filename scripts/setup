@@ -3,7 +3,6 @@
 set -e
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
-GOLANGCI_VER=1.54
 
 pushd ${GIT_ROOT} > /dev/null
 
@@ -13,6 +12,6 @@ if [[ "$CI" == "" ]]; then
   check_required_cmd "tmux"
 fi
 
-curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v${GOLANGCI_VER}
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest 
 
 popd > /dev/null
