@@ -20,36 +20,58 @@ func TestHTTP(t *testing.T) {
 	now := timeNow
 	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
 	defer func() { timeNow = now }()
+	timeSince = func(_ time.Time) time.Duration { return 42 * time.Millisecond }
+	defer func() { timeSince = time.Since }()
 
-	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		Print(req.Context(), KV{"key1", "value1"}, KV{"key2", "value2"})
-	})
-	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+	prefix := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"request-id","msg":"start","http.method":"GET","http.url":"http://example.com","http.remote_addr":""}`
+	entry := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"request-id","key1":"value1","key2":"value2"}`
+	suffix := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"request-id","msg":"end","http.method":"GET","http.url":"http://example.com","http.status":0,"http.time_ms":42,"http.bytes":0}`
 
-	handler = HTTP(ctx)(handler)
+	cases := []struct {
+		name     string
+		opt      HTTPLogOption
+		expected string
+	}{
+		{
+			name:     "default",
+			expected: prefix + "\n" + entry + "\n" + suffix + "\n",
+		},
+		{
+			name: "with path filter",
+			opt:  WithPathFilter(regexp.MustCompile("")),
+		},
+		{
+			name:     "with disable request logging",
+			opt:      WithDisableRequestLogging(),
+			expected: entry + "\n",
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var handler http.Handler = http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
+				Print(req.Context(), KV{"key1", "value1"}, KV{"key2", "value2"})
+			})
+			var buf bytes.Buffer
+			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
 
-	requestIDCtx := context.WithValue(ctx, middleware.RequestIDKey, "request-id")
-	req, _ := http.NewRequest("GET", "http://example.com", nil)
-	req = req.WithContext(requestIDCtx)
+			handler = HTTP(ctx, c.opt)(handler)
 
-	handler.ServeHTTP(nil, req)
+			requestIDCtx := context.WithValue(context.Background(), middleware.RequestIDKey, "request-id") //nolint:staticcheck
+			req, _ := http.NewRequest("GET", "http://example.com", nil)
+			req = req.WithContext(requestIDCtx)
 
-	expected := fmt.Sprintf("{%s,%s,%s,%s,%s}\n",
-		`"time":"2022-01-09T20:29:45Z"`,
-		`"level":"info"`,
-		`"request-id":"request-id"`,
-		`"key1":"value1"`,
-		`"key2":"value2"`)
+			handler.ServeHTTP(nil, req)
 
-	assert.Equal(t, expected, buf.String())
+			assert.Equal(t, c.expected, buf.String())
+		})
+	}
 }
 
 func TestEndpoint(t *testing.T) {
 	now := timeNow
 	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
 	defer func() { timeNow = now }()
-	endpoint := func(ctx context.Context, req interface{}) (interface{}, error) {
+	endpoint := func(ctx context.Context, _ interface{}) (interface{}, error) {
 		Printf(ctx, "test")
 		return nil, nil
 	}
@@ -75,7 +97,8 @@ func TestEndpoint(t *testing.T) {
 				ctx = context.WithValue(ctx, goa.MethodKey, c.mname)
 			}
 
-			Endpoint(endpoint)(ctx, nil)
+			_, err := Endpoint(endpoint)(ctx, nil)
+			assert.NoError(t, err)
 
 			assert.Equal(t, c.expected+"\n", buf.String())
 		})
@@ -112,7 +135,7 @@ func TestClient(t *testing.T) {
 			if c.noLog {
 				ctx = context.Background()
 			}
-			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) { rw.Write([]byte(`OK`)) }))
+			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) { rw.Write([]byte(`OK`)) })) //nolint:errcheck
 			defer server.Close()
 			client := server.Client()
 			if c.clientErr != nil {
@@ -127,7 +150,7 @@ func TestClient(t *testing.T) {
 			req, _ := http.NewRequest("GET", server.URL, nil)
 			req = req.WithContext(ctx)
 
-			client.Do(req)
+			client.Do(req) // nolint:errcheck
 
 			expected := strings.ReplaceAll(c.expected, "$URL", server.URL)
 			assert.Equal(t, strings.TrimSpace(buf.String()), expected)
@@ -136,7 +159,7 @@ func TestClient(t *testing.T) {
 }
 
 func TestWithPathFilter(t *testing.T) {
-	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	var handler http.Handler = http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
 		Print(req.Context(), KV{"key1", "value1"}, KV{"key2", "value2"})
 	})
 	var buf bytes.Buffer

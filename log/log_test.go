@@ -171,7 +171,7 @@ func TestBufferingWithDisableBufferingFunc(t *testing.T) {
 
 func TestFatal(t *testing.T) {
 	var exitCalled bool
-	osExit = func(code int) { exitCalled = true }
+	osExit = func(_ int) { exitCalled = true }
 	defer func() { osExit = os.Exit }()
 	var buf bytes.Buffer
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat))

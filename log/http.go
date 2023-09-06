@@ -5,9 +5,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"regexp"
 
+	goahttpmiddleware "goa.design/goa/v3/http/middleware"
 	"goa.design/goa/v3/middleware"
 	goa "goa.design/goa/v3/pkg"
 )
@@ -22,7 +24,8 @@ type (
 	HTTPClientLogOption func(*httpClientOptions)
 
 	httpLogOptions struct {
-		pathFilters []*regexp.Regexp
+		pathFilters           []*regexp.Regexp
+		disableRequestLogging bool
 	}
 
 	httpClientOptions struct {
@@ -37,13 +40,19 @@ type (
 	}
 )
 
-// HTTP returns a HTTP middleware that initializes the logger context.  It
-// panics if logCtx was not initialized with Context.
+// HTTP returns a HTTP middleware that performs two tasks:
+//  1. Enriches the request context with the logger specified in logCtx.
+//  2. Logs HTTP request details, except when WithDisableRequestLogging is set or
+//     URL path matches a WithPathFilter regex.
+//
+// HTTP panics if logCtx was not created with Context.
 func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http.Handler {
 	MustContainLogger(logCtx)
 	var options httpLogOptions
 	for _, o := range opts {
-		o(&options)
+		if o != nil {
+			o(&options)
+		}
 	}
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -57,7 +66,23 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 			if requestID := req.Context().Value(middleware.RequestIDKey); requestID != nil {
 				ctx = With(ctx, KV{RequestIDKey, requestID})
 			}
-			h.ServeHTTP(w, req.WithContext(ctx))
+			if options.disableRequestLogging {
+				h.ServeHTTP(w, req.WithContext(ctx))
+				return
+			}
+			methKV := KV{K: HTTPMethodKey, V: req.Method}
+			urlKV := KV{K: HTTPURLKey, V: req.URL.String()}
+			fromKV := KV{K: HTTPFromKey, V: from(req)}
+			Print(ctx, KV{K: MessageKey, V: "start"}, methKV, urlKV, fromKV)
+
+			rw := goahttpmiddleware.CaptureResponse(w)
+			started := timeNow()
+			h.ServeHTTP(rw, req.WithContext(ctx))
+
+			statusKV := KV{K: HTTPStatusKey, V: rw.StatusCode}
+			durKV := KV{K: HTTPDurationKey, V: timeSince(started).Milliseconds()}
+			bytesKV := KV{K: HTTPBytesKey, V: rw.ContentLength}
+			Print(ctx, KV{K: MessageKey, V: "end"}, methKV, urlKV, statusKV, durKV, bytesKV)
 		})
 	}
 }
@@ -113,6 +138,14 @@ func WithLogBodyOnError() HTTPClientLogOption {
 	}
 }
 
+// WithDisableRequestLogging returns a HTTP middleware option that disables
+// logging of HTTP requests.
+func WithDisableRequestLogging() HTTPLogOption {
+	return func(o *httpLogOptions) {
+		o.disableRequestLogging = true
+	}
+}
+
 // RoundTrip executes the given HTTP request and logs the request and response. The
 // request context must be initialized with a clue logger.
 func (c *client) RoundTrip(req *http.Request) (resp *http.Response, err error) {
@@ -144,4 +177,17 @@ func (c *client) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	}
 	Print(req.Context(), msgKV, methKV, urlKV, statusKV, durKV)
 	return
+}
+
+// from returns the client address from the request.
+func from(req *http.Request) string {
+	if f := req.Header.Get("X-Forwarded-For"); f != "" {
+		return f
+	}
+	f := req.RemoteAddr
+	ip, _, err := net.SplitHostPort(f)
+	if err != nil {
+		return f
+	}
+	return ip
 }

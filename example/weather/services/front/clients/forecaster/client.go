@@ -69,7 +69,7 @@ func New(cc *grpc.ClientConn) Client {
 // Forecast returns the forecast for the given location or current location if
 // lat or long are nil.
 func (c *client) GetForecast(ctx context.Context, lat, long float64) (*Forecast, error) {
-	res, err := c.forecast(ctx, &genforecast.ForecastPayload{lat, long})
+	res, err := c.forecast(ctx, &genforecast.ForecastPayload{Lat: lat, Long: long})
 	if err != nil {
 		return nil, err
 	}

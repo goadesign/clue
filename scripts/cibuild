@@ -3,9 +3,9 @@
 set -e
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
-pushd ${GIT_ROOT}
+pushd ${GIT_ROOT} > /dev/null
 
 ./scripts/setup
 ./scripts/test
 
-popd
+popd > /dev/null

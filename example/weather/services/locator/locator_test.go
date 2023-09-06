@@ -21,7 +21,7 @@ func TestGetIPLocation(t *testing.T) {
 	// location then failing.
 	ipc := mockipapi.NewClient(t)
 	ipc.AddGetLocation(func(ctx context.Context, ip string) (*ipapi.WorldLocation, error) {
-		return &ipapi.WorldLocation{testLat, testLong, testCity, testRegion, testCountry}, nil
+		return &ipapi.WorldLocation{Lat: testLat, Long: testLong, City: testCity, Region: testRegion, Country: testCountry}, nil
 	})
 	ipc.AddGetLocation(func(ctx context.Context, ip string) (*ipapi.WorldLocation, error) {
 		return nil, fmt.Errorf("test failure")

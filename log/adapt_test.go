@@ -18,7 +18,7 @@ func TestAsGoaMiddlwareLogger(t *testing.T) {
 	var buf bytes.Buffer
 	ctx := Context(context.Background(), WithOutput(&buf))
 	logger := AsGoaMiddlewareLogger(ctx)
-	logger.Log("msg", "hello world")
+	assert.NoError(t, logger.Log("msg", "hello world"))
 	want := "time=2022-01-09T20:29:45Z level=info msg=\"hello world\"\n"
 	assert.Equal(t, buf.String(), want)
 }

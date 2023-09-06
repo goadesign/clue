@@ -67,7 +67,7 @@ func TestIsTracing(t *testing.T) {
 	}
 	exp, _ := stdouttrace.New(stdouttrace.WithWriter(io.Discard))
 	tp := trace.NewTracerProvider(trace.WithBatcher(exp))
-	defer tp.Shutdown(context.Background())
+	defer tp.Shutdown(context.Background()) // nolint:errcheck
 	otel.SetTracerProvider(tp)
 	ctx, span := otel.Tracer("test").Start(context.Background(), "test")
 	defer span.End()

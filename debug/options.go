@@ -27,7 +27,6 @@ type (
 		maxsize int // maximum number of bytes in a single log message or value
 		format  FormatFunc
 		client  bool
-		prefix  string
 	}
 
 	dleOptions struct {
@@ -108,7 +107,7 @@ func WithOffValue(offval string) DebugLogEnablerOption {
 }
 
 // FormatJSON returns a function that formats the given value as JSON.
-func FormatJSON(ctx context.Context, v interface{}) string {
+func FormatJSON(_ context.Context, v interface{}) string {
 	js, err := json.Marshal(v)
 	if err != nil {
 		return fmt.Sprintf("<invalid: %s>", err)

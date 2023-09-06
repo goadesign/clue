@@ -12,20 +12,31 @@ import (
 )
 
 type (
+	// GRPCLogOption is a function that applies a configuration option
+	// to a GRPC interceptor logger.
+	GRPCLogOption func(*grpcOptions)
+
 	// GRPCClientLogOption is a function that applies a configuration option
 	// to a GRPC client interceptor logger.
-	GRPCClientLogOption func(*grpcOptions)
+	// Deprecated: Use GRPCLogOption instead.
+	GRPCClientLogOption = GRPCLogOption
 
 	grpcOptions struct {
-		iserr func(codes.Code) bool
+		iserr              func(codes.Code) bool
+		disableCallLogging bool
 	}
 )
 
-// UnaryServerInterceptor return an interceptor that configured the request
-// context with the logger contained in logCtx.  It panics if logCtx was not
-// initialized with Context.
-func UnaryServerInterceptor(logCtx context.Context) grpc.UnaryServerInterceptor {
+// UnaryServerInterceptor returns a unary interceptor that performs two tasks:
+// 1. Enriches the request context with the logger specified in logCtx.
+// 2. Logs details of the unary call, unless the WithDisableCallLogging option is provided.
+// UnaryServerInterceptor panics if logCtx was not created with Context.
+func UnaryServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc.UnaryServerInterceptor {
 	MustContainLogger(logCtx)
+	o := defaultGRPCOptions()
+	for _, opt := range opts {
+		opt(o)
+	}
 	return func(
 		ctx context.Context,
 		req interface{},
@@ -36,15 +47,40 @@ func UnaryServerInterceptor(logCtx context.Context) grpc.UnaryServerInterceptor 
 		if reqID := ctx.Value(goamiddleware.RequestIDKey); reqID != nil {
 			ctx = With(ctx, KV{RequestIDKey, reqID})
 		}
-		return handler(ctx, req)
+		if o.disableCallLogging {
+			return handler(ctx, req)
+		}
+		then := time.Now()
+		svcKV := KV{K: GRPCServiceKey, V: path.Dir(info.FullMethod)[1:]}
+		methKV := KV{K: GRPCMethodKey, V: path.Base(info.FullMethod)}
+		Print(ctx, KV{MessageKey, "start"}, svcKV, methKV)
+
+		res, err := handler(ctx, req)
+
+		stat, _ := status.FromError(err)
+		ms := timeSince(then).Milliseconds()
+		codeKV := KV{K: GRPCCodeKey, V: stat.Code()}
+		durKV := KV{K: GRPCDurationKey, V: ms}
+		if o.iserr(stat.Code()) {
+			statKV := KV{K: GRPCStatusKey, V: stat.Message()}
+			Error(ctx, err, svcKV, methKV, statKV, codeKV, durKV)
+			return res, err
+		}
+		Print(ctx, KV{MessageKey, "end"}, svcKV, methKV, codeKV, durKV)
+		return res, err
 	}
 }
 
-// StreamServerInterceptor returns a stream interceptor that configures the
-// request context with the logger contained in logCtx.  It panics if logCtx
-// was not initialized with Context.
-func StreamServerInterceptor(logCtx context.Context) grpc.StreamServerInterceptor {
+// StreamServerInterceptor returns a stream interceptor that performs two tasks:
+// 1. Enriches the request context with the logger specified in logCtx.
+// 2. Logs details of the stream call, unless the WithDisableCallLogging option is provided.
+// StreamServerInterceptor panics if logCtx was not created with Context.
+func StreamServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc.StreamServerInterceptor {
 	MustContainLogger(logCtx)
+	o := defaultGRPCOptions()
+	for _, opt := range opts {
+		opt(o)
+	}
 	return func(
 		srv interface{},
 		stream grpc.ServerStream,
@@ -55,13 +91,34 @@ func StreamServerInterceptor(logCtx context.Context) grpc.StreamServerIntercepto
 		if reqID := ctx.Value(goamiddleware.RequestIDKey); reqID != nil {
 			ctx = With(ctx, KV{RequestIDKey, reqID})
 		}
-		return handler(srv, &streamWithContext{stream, ctx})
+		stream = &streamWithContext{stream, ctx}
+		if o.disableCallLogging {
+			return handler(srv, stream)
+		}
+		then := time.Now()
+		svcKV := KV{K: GRPCServiceKey, V: path.Dir(info.FullMethod)[1:]}
+		methKV := KV{K: GRPCMethodKey, V: path.Base(info.FullMethod)}
+		Print(ctx, KV{MessageKey, "start"}, svcKV, methKV)
+
+		err := handler(srv, stream)
+
+		stat, _ := status.FromError(err)
+		ms := timeSince(then).Milliseconds()
+		codeKV := KV{K: GRPCCodeKey, V: stat.Code()}
+		durKV := KV{K: GRPCDurationKey, V: ms}
+		if o.iserr(stat.Code()) {
+			statKV := KV{K: GRPCStatusKey, V: stat.Message()}
+			Error(ctx, err, svcKV, methKV, statKV, codeKV, durKV)
+			return err
+		}
+		Print(ctx, KV{MessageKey, "end"}, svcKV, methKV, codeKV, durKV)
+		return err
 	}
 }
 
 // UnaryClientInterceptor returns a unary interceptor that logs the request with
 // the logger contained in the request context if any.
-func UnaryClientInterceptor(opts ...GRPCClientLogOption) grpc.UnaryClientInterceptor {
+func UnaryClientInterceptor(opts ...GRPCLogOption) grpc.UnaryClientInterceptor {
 	o := defaultGRPCOptions()
 	for _, opt := range opts {
 		opt(o)
@@ -75,29 +132,29 @@ func UnaryClientInterceptor(opts ...GRPCClientLogOption) grpc.UnaryClientInterce
 		opts ...grpc.CallOption,
 	) error {
 		then := time.Now()
-		service := path.Dir(fullmethod)[1:]
-		method := path.Base(fullmethod)
+		svcKV := KV{K: GRPCServiceKey, V: path.Dir(fullmethod)[1:]}
+		methKV := KV{K: GRPCMethodKey, V: path.Base(fullmethod)}
+		Print(ctx, KV{K: MessageKey, V: "start"}, svcKV, methKV)
+
 		err := invoker(ctx, fullmethod, req, reply, cc, opts...)
+
 		stat, _ := status.FromError(err)
 		ms := timeSince(then).Milliseconds()
-		msgKV := KV{K: MessageKey, V: "finished client unary call"}
-		svcKV := KV{K: GRPCServiceKey, V: service}
-		methKV := KV{K: GRPCMethodKey, V: method}
 		codeKV := KV{K: GRPCCodeKey, V: stat.Code()}
 		durKV := KV{K: GRPCDurationKey, V: ms}
 		if o.iserr(stat.Code()) {
 			statKV := KV{K: GRPCStatusKey, V: stat.Message()}
-			Error(ctx, err, msgKV, svcKV, methKV, statKV, codeKV, durKV)
+			Error(ctx, err, svcKV, methKV, statKV, codeKV, durKV)
 			return err
 		}
-		Print(ctx, msgKV, svcKV, methKV, codeKV, durKV)
+		Print(ctx, KV{K: MessageKey, V: "end"}, svcKV, methKV, codeKV, durKV)
 		return err
 	}
 }
 
 // StreamClientInterceptor returns a stream interceptor that logs the request
 // with the logger contained in the request context if any.
-func StreamClientInterceptor(opts ...GRPCClientLogOption) grpc.StreamClientInterceptor {
+func StreamClientInterceptor(opts ...GRPCLogOption) grpc.StreamClientInterceptor {
 	o := defaultGRPCOptions()
 	for _, opt := range opts {
 		opt(o)
@@ -111,29 +168,39 @@ func StreamClientInterceptor(opts ...GRPCClientLogOption) grpc.StreamClientInter
 		opts ...grpc.CallOption,
 	) (grpc.ClientStream, error) {
 		then := time.Now()
-		service := path.Dir(fullmethod)[1:]
-		method := path.Base(fullmethod)
+		svcKV := KV{K: GRPCServiceKey, V: path.Dir(fullmethod)[1:]}
+		methKV := KV{K: GRPCMethodKey, V: path.Base(fullmethod)}
+		Print(ctx, KV{K: MessageKey, V: "start"}, svcKV, methKV)
+
 		stream, err := streamer(ctx, desc, cc, fullmethod, opts...)
+
 		stat, _ := status.FromError(err)
 		ms := timeSince(then).Milliseconds()
-		msgKV := KV{K: MessageKey, V: "finished client streaming call"}
-		svcKV := KV{K: GRPCServiceKey, V: service}
-		methKV := KV{K: GRPCMethodKey, V: method}
 		codeKV := KV{K: GRPCCodeKey, V: stat.Code()}
 		durKV := KV{K: GRPCDurationKey, V: ms}
 		if o.iserr(stat.Code()) {
 			statKV := KV{K: GRPCStatusKey, V: stat.Message()}
-			Error(ctx, err, msgKV, svcKV, methKV, statKV, codeKV, durKV)
+			Error(ctx, err, svcKV, methKV, statKV, codeKV, durKV)
 			return stream, err
 		}
-		Print(ctx, msgKV, svcKV, methKV, codeKV, durKV)
+		Print(ctx, KV{K: MessageKey, V: "end"}, svcKV, methKV, codeKV, durKV)
 		return stream, err
 	}
 }
 
-func WithErrorFunc(iserr func(codes.Code) bool) GRPCClientLogOption {
+// WithErrorFunc returns a GRPC logger option that configures the logger to
+// consider the given function to determine if a GRPC status code is an error.
+func WithErrorFunc(iserr func(codes.Code) bool) GRPCLogOption {
 	return func(o *grpcOptions) {
 		o.iserr = iserr
+	}
+}
+
+// WithDisableCallLogging returns a GRPC logger option that disables call
+// logging.
+func WithDisableCallLogging() GRPCLogOption {
+	return func(o *grpcOptions) {
+		o.disableCallLogging = true
 	}
 }
 

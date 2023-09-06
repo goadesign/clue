@@ -131,7 +131,7 @@ func TestUnaryServerInterceptorActiveRequests(t *testing.T) {
 				testsvc.WithUnaryFunc(waitMethod(&running, &done, chstop)))
 
 			for i := 0; i < c.numReqs; i++ {
-				go cli.GRPCMethod(context.Background(), &testsvc.Fields{})
+				go cli.GRPCMethod(context.Background(), &testsvc.Fields{}) // nolint: errcheck
 			}
 
 			running.Wait()

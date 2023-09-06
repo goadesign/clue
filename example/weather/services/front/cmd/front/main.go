@@ -161,8 +161,12 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		httpServer.Shutdown(ctx)
-		metricsServer.Shutdown(ctx)
+		if err := httpServer.Shutdown(ctx); err != nil {
+			log.Errorf(ctx, err, "failed to shutdown HTTP server")
+		}
+		if err := metricsServer.Shutdown(ctx); err != nil {
+			log.Errorf(ctx, err, "failed to shutdown metrics server")
+		}
 	}()
 
 	// Cleanup

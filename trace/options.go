@@ -36,7 +36,7 @@ func defaultOptions() *options {
 
 // WithMaxSamplingRate sets the maximum sampling rate in requests per second.
 func WithMaxSamplingRate(rate int) TraceOption {
-	return func(ctx context.Context, opts *options) error {
+	return func(_ context.Context, opts *options) error {
 		opts.maxSamplingRate = rate
 		return nil
 	}
@@ -45,7 +45,7 @@ func WithMaxSamplingRate(rate int) TraceOption {
 // WithSampleSize sets the number of requests between two adjustments of the
 // sampling rate.
 func WithSampleSize(size int) TraceOption {
-	return func(ctx context.Context, opts *options) error {
+	return func(_ context.Context, opts *options) error {
 		opts.sampleSize = size
 		return nil
 	}
@@ -53,7 +53,7 @@ func WithSampleSize(size int) TraceOption {
 
 // WithDisabled disables tracing, not for use in production.
 func WithDisabled() TraceOption {
-	return func(ctx context.Context, opts *options) error {
+	return func(_ context.Context, opts *options) error {
 		opts.disabled = true
 		return nil
 	}
@@ -61,7 +61,7 @@ func WithDisabled() TraceOption {
 
 // WithExporter sets the exporter to use.
 func WithExporter(exporter sdktrace.SpanExporter) TraceOption {
-	return func(ctx context.Context, opts *options) error {
+	return func(_ context.Context, opts *options) error {
 		opts.exporter = exporter
 		return nil
 	}
@@ -69,7 +69,7 @@ func WithExporter(exporter sdktrace.SpanExporter) TraceOption {
 
 // WithParentSamplerOptions to set the options for sdktrace.ParentBased sampler.
 func WithParentSamplerOptions(samplerOptions ...sdktrace.ParentBasedSamplerOption) TraceOption {
-	return func(ctx context.Context, opts *options) error {
+	return func(_ context.Context, opts *options) error {
 		opts.parentSamplerOptions = samplerOptions
 		return nil
 	}
@@ -77,7 +77,7 @@ func WithParentSamplerOptions(samplerOptions ...sdktrace.ParentBasedSamplerOptio
 
 // WithResource sets the underlying opentelemetry resource.
 func WithResource(res *resource.Resource) TraceOption {
-	return func(ctx context.Context, opts *options) error {
+	return func(_ context.Context, opts *options) error {
 		opts.resource = res
 		return nil
 	}
@@ -85,7 +85,7 @@ func WithResource(res *resource.Resource) TraceOption {
 
 // WithPropagator sets the otel propagators
 func WithPropagator(propagator propagation.TextMapPropagator) TraceOption {
-	return func(ctx context.Context, opts *options) error {
+	return func(_ context.Context, opts *options) error {
 		opts.propagator = propagator
 		return nil
 	}

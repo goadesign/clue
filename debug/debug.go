@@ -22,9 +22,6 @@ type Muxer interface {
 var (
 	// debugLogs is true if debug logs should be enabled.
 	debugLogs bool
-
-	// pprofEnabled is true if pprof handlers are enabled.
-	pprofEnabled bool
 )
 
 // MountDebugLogEnabler mounts an endpoint under "/debug" and returns a HTTP
@@ -54,9 +51,9 @@ func MountDebugLogEnabler(mux Muxer, opts ...DebugLogEnablerOption) {
 			debugLogs = false
 		}
 		if debugLogs {
-			w.Write([]byte(fmt.Sprintf(`{"%s":"%s"}`, o.query, o.onval)))
+			w.Write([]byte(fmt.Sprintf(`{"%s":"%s"}`, o.query, o.onval))) // nolint: errcheck
 		} else {
-			w.Write([]byte(fmt.Sprintf(`{"%s":"%s"}`, o.query, o.offval)))
+			w.Write([]byte(fmt.Sprintf(`{"%s":"%s"}`, o.query, o.offval))) // nolint: errcheck
 		}
 	}))
 }

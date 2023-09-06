@@ -18,6 +18,6 @@ func Handler(chk Checker) http.HandlerFunc {
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
 		}
-		w.Write(b)
+		w.Write(b) // nolint: errcheck
 	})
 }

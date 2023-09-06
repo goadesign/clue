@@ -12,13 +12,13 @@ import (
 func TestAdapt(t *testing.T) {
 	mux := goahttp.NewMuxer()
 	adapted := Adapt(mux)
-	adapted.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	adapted.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		w.Write([]byte("OK")) // nolint: errcheck
 	})
-	adapted.Handle("/foo", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	adapted.Handle("/foo", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("FOO"))
+		w.Write([]byte("FOO")) // nolint: errcheck
 	}))
 	req := &http.Request{Method: "GET", URL: &url.URL{Path: "/"}}
 	w := httptest.NewRecorder()
