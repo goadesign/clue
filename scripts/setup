@@ -3,7 +3,7 @@
 set -e
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
-GOLANGCI_VER=1.53.3
+GOLANGCI_VER=1.54
 
 pushd ${GIT_ROOT} > /dev/null
 

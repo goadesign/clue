@@ -5,3 +5,4 @@ example/weather/services/front/cmd/front/front
 example/weather/.overmind.sock
 example/weather/bin/*
 coverage.out
+go.work

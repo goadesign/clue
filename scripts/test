@@ -6,7 +6,7 @@ GIT_ROOT=$(git rev-parse --show-toplevel)
 pushd ${GIT_ROOT} > /dev/null
 
 echo "Running static analysis..."
-golangci-lint run
+golangci-lint run --timeout 5m
 
 echo "Running tests..."
 go test -race -coverprofile=coverage.out -covermode=atomic ./...
