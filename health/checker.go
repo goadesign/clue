@@ -2,6 +2,8 @@ package health
 
 import (
 	"context"
+	"encoding/xml"
+	"sort"
 	"time"
 
 	"goa.design/clue/log"
@@ -32,7 +34,43 @@ type (
 	checker struct {
 		deps []Pinger
 	}
+
+	// mp is used to marshal a map to xml.
+	mp map[string]string
 )
+
+func (h Health) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return e.Encode(struct {
+		XMLName xml.Name `xml:"health"`
+		Uptime  int64    `xml:"uptime"`
+		Version string   `xml:"version"`
+		Status  mp       `xml:"status"`
+	}{
+		Uptime:  h.Uptime,
+		Version: h.Version,
+		Status:  h.Status,
+	})
+}
+
+func (m mp) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if len(m) == 0 {
+		return nil
+	}
+	if err := e.EncodeToken(start); err != nil {
+		return err
+	}
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		if err := e.EncodeElement(m[k], xml.StartElement{Name: xml.Name{Local: k}}); err != nil {
+			return err
+		}
+	}
+	return e.EncodeToken(start.End())
+}
 
 // Version of service, initialized at compiled time.
 var Version string
