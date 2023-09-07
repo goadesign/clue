@@ -51,6 +51,25 @@ Date: Mon, 17 Jan 2022 23:23:20 GMT
 }
 ```
 
+Another Content-Type:
+
+```bash
+http http://localhost:8083/livez Accept:application/xml
+HTTP/1.1 200 OK
+Content-Length: 158
+Content-Type: application/xml
+Date: Thu, 07 Sep 2023 13:28:29 GMT
+
+<health>
+  <uptime>20</uptime>
+  <version>91bb64a8103b494d0eac680f8e929e74882eea5f</version>
+  <status>
+    <ClickHouse>OK</ClickHouse>
+    <poller>OK</poller>
+  </status>
+</health>
+```
+
 ## Usage
 
 ```go
