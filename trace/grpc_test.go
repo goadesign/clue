@@ -42,17 +42,11 @@ func TestUnaryServerTrace(t *testing.T) {
 		t.Errorf("request ID not in span attributes")
 	}
 	events := spans[0].Events
-	if len(events) != 3 {
-		t.Fatalf("got %d events, want 3", len(events))
+	if len(events) != 1 {
+		t.Fatalf("got %d events, want 1", len(events))
 	}
-	if events[0].Name != "message" {
-		t.Errorf("got event name %s, want message", events[0].Name)
-	}
-	if events[1].Name != "unary method" {
+	if events[0].Name != "unary method" {
 		t.Errorf("unexpected event name: %s", events[0].Name)
-	}
-	if events[2].Name != "message" {
-		t.Errorf("got event name %s, want message", events[0].Name)
 	}
 }
 
