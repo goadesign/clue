@@ -11,7 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"goa.design/clue/debug"
 	"goa.design/clue/health"
 	"goa.design/clue/log"
@@ -71,9 +70,10 @@ func main() {
 	}
 
 	// 3. Setup metrics
+	mux := goahttp.NewMuxer()
 	ctx = metrics.Context(ctx, genfront.ServiceName,
 		metrics.WithRouteResolver(func(r *http.Request) string {
-			return chi.RouteContext(r.Context()).RoutePattern()
+			return mux.ResolvePattern(r)
 		}),
 	)
 
@@ -106,7 +106,6 @@ func main() {
 	endpoints.Use(log.Endpoint)
 
 	// 5. Create transport
-	mux := goahttp.NewMuxer()
 	debug.MountDebugLogEnabler(debug.Adapt(mux))
 	mux.Use(metrics.HTTP(ctx))
 	handler := trace.HTTP(ctx)(mux)                                            // 4. Trace request

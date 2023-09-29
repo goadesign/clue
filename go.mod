@@ -6,7 +6,6 @@ toolchain go1.21.0
 
 require (
 	github.com/aws/smithy-go v1.14.2
-	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-logfmt/logfmt v0.6.0
 	github.com/prometheus/client_golang v1.16.0
 	github.com/prometheus/client_model v0.4.0
@@ -35,6 +34,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dimfeld/httppath v0.0.0-20170720192232-ee938bf73598 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
+	github.com/go-chi/chi/v5 v5.0.10 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
