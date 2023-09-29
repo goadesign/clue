@@ -6,7 +6,6 @@ toolchain go1.21.0
 
 require (
 	github.com/aws/smithy-go v1.14.2
-	github.com/dimfeld/httptreemux/v5 v5.5.0
 	github.com/go-logfmt/logfmt v0.6.0
 	github.com/prometheus/client_golang v1.16.0
 	github.com/prometheus/client_model v0.4.0
