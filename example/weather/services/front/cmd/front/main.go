@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dimfeld/httptreemux/v5"
+	"github.com/go-chi/chi/v5"
 	"goa.design/clue/debug"
 	"goa.design/clue/health"
 	"goa.design/clue/log"
@@ -73,7 +73,7 @@ func main() {
 	// 3. Setup metrics
 	ctx = metrics.Context(ctx, genfront.ServiceName,
 		metrics.WithRouteResolver(func(r *http.Request) string {
-			return httptreemux.ContextRoute(r.Context())
+			return chi.RouteContext(r.Context()).RoutePattern()
 		}),
 	)
 
