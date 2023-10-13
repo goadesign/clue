@@ -13,8 +13,8 @@ type (
 	// RouteResolver is a function that resolves the route of a request used
 	// to label metrics.  Using a route resolver makes it possible to label
 	// all routes matching a pattern with the same label. As an example
-	// services using the github.com/dimfled/httptreemux muxer can use
-	// httptreemux.ContexRoute(r.Context()).
+	// services using the github.com/go-chi/chi/v5 muxer can use
+	// chi.RouteContext(r.Context()).RoutePattern().
 	RouteResolver func(r *http.Request) string
 
 	// options contains the configuration for the metricsation.
