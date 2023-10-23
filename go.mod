@@ -20,12 +20,11 @@ require (
 	goa.design/goa/v3 v3.13.2
 	golang.org/x/term v0.13.0
 	golang.org/x/tools v0.14.0
-	google.golang.org/grpc v1.58.3
+	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
 )
 
 require (
-	cloud.google.com/go/compute v1.23.0 // indirect
 	github.com/AnatolyRugalev/goregen v0.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
