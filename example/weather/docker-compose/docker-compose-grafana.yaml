@@ -6,7 +6,7 @@ services:
       - ./agent/config:/etc/agent-config
       - /var/log:/var/log
     entrypoint:
-      - /bin/agent
+      - /bin/grafana-agent
       - -config.file=/etc/agent-config/agent.yaml
       - -prometheus.wal-directory=/tmp/agent/wal
     ports:

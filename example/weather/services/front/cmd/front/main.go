@@ -106,8 +106,8 @@ func main() {
 	endpoints.Use(log.Endpoint)
 
 	// 5. Create transport
-	debug.MountDebugLogEnabler(debug.Adapt(mux))
 	mux.Use(metrics.HTTP(ctx))
+	debug.MountDebugLogEnabler(debug.Adapt(mux))
 	handler := trace.HTTP(ctx)(mux)                                            // 4. Trace request
 	handler = goahttpmiddleware.LogContext(log.AsGoaMiddlewareLogger)(handler) // 3. Log request and response
 	handler = log.HTTP(ctx)(handler)                                           // 2. Add logger to request context (with request ID key)
