@@ -133,19 +133,6 @@ func (s *streamWrapper) SendMsg(m interface{}) error {
 	return s.ServerStream.SendMsg(m)
 }
 
-func parseAddr(addr string) (ip, port string) {
-	if addr == "" {
-		return "", ""
-	}
-	if addr[0] == ':' {
-		return "", addr[1:]
-	}
-	if idx := strings.LastIndex(addr, ":"); idx > 0 {
-		return addr[:idx], addr[idx+1:]
-	}
-	return addr, ""
-}
-
 func parseGRPCFullMethodName(fullMethodName string) (serviceName, methodName string) {
 	if idx := strings.LastIndex(fullMethodName, "."); idx >= 0 {
 		fullMethodName = fullMethodName[idx+1:]
