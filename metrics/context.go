@@ -81,10 +81,6 @@ const (
 	labelHTTPPath = "http_path"
 	// labelHTTPStatusCode is the name of the label containing the HTTP status code.
 	labelHTTPStatusCode = "http_status_code"
-	// labelPeerIP is the peer host ip.
-	labelPeerIP = "net_peer_ip"
-	// labelPeerPort is the peer host port
-	labelPeerPort = "net_peer_port"
 	// labelRPCService is the name of the RPC service label.
 	labelRPCService = "rpc_service"
 	// labelRPCMethod is the name of the RPC method label.
@@ -110,11 +106,11 @@ var (
 	httpActiveRequestsLabels = []string{labelHTTPVerb, labelHTTPHost, labelHTTPPath}
 
 	// rpcLabels is the default set of dynamic metric labels
-	rpcLabels = []string{labelPeerIP, labelPeerPort, labelRPCService, labelRPCMethod, labelRPCStatusCode}
+	rpcLabels = []string{labelRPCService, labelRPCMethod, labelRPCStatusCode}
 
 	// NoCode is the set of dynamic labels used for active gRPC requests
 	// metric and stream message and result size metrics.
-	rpcNoCodeLabels = []string{labelPeerIP, labelPeerPort, labelRPCService, labelRPCMethod}
+	rpcNoCodeLabels = []string{labelRPCService, labelRPCMethod}
 )
 
 // Context initializes the given context for the HTTP, UnaryInterceptor and
