@@ -17,7 +17,7 @@ type (
 	// chi.RouteContext(r.Context()).RoutePattern().
 	RouteResolver func(r *http.Request) string
 
-	// options contains the configuration for the metricsation.
+	// options contains the configuration for the metrics.
 	options struct {
 		// durationBuckets is the buckets for the request duration histogram.
 		durationBuckets []float64

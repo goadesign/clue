@@ -7,7 +7,7 @@ import (
 	"goa.design/clue/log"
 )
 
-// micro/log to prometheus logger adapter.
+// clue/log to prometheus logger adapter.
 type logger struct {
 	context.Context
 }

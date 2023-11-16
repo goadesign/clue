@@ -25,7 +25,7 @@ func UnaryServerInterceptor(traceCtx context.Context) grpc.UnaryServerIntercepto
 	) (interface{}, error) {
 		handler = initTracingContextGRPCUnary(traceCtx, handler)
 		handler = addRequestIDGRPCUnary(handler)
-		ui := otelgrpc.UnaryServerInterceptor(
+		ui := otelgrpc.UnaryServerInterceptor( //
 			otelgrpc.WithTracerProvider(state.(*stateBag).provider),
 			otelgrpc.WithPropagators(state.(*stateBag).propagator))
 		return ui(ctx, req, info, handler)
