@@ -81,13 +81,6 @@ func (s *Server) TestSmoke(ctx context.Context, message *testerpb.TestSmokeReque
 	ctx = context.WithValue(ctx, goa.ServiceKey, "tester")
 	resp, err := s.TestSmokeH.Handle(ctx, message)
 	if err != nil {
-		var en goa.GoaErrorNamer
-		if errors.As(err, &en) {
-			switch en.GoaErrorName() {
-			case "include_exclude_both":
-				return nil, goagrpc.NewStatusError(codes.InvalidArgument, err, goagrpc.NewErrorResponse(err))
-			}
-		}
 		return nil, goagrpc.EncodeError(err)
 	}
 	return resp.(*testerpb.TestSmokeResponse), nil
