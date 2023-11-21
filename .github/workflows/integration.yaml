@@ -26,6 +26,8 @@ jobs:
           echo "----------"
           echo $results
           echo "----------"
+          sudo netstat -lpn |grep :8084
+          echo "----------"
           if [ $(echo $results | jq '.fail_count') -gt 0 ];
           then
             echo "Test errors found."
