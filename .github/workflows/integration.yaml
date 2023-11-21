@@ -1,0 +1,31 @@
+name: Integration Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+      - name: tests
+        run: |
+          cd example/weather
+          ./scripts/setup
+          ./scripts/server > /dev/null 2>&1 &
+          results=$(curl -X POST http://localhost:8084/tester/smoke)
+          if [ $(echo $results | jq '.fail_count') -gt 0 ];
+          then
+            echo "Test errors found."
+            exit 1
+          else
+            echo "Tests passed."
+            exit 0
+          fi
