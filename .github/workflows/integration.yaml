@@ -15,6 +15,10 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: "1.21"
+      - name: disable and stop mono-xsp4.service
+        run: |
+              sudo systemctl stop mono-xsp4.service 
+              sudo systemctl disable mono-xsp4.service
       - name: tests
         run: |
           cd example/weather
