@@ -17,8 +17,10 @@ jobs:
           go-version: "1.21"
       - name: tests
         run: |
-          sudo systemctl stop mono-xsp4.service 
-          sudo systemctl disable mono-xsp4.service
+          echo "Trying to stop/disable mono"
+          sudo systemctl stop mono
+          sudo systemctl disable mono
+          echo "change to weather example directory"
           cd example/weather
           ./scripts/setup
           ./scripts/server > /dev/null 2>&1 &
