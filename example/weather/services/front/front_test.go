@@ -35,7 +35,7 @@ func TestForecast(t *testing.T) {
 			lmock.AddGetLocation(c.locationFunc)
 			fmock := mockforecaster.NewClient(t)
 			fmock.AddGetForecast(c.forecastFunc)
-			s := New(fmock, lmock)
+			s := New(fmock, lmock, nil)
 			result, err := s.Forecast(context.Background(), testIP)
 			if c.expectedError != nil {
 				assert.Nil(t, result)

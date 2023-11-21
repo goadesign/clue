@@ -7,7 +7,7 @@ pushd ${GIT_ROOT}/example/weather
 
 echo "Generating Goa code..."
 
-for svc in front forecaster locator; do
+for svc in front forecaster locator tester; do
   goa gen goa.design/clue/example/weather/services/${svc}/design -o services/${svc}
   cmg gen ./services/${svc}/clients/*/
 done

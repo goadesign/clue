@@ -24,6 +24,7 @@ import (
 	"goa.design/clue/example/weather/services/front"
 	"goa.design/clue/example/weather/services/front/clients/forecaster"
 	"goa.design/clue/example/weather/services/front/clients/locator"
+	"goa.design/clue/example/weather/services/front/clients/tester"
 	genfront "goa.design/clue/example/weather/services/front/gen/front"
 	genhttp "goa.design/clue/example/weather/services/front/gen/http/front/server"
 )
@@ -36,8 +37,10 @@ func main() {
 		forecasterHealthAddr = flag.String("forecaster-health-addr", ":8081", "Forecaster service health-check address")
 		locatorAddr          = flag.String("locator-addr", ":8082", "Locator service address")
 		locatorHealthAddr    = flag.String("locator-health-addr", ":8083", "Locator service health-check address")
-		agentaddr            = flag.String("agent-addr", ":4317", "Grafana agent listen address")
-		debugf               = flag.Bool("debug", false, "Enable debug logs")
+		testerAddr           = flag.String("tester-addr", ":8090", "Tester service address")
+		// No testerHealthAddr because we don't want the whole system to die just because tester isn't healthy for some reason
+		agentaddr = flag.String("agent-addr", ":4317", "Grafana agent listen address")
+		debugf    = flag.Bool("debug", false, "Enable debug logs")
 	)
 	flag.Parse()
 
@@ -98,9 +101,19 @@ func main() {
 		os.Exit(1)
 	}
 	fc := forecaster.New(fcc)
+	tcc, err := grpc.DialContext(ctx, *testerAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithChainUnaryInterceptor(
+			trace.UnaryClientInterceptor(ctx),
+			log.UnaryClientInterceptor()))
+	if err != nil {
+		log.Errorf(ctx, err, "failed to connect to tester")
+		os.Exit(1)
+	}
+	tc := tester.New(tcc)
 
 	// 4. Create service & endpoints
-	svc := front.New(fc, lc)
+	svc := front.New(fc, lc, tc)
 	endpoints := genfront.NewEndpoints(svc)
 	endpoints.Use(debug.LogPayloads())
 	endpoints.Use(log.Endpoint)
@@ -120,6 +133,8 @@ func main() {
 	httpServer := &http.Server{Addr: *httpListenAddr, Handler: handler}
 
 	// 6. Mount health check & metrics on separate HTTP server (different listen port)
+	// No testerHealthAddr pinger because we don't want the whole system to die just because
+	// tester isn't healthy for some reason
 	check := health.Handler(health.NewChecker(
 		health.NewPinger("locator", *locatorHealthAddr),
 		health.NewPinger("forecaster", *forecasterHealthAddr)))
