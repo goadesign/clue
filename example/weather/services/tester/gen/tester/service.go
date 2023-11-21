@@ -43,7 +43,7 @@ type TestCollection struct {
 	Name string
 	// Test results
 	Results []*TestResult
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration int64
 	// Number of tests that passed
 	PassCount int
@@ -59,7 +59,7 @@ type TestResult struct {
 	Passed bool
 	// Error message if the test failed
 	Error *string
-	// Duration of the test in ns
+	// Duration of the test in ms
 	Duration int64
 }
 
@@ -67,7 +67,7 @@ type TestResult struct {
 type TestResults struct {
 	// Test collections
 	Collections []*TestCollection
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration int64
 	// Number of tests that passed
 	PassCount int

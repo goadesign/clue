@@ -34,7 +34,6 @@ var _ = Service("tester", func() {
 		Result(TestResults)
 		GRPC(func() {
 			Response(CodeOK)
-			Response("include_exclude_both", CodeInvalidArgument)
 		})
 	})
 
@@ -64,7 +63,7 @@ var TestResult = Type("TestResult", func() {
 		Example(true)
 	})
 	Field(3, "Error", String, "Error message if the test failed")
-	Field(4, "Duration", Int64, "Duration of the test in ns")
+	Field(4, "Duration", Int64, "Duration of the test in ms")
 	Required("Name", "Passed", "Duration")
 })
 
@@ -72,7 +71,7 @@ var TestCollection = Type("TestCollection", func() {
 	Description("Collection of test results for grouping by service")
 	Field(1, "Name", String, "Name of the test collection")
 	Field(2, "Results", ArrayOf(TestResult), "Test results")
-	Field(3, "Duration", Int64, "Duration of the tests in ns")
+	Field(3, "Duration", Int64, "Duration of the tests in ms")
 	Field(4, "PassCount", Int, "Number of tests that passed")
 	Field(5, "FailCount", Int, "Number of tests that failed")
 	Required("Name", "Results", "Duration", "PassCount", "FailCount")
@@ -81,7 +80,7 @@ var TestCollection = Type("TestCollection", func() {
 var TestResults = Type("TestResults", func() {
 	Description("Test results for the iam system integration tests")
 	Field(1, "Collections", ArrayOf(TestCollection), "Test collections")
-	Field(2, "Duration", Int64, "Duration of the tests in ns")
+	Field(2, "Duration", Int64, "Duration of the tests in ms")
 	Field(3, "PassCount", Int, "Number of tests that passed")
 	Field(4, "FailCount", Int, "Number of tests that failed")
 	Required("Collections", "Duration", "PassCount", "FailCount")

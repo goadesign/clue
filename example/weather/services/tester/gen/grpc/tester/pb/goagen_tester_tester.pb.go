@@ -92,7 +92,7 @@ type TestAllResponse struct {
 
 	// Test collections
 	Collections []*TestCollection `protobuf:"bytes,1,rep,name=collections,proto3" json:"collections,omitempty"`
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration int64 `protobuf:"zigzag64,2,opt,name=duration,proto3" json:"duration,omitempty"`
 	// Number of tests that passed
 	PassCount int32 `protobuf:"zigzag32,3,opt,name=pass_count,json=passCount,proto3" json:"pass_count,omitempty"`
@@ -170,7 +170,7 @@ type TestCollection struct {
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// Test results
 	Results []*TestResult `protobuf:"bytes,2,rep,name=results,proto3" json:"results,omitempty"`
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration int64 `protobuf:"zigzag64,3,opt,name=duration,proto3" json:"duration,omitempty"`
 	// Number of tests that passed
 	PassCount int32 `protobuf:"zigzag32,4,opt,name=pass_count,json=passCount,proto3" json:"pass_count,omitempty"`
@@ -257,7 +257,7 @@ type TestResult struct {
 	Passed bool `protobuf:"varint,2,opt,name=passed,proto3" json:"passed,omitempty"`
 	// Error message if the test failed
 	Error *string `protobuf:"bytes,3,opt,name=error,proto3,oneof" json:"error,omitempty"`
-	// Duration of the test in ns
+	// Duration of the test in ms
 	Duration int64 `protobuf:"zigzag64,4,opt,name=duration,proto3" json:"duration,omitempty"`
 }
 
@@ -366,7 +366,7 @@ type TestSmokeResponse struct {
 
 	// Test collections
 	Collections []*TestCollection `protobuf:"bytes,1,rep,name=collections,proto3" json:"collections,omitempty"`
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration int64 `protobuf:"zigzag64,2,opt,name=duration,proto3" json:"duration,omitempty"`
 	// Number of tests that passed
 	PassCount int32 `protobuf:"zigzag32,3,opt,name=pass_count,json=passCount,proto3" json:"pass_count,omitempty"`
@@ -479,7 +479,7 @@ type TestForecasterResponse struct {
 
 	// Test collections
 	Collections []*TestCollection `protobuf:"bytes,1,rep,name=collections,proto3" json:"collections,omitempty"`
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration int64 `protobuf:"zigzag64,2,opt,name=duration,proto3" json:"duration,omitempty"`
 	// Number of tests that passed
 	PassCount int32 `protobuf:"zigzag32,3,opt,name=pass_count,json=passCount,proto3" json:"pass_count,omitempty"`
@@ -592,7 +592,7 @@ type TestLocatorResponse struct {
 
 	// Test collections
 	Collections []*TestCollection `protobuf:"bytes,1,rep,name=collections,proto3" json:"collections,omitempty"`
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration int64 `protobuf:"zigzag64,2,opt,name=duration,proto3" json:"duration,omitempty"`
 	// Number of tests that passed
 	PassCount int32 `protobuf:"zigzag32,3,opt,name=pass_count,json=passCount,proto3" json:"pass_count,omitempty"`

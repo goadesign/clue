@@ -62,13 +62,7 @@ func (c *Client) TestSmoke() goa.Endpoint {
 			DecodeTestSmokeResponse)
 		res, err := inv.Invoke(ctx, v)
 		if err != nil {
-			resp := goagrpc.DecodeError(err)
-			switch message := resp.(type) {
-			case *goapb.ErrorResponse:
-				return nil, goagrpc.NewServiceError(message)
-			default:
-				return nil, goa.Fault(err.Error())
-			}
+			return nil, goa.Fault(err.Error())
 		}
 		return res, nil
 	}
