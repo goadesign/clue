@@ -18,8 +18,8 @@ jobs:
       - name: tests
         run: |
           echo "Trying to stop/disable mono"
-          sudo systemctl stop mono
-          sudo systemctl disable mono
+          sudo systemctl stop mono-xsp4.service || true
+          sudo systemctl disable mono-xsp4.service || true
           echo "change to weather example directory"
           cd example/weather
           ./scripts/setup
