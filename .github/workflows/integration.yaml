@@ -21,6 +21,9 @@ jobs:
           ./scripts/setup
           ./scripts/server > /dev/null 2>&1 &
           results=$(curl -X POST http://localhost:8084/tester/smoke)
+          echo "----------"
+          echo $results
+          echo "----------"
           if [ $(echo $results | jq '.fail_count') -gt 0 ];
           then
             echo "Test errors found."
