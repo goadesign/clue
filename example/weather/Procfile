@@ -1,3 +1,4 @@
 forecaster: bin/forecaster
 locator: bin/locator
 front: bin/front
+tester: bin/tester

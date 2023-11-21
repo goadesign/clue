@@ -25,4 +25,22 @@ var _ = Service("front", func() {
 			Response("not_usa", StatusBadRequest)
 		})
 	})
+	Method("test_all", func() {
+		Description("Endpoint for running API Integration Tests for the Weather System")
+		Payload(func() {
+			Field(1, "include", ArrayOf(String), "Tests to run")
+			Field(2, "exclude", ArrayOf(String), "Tests to exclude")
+		})
+		Result(TestResults)
+		HTTP(func() {
+			POST("/tester/all")
+		})
+	})
+	Method("test_smoke", func() {
+		Description("Endpoint for running API Integration Tests for the Weather System")
+		Result(TestResults)
+		HTTP(func() {
+			POST("/tester/smoke")
+		})
+	})
 })
