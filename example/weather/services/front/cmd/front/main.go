@@ -31,8 +31,8 @@ import (
 
 func main() {
 	var (
-		httpListenAddr       = flag.String("http-addr", ":8086", "HTTP listen address")
-		metricsListenAddr    = flag.String("metrics-addr", ":8087", "metrics listen address")
+		httpListenAddr       = flag.String("http-addr", ":8084", "HTTP listen address")
+		metricsListenAddr    = flag.String("metrics-addr", ":8085", "metrics listen address")
 		forecasterAddr       = flag.String("forecaster-addr", ":8080", "Forecaster service address")
 		forecasterHealthAddr = flag.String("forecaster-health-addr", ":8081", "Forecaster service health-check address")
 		locatorAddr          = flag.String("locator-addr", ":8082", "Locator service address")

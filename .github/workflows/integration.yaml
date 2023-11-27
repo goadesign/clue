@@ -21,8 +21,13 @@ jobs:
           sudo systemctl stop mono-xsp4.service || true
           sudo systemctl disable mono-xsp4.service || true
           sudo pkill mono || true
-          echo "check for mono"
-          sudo netstat -nlp | grep mono || true
+          echo "check ports"
+          sudo netstat -nlp | grep 8080 || true
+          sudo netstat -nlp | grep 8081 || true
+          sudo netstat -nlp | grep 8082 || true
+          sudo netstat -nlp | grep 8083 || true
+          sudo netstat -nlp | grep 8084 || true
+          sudo netstat -nlp | grep 8085 || true
           echo "change to weather example directory"
           cd example/weather
           echo "run setup script"
@@ -37,7 +42,7 @@ jobs:
           echo "Sleep 30"
           sleep 10
           echo "-----RUN TESTS-----"
-          results=$(curl -X POST http://localhost:8086/tester/smoke)
+          results=$(curl -X POST http://localhost:8084/tester/smoke)
           echo "-----RESULTS-----"
           echo $results
           echo "----------"
