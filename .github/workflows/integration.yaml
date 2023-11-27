@@ -23,8 +23,6 @@ jobs:
           ./scripts/server > /dev/null 2>&1 &
           echo "Sleep 10"
           sleep 10
-          echo "-----NETSTAT-----"
-          sudo netstat -lpn |grep :8086
           echo "----------"
           results=$(curl -X POST http://localhost:8086/tester/smoke)
           echo "-----RESULTS-----"
