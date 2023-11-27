@@ -191,21 +191,6 @@ func ValidateTestAllResponse(message *testerpb.TestAllResponse) (err error) {
 	if message.Collections == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Collections", "message"))
 	}
-	for _, e := range message.Collections {
-		if e != nil {
-			if err2 := ValidateTestCollection(e); err2 != nil {
-				err = goa.MergeErrors(err, err2)
-			}
-		}
-	}
-	return
-}
-
-// ValidateTestCollection runs the validations defined on TestCollection.
-func ValidateTestCollection(elem *testerpb.TestCollection) (err error) {
-	if elem.Results == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Results", "elem"))
-	}
 	return
 }
 
@@ -213,13 +198,6 @@ func ValidateTestCollection(elem *testerpb.TestCollection) (err error) {
 func ValidateTestSmokeResponse(message *testerpb.TestSmokeResponse) (err error) {
 	if message.Collections == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Collections", "message"))
-	}
-	for _, e := range message.Collections {
-		if e != nil {
-			if err2 := ValidateTestCollection(e); err2 != nil {
-				err = goa.MergeErrors(err, err2)
-			}
-		}
 	}
 	return
 }
@@ -230,13 +208,6 @@ func ValidateTestForecasterResponse(message *testerpb.TestForecasterResponse) (e
 	if message.Collections == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Collections", "message"))
 	}
-	for _, e := range message.Collections {
-		if e != nil {
-			if err2 := ValidateTestCollection(e); err2 != nil {
-				err = goa.MergeErrors(err, err2)
-			}
-		}
-	}
 	return
 }
 
@@ -245,13 +216,6 @@ func ValidateTestForecasterResponse(message *testerpb.TestForecasterResponse) (e
 func ValidateTestLocatorResponse(message *testerpb.TestLocatorResponse) (err error) {
 	if message.Collections == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Collections", "message"))
-	}
-	for _, e := range message.Collections {
-		if e != nil {
-			if err2 := ValidateTestCollection(e); err2 != nil {
-				err = goa.MergeErrors(err, err2)
-			}
-		}
 	}
 	return
 }

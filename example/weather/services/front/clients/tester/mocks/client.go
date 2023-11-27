@@ -21,8 +21,8 @@ type (
 		t *testing.T
 	}
 
+	ClientTestAllFunc   func(ctx context.Context, included, excluded []string) (*front.TestResults, error)
 	ClientTestSmokeFunc func(ctx context.Context) (*front.TestResults, error)
-	ClientTestAllFunc   func(ctx context.Context, payload *tester.TestAllPayload) (*front.TestResults, error)
 )
 
 func NewClient(t *testing.T) *Client {
@@ -31,6 +31,23 @@ func NewClient(t *testing.T) *Client {
 		_ tester.Client = m
 	)
 	return m
+}
+
+func (m *Client) AddTestAll(f ClientTestAllFunc) {
+	m.m.Add("TestAll", f)
+}
+
+func (m *Client) SetTestAll(f ClientTestAllFunc) {
+	m.m.Set("TestAll", f)
+}
+
+func (m *Client) TestAll(ctx context.Context, included, excluded []string) (*front.TestResults, error) {
+	if f := m.m.Next("TestAll"); f != nil {
+		return f.(ClientTestAllFunc)(ctx, included, excluded)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected TestAll call")
+	return nil, nil
 }
 
 func (m *Client) AddTestSmoke(f ClientTestSmokeFunc) {
@@ -47,23 +64,6 @@ func (m *Client) TestSmoke(ctx context.Context) (*front.TestResults, error) {
 	}
 	m.t.Helper()
 	m.t.Error("unexpected TestSmoke call")
-	return nil, nil
-}
-
-func (m *Client) AddTestAll(f ClientTestAllFunc) {
-	m.m.Add("TestAll", f)
-}
-
-func (m *Client) SetTestAll(f ClientTestAllFunc) {
-	m.m.Set("TestAll", f)
-}
-
-func (m *Client) TestAll(ctx context.Context, payload *tester.TestAllPayload) (*front.TestResults, error) {
-	if f := m.m.Next("TestAll"); f != nil {
-		return f.(ClientTestAllFunc)(ctx, payload)
-	}
-	m.t.Helper()
-	m.t.Error("unexpected TestAll call")
 	return nil, nil
 }
 

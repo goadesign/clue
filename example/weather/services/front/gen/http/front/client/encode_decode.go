@@ -264,9 +264,11 @@ func unmarshalTestCollectionResponseBodyToFrontTestCollection(v *TestCollectionR
 		PassCount: *v.PassCount,
 		FailCount: *v.FailCount,
 	}
-	res.Results = make([]*front.TestResult, len(v.Results))
-	for i, val := range v.Results {
-		res.Results[i] = unmarshalTestResultResponseBodyToFrontTestResult(val)
+	if v.Results != nil {
+		res.Results = make([]*front.TestResult, len(v.Results))
+		for i, val := range v.Results {
+			res.Results[i] = unmarshalTestResultResponseBodyToFrontTestResult(val)
+		}
 	}
 
 	return res
@@ -275,6 +277,9 @@ func unmarshalTestCollectionResponseBodyToFrontTestCollection(v *TestCollectionR
 // unmarshalTestResultResponseBodyToFrontTestResult builds a value of type
 // *front.TestResult from a value of type *TestResultResponseBody.
 func unmarshalTestResultResponseBodyToFrontTestResult(v *TestResultResponseBody) *front.TestResult {
+	if v == nil {
+		return nil
+	}
 	res := &front.TestResult{
 		Name:     *v.Name,
 		Passed:   *v.Passed,

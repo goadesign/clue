@@ -15,6 +15,7 @@ type (
 	}
 )
 
+// New instantiates a new tester service.
 func New(lc locator.Client, fc forecaster.Client) *Service {
 	return &Service{
 		lc: lc,

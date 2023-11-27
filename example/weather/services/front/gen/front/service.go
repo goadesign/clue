@@ -18,9 +18,11 @@ import (
 type Service interface {
 	// Retrieve weather forecast for given IP
 	Forecast(context.Context, string) (res *Forecast2, err error)
-	// Endpoint for running API Integration Tests for the Weather System
+	// Endpoint for running ALL API Integration Tests for the Weather System,
+	// allowing for filtering on included or excluded tests
 	TestAll(context.Context, *TestAllPayload) (res *TestResults, err error)
-	// Endpoint for running API Integration Tests for the Weather System
+	// Endpoint for running API Integration Tests' Smoke Tests ONLY for the Weather
+	// System
 	TestSmoke(context.Context) (res *TestResults, err error)
 }
 
@@ -84,7 +86,7 @@ type TestCollection struct {
 	Name string
 	// Test results
 	Results []*TestResult
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration int64
 	// Number of tests that passed
 	PassCount int
@@ -100,7 +102,7 @@ type TestResult struct {
 	Passed bool
 	// Error message if the test failed
 	Error *string
-	// Duration of the test in ns
+	// Duration of the test in ms
 	Duration int64
 }
 
@@ -108,7 +110,7 @@ type TestResult struct {
 type TestResults struct {
 	// Test collections
 	Collections []*TestCollection
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration int64
 	// Number of tests that passed
 	PassCount int
