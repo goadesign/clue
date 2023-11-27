@@ -23,7 +23,7 @@ func BuildTestAllPayload(frontTestAllBody string) (*front.TestAllPayload, error)
 	{
 		err = json.Unmarshal([]byte(frontTestAllBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"exclude\": [\n         \"Debitis omnis facere.\",\n         \"Aliquid dolor corrupti.\"\n      ],\n      \"include\": [\n         \"Ut id iure.\",\n         \"Est quod.\",\n         \"Amet maiores repellendus eos.\"\n      ]\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"exclude\": [\n         \"Repudiandae enim molestiae.\",\n         \"Ut id iure.\"\n      ],\n      \"include\": [\n         \"Dolor sunt maiores.\",\n         \"Asperiores omnis ducimus ad et mollitia.\"\n      ]\n   }'")
 		}
 	}
 	v := &front.TestAllPayload{}

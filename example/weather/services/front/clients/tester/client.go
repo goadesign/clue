@@ -15,9 +15,10 @@ import (
 
 type (
 	Client interface {
-		// Run smoke tests
+		// Runs ALL API Integration Tests from the Tester service, allowing for filtering on included or excluded tests
+		TestAll(ctx context.Context, included, excluded []string) (*genfront.TestResults, error)
+		// Runs API Integration Tests' Smoke Tests ONLY from the Tester service
 		TestSmoke(ctx context.Context) (*genfront.TestResults, error)
-		TestAll(ctx context.Context, payload *TestAllPayload) (*genfront.TestResults, error)
 	}
 
 	TestAllPayload struct {
@@ -31,6 +32,7 @@ type (
 	}
 )
 
+// Creates a new client for the Tester service.
 func New(cc *grpc.ClientConn) Client {
 	c := genclient.NewClient(cc, grpc.WaitForReady(true))
 	return &client{
@@ -39,6 +41,7 @@ func New(cc *grpc.ClientConn) Client {
 	}
 }
 
+// TestSmoke runs the Smoke collection as defined in func_map.go of the tester service
 func (c *client) TestSmoke(ctx context.Context) (*genfront.TestResults, error) {
 	res, err := c.testSmoke(ctx, nil)
 	if err != nil {
@@ -48,10 +51,12 @@ func (c *client) TestSmoke(ctx context.Context) (*genfront.TestResults, error) {
 	return testerTestResultsToFrontTestResults(res.(*gentester.TestResults)), nil
 }
 
-func (c *client) TestAll(ctx context.Context, payload *TestAllPayload) (*genfront.TestResults, error) {
+// TestAll runs all tests in all collections. Obeys include and exclude filters.
+// include and exclude are mutually exclusive and cannot be used together (400 error, bad request)
+func (c *client) TestAll(ctx context.Context, included, excluded []string) (*genfront.TestResults, error) {
 	gtPayload := &gentester.TesterPayload{
-		Include: payload.Include,
-		Exclude: payload.Exclude,
+		Include: included,
+		Exclude: excluded,
 	}
 	res, err := c.testAll(ctx, gtPayload)
 	if err != nil {

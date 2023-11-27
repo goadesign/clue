@@ -36,7 +36,7 @@ type ForecastResponseBody struct {
 type TestAllResponseBody struct {
 	// Test collections
 	Collections []*TestCollectionResponseBody `form:"collections" json:"collections" xml:"collections"`
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration int64 `form:"duration" json:"duration" xml:"duration"`
 	// Number of tests that passed
 	PassCount int `form:"pass_count" json:"pass_count" xml:"pass_count"`
@@ -49,7 +49,7 @@ type TestAllResponseBody struct {
 type TestSmokeResponseBody struct {
 	// Test collections
 	Collections []*TestCollectionResponseBody `form:"collections" json:"collections" xml:"collections"`
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration int64 `form:"duration" json:"duration" xml:"duration"`
 	// Number of tests that passed
 	PassCount int `form:"pass_count" json:"pass_count" xml:"pass_count"`
@@ -108,8 +108,8 @@ type TestCollectionResponseBody struct {
 	// Name of the test collection
 	Name string `form:"name" json:"name" xml:"name"`
 	// Test results
-	Results []*TestResultResponseBody `form:"results" json:"results" xml:"results"`
-	// Duration of the tests in ns
+	Results []*TestResultResponseBody `form:"results,omitempty" json:"results,omitempty" xml:"results,omitempty"`
+	// Duration of the tests in ms
 	Duration int64 `form:"duration" json:"duration" xml:"duration"`
 	// Number of tests that passed
 	PassCount int `form:"pass_count" json:"pass_count" xml:"pass_count"`
@@ -125,7 +125,7 @@ type TestResultResponseBody struct {
 	Passed bool `form:"passed" json:"passed" xml:"passed"`
 	// Error message if the test failed
 	Error *string `form:"error,omitempty" json:"error,omitempty" xml:"error,omitempty"`
-	// Duration of the test in ns
+	// Duration of the test in ms
 	Duration int64 `form:"duration" json:"duration" xml:"duration"`
 }
 

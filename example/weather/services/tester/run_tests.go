@@ -14,7 +14,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-// Ends a test by calculating duration and appending teh results to the test collection
+// Ends a test by calculating duration and appending the results to the test collection
 func endTest(tr *gentester.TestResult, start time.Time, tc *TestCollection, results []*gentester.TestResult) {
 	elapsed := time.Since(start).Milliseconds()
 	tr.Duration = elapsed
@@ -43,7 +43,7 @@ func recoverFromTestPanic(ctx context.Context, testName string, testCollection *
 }
 
 // Runs the tests from the testmap and handles filtering/exclusion of tests
-func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, testCollection *TestCollection, testMap map[string]func(context.Context, *TestCollection)) (res *gentester.TestResults, err error) {
+func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, testCollection *TestCollection, testMap map[string]func(context.Context, *TestCollection)) (*gentester.TestResults, error) {
 	retval := gentester.TestResults{}
 
 	testsToRun := make(map[string]func(context.Context, *TestCollection))
@@ -59,7 +59,7 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 				return nil, gentester.MakeIncludeExcludeBoth(errors.New("cannot have both include and exclude lists"))
 			}
 			for _, test := range p.Include {
-				if testFunc, exists := testMap[test]; exists {
+				if testFunc, ok := testMap[test]; ok {
 					testsToRun[test] = testFunc
 				} else {
 					// QUESTION: Do we want to error the test execution if a test is not found in the test map?
@@ -88,23 +88,17 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 	for n, test := range testsToRun {
 		wg.Add(1)
 		go func(f func(context.Context, *TestCollection), testName string) {
-			defer recoverFromTestPanic(ctx, testName, testCollection)
 			defer wg.Done()
+			defer recoverFromTestPanic(ctx, testName, testCollection)
 			log.Infof(ctx, "RUNNING TEST [%v]", testName)
 			f(ctx, testCollection)
 		}(test, n)
 	}
 	wg.Wait()
 
-	// If there was a Panic in the test, sometimes it falls through to and checks results from the test collection
-	// before it finishes the deferred recoverFromTestPanic, making it look like the panicked test was not handled
-	// or run. This sleep is to give the recoverFromTestPanic function time to finish before we check the results.
-	time.Sleep(250 * time.Millisecond)
-
 	for _, res := range testCollection.Results {
 		if !res.Passed {
-			errorMessage := *res.Error
-			log.Infof(ctx, "[Failed Test] Collection: [%v], Test [%v] failed with message [%s] and a duration of [%v]", testCollection.Name, res.Name, errorMessage, res.Duration)
+			log.Infof(ctx, "[Failed Test] Collection: [%v], Test [%v] failed with message [%s] and a duration of [%v]", testCollection.Name, res.Name, *res.Error, res.Duration)
 		}
 	}
 

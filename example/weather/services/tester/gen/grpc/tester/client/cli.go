@@ -25,7 +25,7 @@ func BuildTestAllPayload(testerTestAllMessage string) (*tester.TesterPayload, er
 		if testerTestAllMessage != "" {
 			err = json.Unmarshal([]byte(testerTestAllMessage), &message)
 			if err != nil {
-				return nil, fmt.Errorf("invalid JSON for message, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Exclude\": [\n         \"Aut ullam iure iure in fugiat.\",\n         \"Asperiores neque delectus non officiis hic.\"\n      ],\n      \"Include\": [\n         \"Animi accusamus facilis sed exercitationem unde saepe.\",\n         \"Error omnis quam ducimus eaque similique.\",\n         \"Laboriosam dicta commodi beatae dolorem.\"\n      ]\n   }'")
+				return nil, fmt.Errorf("invalid JSON for message, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Exclude\": [\n         \"TestNameToExclude\"\n      ],\n      \"Include\": [\n         \"TestNameToInclude\"\n      ]\n   }'")
 			}
 		}
 	}

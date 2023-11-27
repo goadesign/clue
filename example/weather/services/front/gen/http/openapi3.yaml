@@ -20,9 +20,9 @@ paths:
                   required: true
                   schema:
                     type: string
-                    example: 252.22.98.98
+                    example: 137.67.93.10
                     format: ip
-                  example: 173.107.152.250
+                  example: 57.127.156.27
             responses:
                 "200":
                     description: OK response.
@@ -49,6 +49,18 @@ paths:
                                       summary: Clear
                                       temperature: 70
                                       temperatureUnit: F
+                                    - endTime: "2020-01-01T00:00:00Z"
+                                      name: Morning
+                                      startTime: "2020-01-01T00:00:00Z"
+                                      summary: Clear
+                                      temperature: 70
+                                      temperatureUnit: F
+                                    - endTime: "2020-01-01T00:00:00Z"
+                                      name: Morning
+                                      startTime: "2020-01-01T00:00:00Z"
+                                      summary: Clear
+                                      temperature: 70
+                                      temperatureUnit: F
                 "400":
                     description: 'not_usa: IP address is not in the US'
                     content:
@@ -60,7 +72,7 @@ paths:
             tags:
                 - front
             summary: test_all front
-            description: Endpoint for running API Integration Tests for the Weather System
+            description: Endpoint for running ALL API Integration Tests for the Weather System, allowing for filtering on included or excluded tests
             operationId: front#test_all
             requestBody:
                 required: true
@@ -70,12 +82,11 @@ paths:
                             $ref: '#/components/schemas/TestAllRequestBody'
                         example:
                             exclude:
-                                - Debitis omnis facere.
-                                - Aliquid dolor corrupti.
-                            include:
+                                - Repudiandae enim molestiae.
                                 - Ut id iure.
-                                - Est quod.
-                                - Amet maiores repellendus eos.
+                            include:
+                                - Dolor sunt maiores.
+                                - Asperiores omnis ducimus ad et mollitia.
             responses:
                 "200":
                     description: OK response.
@@ -85,78 +96,41 @@ paths:
                                 $ref: '#/components/schemas/TestResults'
                             example:
                                 collections:
-                                    - duration: 9054733701520478298
-                                      fail_count: 7502424151970560367
-                                      name: Id necessitatibus consequatur a laudantium quia qui.
-                                      pass_count: 8417812319446678629
+                                    - duration: 1234
+                                      fail_count: 1
+                                      name: Locator Tests
+                                      pass_count: 12
                                       results:
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                                        - duration: 1234
+                                          error: 'error getting location for valid ip: %v'
+                                          name: TestValidIP
                                           passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                                        - duration: 1234
+                                          error: 'error getting location for valid ip: %v'
+                                          name: TestValidIP
                                           passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                    - duration: 9054733701520478298
-                                      fail_count: 7502424151970560367
-                                      name: Id necessitatibus consequatur a laudantium quia qui.
-                                      pass_count: 8417812319446678629
+                                    - duration: 1234
+                                      fail_count: 1
+                                      name: Locator Tests
+                                      pass_count: 12
                                       results:
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                                        - duration: 1234
+                                          error: 'error getting location for valid ip: %v'
+                                          name: TestValidIP
                                           passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                                        - duration: 1234
+                                          error: 'error getting location for valid ip: %v'
+                                          name: TestValidIP
                                           passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                    - duration: 9054733701520478298
-                                      fail_count: 7502424151970560367
-                                      name: Id necessitatibus consequatur a laudantium quia qui.
-                                      pass_count: 8417812319446678629
-                                      results:
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                duration: 6968490088250328124
-                                fail_count: 3063074147820472067
-                                pass_count: 6067631605511723254
+                                duration: 1234
+                                fail_count: 1
+                                pass_count: 12
     /tester/smoke:
         post:
             tags:
                 - front
             summary: test_smoke front
-            description: Endpoint for running API Integration Tests for the Weather System
+            description: Endpoint for running API Integration Tests' Smoke Tests ONLY for the Weather System
             operationId: front#test_smoke
             responses:
                 "200":
@@ -167,72 +141,35 @@ paths:
                                 $ref: '#/components/schemas/TestResults'
                             example:
                                 collections:
-                                    - duration: 9054733701520478298
-                                      fail_count: 7502424151970560367
-                                      name: Id necessitatibus consequatur a laudantium quia qui.
-                                      pass_count: 8417812319446678629
+                                    - duration: 1234
+                                      fail_count: 1
+                                      name: Locator Tests
+                                      pass_count: 12
                                       results:
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                                        - duration: 1234
+                                          error: 'error getting location for valid ip: %v'
+                                          name: TestValidIP
                                           passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                                        - duration: 1234
+                                          error: 'error getting location for valid ip: %v'
+                                          name: TestValidIP
                                           passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                    - duration: 9054733701520478298
-                                      fail_count: 7502424151970560367
-                                      name: Id necessitatibus consequatur a laudantium quia qui.
-                                      pass_count: 8417812319446678629
+                                    - duration: 1234
+                                      fail_count: 1
+                                      name: Locator Tests
+                                      pass_count: 12
                                       results:
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                                        - duration: 1234
+                                          error: 'error getting location for valid ip: %v'
+                                          name: TestValidIP
                                           passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                                        - duration: 1234
+                                          error: 'error getting location for valid ip: %v'
+                                          name: TestValidIP
                                           passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                    - duration: 9054733701520478298
-                                      fail_count: 7502424151970560367
-                                      name: Id necessitatibus consequatur a laudantium quia qui.
-                                      pass_count: 8417812319446678629
-                                      results:
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                        - duration: 859505013544304124
-                                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                                          passed: true
-                                duration: 9154617995926910546
-                                fail_count: 8279783259458611454
-                                pass_count: 3830585010251827564
+                                duration: 1234
+                                fail_count: 1
+                                pass_count: 12
 components:
     schemas:
         Error:
@@ -257,14 +194,14 @@ components:
                 temporary:
                     type: boolean
                     description: Is the error temporary?
-                    example: false
+                    example: true
                 timeout:
                     type: boolean
                     description: Is the error a timeout?
-                    example: true
+                    example: false
             description: IP address is not in the US
             example:
-                fault: true
+                fault: false
                 id: 123abc
                 message: parameter 'p' must be an integer
                 name: bad_request
@@ -307,6 +244,12 @@ components:
                     long: -122.4233
                     state: CA
                 periods:
+                    - endTime: "2020-01-01T00:00:00Z"
+                      name: Morning
+                      startTime: "2020-01-01T00:00:00Z"
+                      summary: Clear
+                      temperature: 70
+                      temperatureUnit: F
                     - endTime: "2020-01-01T00:00:00Z"
                       name: Morning
                       startTime: "2020-01-01T00:00:00Z"
@@ -412,49 +355,49 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Accusamus pariatur.
+                        example: Cupiditate voluptas quod minima.
                     description: Tests to exclude
                     example:
-                        - Ad sit in.
-                        - Id et doloribus pariatur et.
-                        - Exercitationem tempore.
+                        - Vitae ut.
+                        - Non officiis asperiores rem.
                 include:
                     type: array
                     items:
                         type: string
-                        example: Exercitationem praesentium et.
+                        example: Sed officia cum.
                     description: Tests to run
                     example:
-                        - Aut sed mollitia.
-                        - Numquam recusandae omnis occaecati sint praesentium est.
+                        - Temporibus ex quo nihil rem.
+                        - Et et itaque.
             example:
                 exclude:
-                    - Modi omnis sed.
-                    - Id consequatur alias vitae voluptas quia.
+                    - Architecto minima molestiae ad unde.
+                    - Porro possimus iste eius minus nesciunt.
+                    - Dolores ducimus.
                 include:
-                    - Doloremque et.
-                    - Officia voluptates.
+                    - Architecto aperiam odit.
+                    - Iste eveniet.
         TestCollection:
             type: object
             properties:
                 duration:
                     type: integer
-                    description: Duration of the tests in ns
-                    example: 2079009122591064687
+                    description: Duration of the tests in ms
+                    example: 1234
                     format: int64
                 fail_count:
                     type: integer
                     description: Number of tests that failed
-                    example: 295202760764443778
+                    example: 1
                     format: int64
                 name:
                     type: string
                     description: Name of the test collection
-                    example: Consequatur omnis ea.
+                    example: Locator Tests
                 pass_count:
                     type: integer
                     description: Number of tests that passed
-                    example: 6357848907083386262
+                    example: 12
                     format: int64
                 results:
                     type: array
@@ -462,32 +405,43 @@ components:
                         $ref: '#/components/schemas/TestResult'
                     description: Test results
                     example:
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
                           passed: true
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
                           passed: true
             description: Collection of test results for grouping by service
             example:
-                duration: 1981842416553121767
-                fail_count: 8707465760791589491
-                name: Inventore quae aspernatur quia.
-                pass_count: 936953043246880977
+                duration: 1234
+                fail_count: 1
+                name: Locator Tests
+                pass_count: 12
                 results:
-                    - duration: 859505013544304124
-                      error: Consectetur eos nihil accusamus reiciendis eligendi.
-                      name: Dolorem nam quisquam laudantium incidunt ipsa.
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
                       passed: true
-                    - duration: 859505013544304124
-                      error: Consectetur eos nihil accusamus reiciendis eligendi.
-                      name: Dolorem nam quisquam laudantium incidunt ipsa.
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
+                      passed: true
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
                       passed: true
             required:
                 - name
-                - results
                 - duration
                 - pass_count
                 - fail_count
@@ -496,26 +450,26 @@ components:
             properties:
                 duration:
                     type: integer
-                    description: Duration of the test in ns
-                    example: 7518210316316224812
+                    description: Duration of the test in ms
+                    example: 1234
                     format: int64
                 error:
                     type: string
                     description: Error message if the test failed
-                    example: Dolor velit voluptates esse nesciunt eos et.
+                    example: 'error getting location for valid ip: %v'
                 name:
                     type: string
                     description: Name of the test
-                    example: Non voluptas ex itaque rerum totam possimus.
+                    example: TestValidIP
                 passed:
                     type: boolean
                     description: Status of the test
                     example: true
             description: Test result for a single test
             example:
-                duration: 2636828426958641278
-                error: Sint accusantium est quisquam vitae modi est.
-                name: Voluptatem sit consectetur perferendis corrupti ipsam non.
+                duration: 1234
+                error: 'error getting location for valid ip: %v'
+                name: TestValidIP
                 passed: true
             required:
                 - name
@@ -530,173 +484,104 @@ components:
                         $ref: '#/components/schemas/TestCollection'
                     description: Test collections
                     example:
-                        - duration: 9054733701520478298
-                          fail_count: 7502424151970560367
-                          name: Id necessitatibus consequatur a laudantium quia qui.
-                          pass_count: 8417812319446678629
+                        - duration: 1234
+                          fail_count: 1
+                          name: Locator Tests
+                          pass_count: 12
                           results:
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
+                            - duration: 1234
+                              error: 'error getting location for valid ip: %v'
+                              name: TestValidIP
                               passed: true
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
+                            - duration: 1234
+                              error: 'error getting location for valid ip: %v'
+                              name: TestValidIP
                               passed: true
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
-                              passed: true
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
-                              passed: true
-                        - duration: 9054733701520478298
-                          fail_count: 7502424151970560367
-                          name: Id necessitatibus consequatur a laudantium quia qui.
-                          pass_count: 8417812319446678629
+                        - duration: 1234
+                          fail_count: 1
+                          name: Locator Tests
+                          pass_count: 12
                           results:
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
+                            - duration: 1234
+                              error: 'error getting location for valid ip: %v'
+                              name: TestValidIP
                               passed: true
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
+                            - duration: 1234
+                              error: 'error getting location for valid ip: %v'
+                              name: TestValidIP
                               passed: true
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
-                              passed: true
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
-                              passed: true
-                        - duration: 9054733701520478298
-                          fail_count: 7502424151970560367
-                          name: Id necessitatibus consequatur a laudantium quia qui.
-                          pass_count: 8417812319446678629
+                        - duration: 1234
+                          fail_count: 1
+                          name: Locator Tests
+                          pass_count: 12
                           results:
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
+                            - duration: 1234
+                              error: 'error getting location for valid ip: %v'
+                              name: TestValidIP
                               passed: true
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
-                              passed: true
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
-                              passed: true
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
-                              passed: true
-                        - duration: 9054733701520478298
-                          fail_count: 7502424151970560367
-                          name: Id necessitatibus consequatur a laudantium quia qui.
-                          pass_count: 8417812319446678629
-                          results:
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
-                              passed: true
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
-                              passed: true
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
-                              passed: true
-                            - duration: 859505013544304124
-                              error: Consectetur eos nihil accusamus reiciendis eligendi.
-                              name: Dolorem nam quisquam laudantium incidunt ipsa.
+                            - duration: 1234
+                              error: 'error getting location for valid ip: %v'
+                              name: TestValidIP
                               passed: true
                 duration:
                     type: integer
-                    description: Duration of the tests in ns
-                    example: 6542909308659190311
+                    description: Duration of the tests in ms
+                    example: 1234
                     format: int64
                 fail_count:
                     type: integer
                     description: Number of tests that failed
-                    example: 5090292743939825689
+                    example: 1
                     format: int64
                 pass_count:
                     type: integer
                     description: Number of tests that passed
-                    example: 4885942239601822760
+                    example: 12
                     format: int64
             example:
                 collections:
-                    - duration: 9054733701520478298
-                      fail_count: 7502424151970560367
-                      name: Id necessitatibus consequatur a laudantium quia qui.
-                      pass_count: 8417812319446678629
+                    - duration: 1234
+                      fail_count: 1
+                      name: Locator Tests
+                      pass_count: 12
                       results:
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
                           passed: true
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
                           passed: true
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                          passed: true
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                          passed: true
-                    - duration: 9054733701520478298
-                      fail_count: 7502424151970560367
-                      name: Id necessitatibus consequatur a laudantium quia qui.
-                      pass_count: 8417812319446678629
+                    - duration: 1234
+                      fail_count: 1
+                      name: Locator Tests
+                      pass_count: 12
                       results:
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
                           passed: true
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
                           passed: true
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                          passed: true
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                          passed: true
-                    - duration: 9054733701520478298
-                      fail_count: 7502424151970560367
-                      name: Id necessitatibus consequatur a laudantium quia qui.
-                      pass_count: 8417812319446678629
+                    - duration: 1234
+                      fail_count: 1
+                      name: Locator Tests
+                      pass_count: 12
                       results:
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
                           passed: true
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
                           passed: true
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                          passed: true
-                        - duration: 859505013544304124
-                          error: Consectetur eos nihil accusamus reiciendis eligendi.
-                          name: Dolorem nam quisquam laudantium incidunt ipsa.
-                          passed: true
-                duration: 6479921303740404391
-                fail_count: 6775673673163648586
-                pass_count: 921268878604032922
+                duration: 1234
+                fail_count: 1
+                pass_count: 12
             required:
                 - collections
                 - duration
