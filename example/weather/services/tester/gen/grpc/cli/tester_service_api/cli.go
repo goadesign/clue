@@ -30,13 +30,10 @@ func UsageCommands() string {
 func UsageExamples() string {
 	return os.Args[0] + ` tester test-all --message '{
       "Exclude": [
-         "Aut ullam iure iure in fugiat.",
-         "Asperiores neque delectus non officiis hic."
+         "TestNameToExclude"
       ],
       "Include": [
-         "Animi accusamus facilis sed exercitationem unde saepe.",
-         "Error omnis quam ducimus eaque similique.",
-         "Laboriosam dicta commodi beatae dolorem."
+         "TestNameToInclude"
       ]
    }'` + "\n" +
 		""
@@ -181,13 +178,10 @@ Runs all tests in the iam system
 Example:
     %[1]s tester test-all --message '{
       "Exclude": [
-         "Aut ullam iure iure in fugiat.",
-         "Asperiores neque delectus non officiis hic."
+         "TestNameToExclude"
       ],
       "Include": [
-         "Animi accusamus facilis sed exercitationem unde saepe.",
-         "Error omnis quam ducimus eaque similique.",
-         "Laboriosam dicta commodi beatae dolorem."
+         "TestNameToInclude"
       ]
    }'
 `, os.Args[0])

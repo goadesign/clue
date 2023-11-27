@@ -153,8 +153,8 @@ Usage:
 
 COMMAND:
     forecast: Retrieve weather forecast for given IP
-    test-all: Endpoint for running API Integration Tests for the Weather System
-    test-smoke: Endpoint for running API Integration Tests for the Weather System
+    test-all: Endpoint for running ALL API Integration Tests for the Weather System, allowing for filtering on included or excluded tests
+    test-smoke: Endpoint for running API Integration Tests' Smoke Tests ONLY for the Weather System
 
 Additional help:
     %[1]s front COMMAND --help
@@ -174,19 +174,18 @@ Example:
 func frontTestAllUsage() {
 	fmt.Fprintf(os.Stderr, `%[1]s [flags] front test-all -body JSON
 
-Endpoint for running API Integration Tests for the Weather System
+Endpoint for running ALL API Integration Tests for the Weather System, allowing for filtering on included or excluded tests
     -body JSON: 
 
 Example:
     %[1]s front test-all --body '{
       "exclude": [
-         "Debitis omnis facere.",
-         "Aliquid dolor corrupti."
+         "Repudiandae enim molestiae.",
+         "Ut id iure."
       ],
       "include": [
-         "Ut id iure.",
-         "Est quod.",
-         "Amet maiores repellendus eos."
+         "Dolor sunt maiores.",
+         "Asperiores omnis ducimus ad et mollitia."
       ]
    }'
 `, os.Args[0])
@@ -195,7 +194,7 @@ Example:
 func frontTestSmokeUsage() {
 	fmt.Fprintf(os.Stderr, `%[1]s [flags] front test-smoke
 
-Endpoint for running API Integration Tests for the Weather System
+Endpoint for running API Integration Tests' Smoke Tests ONLY for the Weather System
 
 Example:
     %[1]s front test-smoke

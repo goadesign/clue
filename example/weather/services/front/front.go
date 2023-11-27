@@ -51,11 +51,12 @@ func (s *Service) Forecast(ctx context.Context, ip string) (*genfront.Forecast2,
 	return &genfront.Forecast2{Location: &loc, Periods: ps}, nil
 }
 
+// Runs ALL API Integration Tests from the Tester service, allowing for filtering on included or excluded tests
 func (s *Service) TestAll(ctx context.Context, payload *genfront.TestAllPayload) (*genfront.TestResults, error) {
-	tcPayload := &tester.TestAllPayload{Include: payload.Include, Exclude: payload.Exclude}
-	return s.tc.TestAll(ctx, tcPayload)
+	return s.tc.TestAll(ctx, payload.Include, payload.Exclude)
 }
 
+// Runs API Integration Tests' Smoke Tests ONLY from the Tester service
 func (s *Service) TestSmoke(ctx context.Context) (*genfront.TestResults, error) {
 	return s.tc.TestSmoke(ctx)
 }

@@ -58,36 +58,60 @@ var _ = Service("tester", func() {
 
 var TestResult = Type("TestResult", func() {
 	Description("Test result for a single test")
-	Field(1, "Name", String, "Name of the test")
+	Field(1, "Name", String, "Name of the test", func() {
+		Example("TestName")
+	})
 	Field(2, "Passed", Boolean, "Status of the test", func() {
 		Example(true)
 	})
-	Field(3, "Error", String, "Error message if the test failed")
-	Field(4, "Duration", Int64, "Duration of the test in ms")
+	Field(3, "Error", String, "Error message if the test failed", func() {
+		Example("Error message")
+	})
+	Field(4, "Duration", Int64, "Duration of the test in ms", func() {
+		Example(100)
+	})
 	Required("Name", "Passed", "Duration")
 })
 
 var TestCollection = Type("TestCollection", func() {
 	Description("Collection of test results for grouping by service")
-	Field(1, "Name", String, "Name of the test collection")
+	Field(1, "Name", String, "Name of the test collection", func() {
+		Example("TestCollectionName")
+	})
 	Field(2, "Results", ArrayOf(TestResult), "Test results")
-	Field(3, "Duration", Int64, "Duration of the tests in ms")
-	Field(4, "PassCount", Int, "Number of tests that passed")
-	Field(5, "FailCount", Int, "Number of tests that failed")
-	Required("Name", "Results", "Duration", "PassCount", "FailCount")
+	Field(3, "Duration", Int64, "Duration of the tests in ms", func() {
+		Example(100)
+	})
+	Field(4, "PassCount", Int, "Number of tests that passed", func() {
+		Example(10)
+	})
+	Field(5, "FailCount", Int, "Number of tests that failed", func() {
+		Example(1)
+	})
+	Required("Name", "Duration", "PassCount", "FailCount")
 })
 
 var TestResults = Type("TestResults", func() {
 	Description("Test results for the iam system integration tests")
 	Field(1, "Collections", ArrayOf(TestCollection), "Test collections")
-	Field(2, "Duration", Int64, "Duration of the tests in ms")
-	Field(3, "PassCount", Int, "Number of tests that passed")
-	Field(4, "FailCount", Int, "Number of tests that failed")
+	Field(2, "Duration", Int64, "Duration of the tests in ms", func() {
+		Example(100)
+	})
+	Field(3, "PassCount", Int, "Number of tests that passed", func() {
+		Example(10)
+	})
+	Field(4, "FailCount", Int, "Number of tests that failed", func() {
+		Example(1)
+	})
 	Required("Collections", "Duration", "PassCount", "FailCount")
 })
 
 var SystemTestPayload = Type("TesterPayload", func() {
 	Description("Payload for the tester service")
-	Field(1, "Include", ArrayOf(String), "Tests to run")
-	Field(2, "Exclude", ArrayOf(String), "Tests to exclude")
+	Field(1, "Include", ArrayOf(String), "Tests to run", func() {
+		Example([]string{"TestNameToInclude"})
+	})
+	Field(2, "Exclude", ArrayOf(String), "Tests to exclude", func() {
+		Example([]string{"TestNameToExclude"})
+	})
 })

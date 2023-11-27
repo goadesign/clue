@@ -168,8 +168,6 @@ func marshalFrontTestCollectionToTestCollectionResponseBody(v *front.TestCollect
 		for i, val := range v.Results {
 			res.Results[i] = marshalFrontTestResultToTestResultResponseBody(val)
 		}
-	} else {
-		res.Results = []*TestResultResponseBody{}
 	}
 
 	return res
@@ -178,6 +176,9 @@ func marshalFrontTestCollectionToTestCollectionResponseBody(v *front.TestCollect
 // marshalFrontTestResultToTestResultResponseBody builds a value of type
 // *TestResultResponseBody from a value of type *front.TestResult.
 func marshalFrontTestResultToTestResultResponseBody(v *front.TestResult) *TestResultResponseBody {
+	if v == nil {
+		return nil
+	}
 	res := &TestResultResponseBody{
 		Name:     v.Name,
 		Passed:   v.Passed,

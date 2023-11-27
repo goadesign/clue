@@ -36,7 +36,7 @@ type ForecastResponseBody struct {
 type TestAllResponseBody struct {
 	// Test collections
 	Collections []*TestCollectionResponseBody `form:"collections,omitempty" json:"collections,omitempty" xml:"collections,omitempty"`
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration *int64 `form:"duration,omitempty" json:"duration,omitempty" xml:"duration,omitempty"`
 	// Number of tests that passed
 	PassCount *int `form:"pass_count,omitempty" json:"pass_count,omitempty" xml:"pass_count,omitempty"`
@@ -49,7 +49,7 @@ type TestAllResponseBody struct {
 type TestSmokeResponseBody struct {
 	// Test collections
 	Collections []*TestCollectionResponseBody `form:"collections,omitempty" json:"collections,omitempty" xml:"collections,omitempty"`
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration *int64 `form:"duration,omitempty" json:"duration,omitempty" xml:"duration,omitempty"`
 	// Number of tests that passed
 	PassCount *int `form:"pass_count,omitempty" json:"pass_count,omitempty" xml:"pass_count,omitempty"`
@@ -109,7 +109,7 @@ type TestCollectionResponseBody struct {
 	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
 	// Test results
 	Results []*TestResultResponseBody `form:"results,omitempty" json:"results,omitempty" xml:"results,omitempty"`
-	// Duration of the tests in ns
+	// Duration of the tests in ms
 	Duration *int64 `form:"duration,omitempty" json:"duration,omitempty" xml:"duration,omitempty"`
 	// Number of tests that passed
 	PassCount *int `form:"pass_count,omitempty" json:"pass_count,omitempty" xml:"pass_count,omitempty"`
@@ -125,7 +125,7 @@ type TestResultResponseBody struct {
 	Passed *bool `form:"passed,omitempty" json:"passed,omitempty" xml:"passed,omitempty"`
 	// Error message if the test failed
 	Error *string `form:"error,omitempty" json:"error,omitempty" xml:"error,omitempty"`
-	// Duration of the test in ns
+	// Duration of the test in ms
 	Duration *int64 `form:"duration,omitempty" json:"duration,omitempty" xml:"duration,omitempty"`
 }
 
@@ -357,9 +357,6 @@ func ValidatePeriodResponseBody(body *PeriodResponseBody) (err error) {
 func ValidateTestCollectionResponseBody(body *TestCollectionResponseBody) (err error) {
 	if body.Name == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
-	}
-	if body.Results == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("results", "body"))
 	}
 	if body.Duration == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("duration", "body"))

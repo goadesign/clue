@@ -26,7 +26,7 @@ var _ = Service("front", func() {
 		})
 	})
 	Method("test_all", func() {
-		Description("Endpoint for running API Integration Tests for the Weather System")
+		Description("Endpoint for running ALL API Integration Tests for the Weather System, allowing for filtering on included or excluded tests")
 		Payload(func() {
 			Field(1, "include", ArrayOf(String), "Tests to run")
 			Field(2, "exclude", ArrayOf(String), "Tests to exclude")
@@ -37,7 +37,7 @@ var _ = Service("front", func() {
 		})
 	})
 	Method("test_smoke", func() {
-		Description("Endpoint for running API Integration Tests for the Weather System")
+		Description("Endpoint for running API Integration Tests' Smoke Tests ONLY for the Weather System")
 		Result(TestResults)
 		HTTP(func() {
 			POST("/tester/smoke")
