@@ -27,7 +27,7 @@ jobs:
           cd example/weather
           ./scripts/setup
           ./scripts/server > /dev/null 2>&1 &
-          results=$(curl -X POST http://localhost:8084/tester/smoke)
+          results=$(curl -X POST http://localhost:8086/tester/smoke)
           echo "----------"
           echo $results
           echo "----------"
