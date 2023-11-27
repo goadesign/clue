@@ -26,12 +26,13 @@ jobs:
           echo "change to weather example directory"
           cd example/weather
           ./scripts/setup
-          ./scripts/server > /dev/null 2>&1 &
+          ./scripts/server &
+          echo "-----NETSTAT-----"
+          sudo netstat -lpn |grep :8086
+          echo "----------"
           results=$(curl -X POST http://localhost:8086/tester/smoke)
-          echo "----------"
+          echo "-----RESULTS-----"
           echo $results
-          echo "----------"
-          sudo netstat -lpn |grep :8084
           echo "----------"
           if [ $(echo $results | jq '.fail_count') -gt 0 ];
           then
