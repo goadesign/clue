@@ -17,16 +17,12 @@ jobs:
           go-version: "1.21"
       - name: tests
         run: |
-          echo "Trying to stop mono"
-          sudo systemctl stop mono-xsp4.service || true
-          echo "Trying to disable mono"
-          sudo systemctl disable mono-xsp4.service || true
-          echo "Sleep 10"
-          sleep 10
           echo "change to weather example directory"
           cd example/weather
           ./scripts/setup
-          ./scripts/server &
+          ./scripts/server > /dev/null 2>&1 &
+          echo "Sleep 10"
+          sleep 10
           echo "-----NETSTAT-----"
           sudo netstat -lpn |grep :8086
           echo "----------"
