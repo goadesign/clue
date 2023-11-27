@@ -24,8 +24,8 @@ jobs:
           echo "run server"
           # ./scripts/server > /dev/null 2>&1 &
           ./scripts/server &
-          echo "Sleep 10"
-          sleep 30
+          echo "Sleep 60"
+          sleep 60
           echo "-----RUN TESTS-----"
           results=$(curl -X POST http://localhost:8086/tester/smoke)
           echo "-----RESULTS-----"
