@@ -46,12 +46,11 @@ func recoverFromTestPanic(ctx context.Context, testName string, testCollection *
 func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, testCollection *TestCollection, testMap map[string]func(context.Context, *TestCollection)) (*gentester.TestResults, error) {
 	retval := gentester.TestResults{}
 
-	testsToRun := make(map[string]func(context.Context, *TestCollection))
-	filtered := false
-	// If there are no filters, the tests to run is all tests in the map.
-	if (p == nil) || (p.Include == nil || len(p.Include) == 0) && (p.Exclude == nil || len(p.Exclude) == 0) {
-		testsToRun = testMap
-	} else { // Otherwise, we need to filter the tests
+	var filtered bool
+	testsToRun := testMap
+	// we need to filter the tests if there is an include or exclude list
+	if p != nil && (len(p.Include) > 0 || len(p.Exclude) > 0) {
+		testsToRun = make(map[string]func(context.Context, *TestCollection))
 		// If there is an include list, we only run the tests in the include list. This will supersede any exclude list.
 		filtered = true
 		if len(p.Include) > 0 {
