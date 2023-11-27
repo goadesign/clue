@@ -22,7 +22,7 @@ jobs:
           ./scripts/setup
           ./scripts/server > /dev/null 2>&1 &
           echo "Sleep 10"
-          sleep 10
+          sleep 30
           echo "----------"
           results=$(curl -X POST http://localhost:8086/tester/smoke)
           echo "-----RESULTS-----"
