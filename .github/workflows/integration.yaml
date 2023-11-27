@@ -39,7 +39,7 @@ jobs:
           ./bin/locator &
           ./bin/tester &
           ./bin/front &
-          echo "Sleep 30"
+          echo "Sleep 10"
           sleep 10
           echo "-----RUN TESTS-----"
           results=$(curl -X POST http://localhost:8084/tester/smoke)
