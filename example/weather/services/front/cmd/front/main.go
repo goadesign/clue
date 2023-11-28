@@ -39,8 +39,9 @@ func main() {
 		locatorHealthAddr    = flag.String("locator-health-addr", ":8083", "Locator service health-check address")
 		testerAddr           = flag.String("tester-addr", ":8090", "Tester service address")
 		// No testerHealthAddr because we don't want the whole system to die just because tester isn't healthy for some reason
-		agentaddr = flag.String("agent-addr", ":4317", "Grafana agent listen address")
-		debugf    = flag.Bool("debug", false, "Enable debug logs")
+		agentaddr         = flag.String("agent-addr", ":4317", "Grafana agent listen address")
+		debugf            = flag.Bool("debug", false, "Enable debug logs")
+		monitoringEnabled = flag.Bool("monitoring-enabled", true, "monitoring")
 	)
 	flag.Parse()
 
@@ -57,19 +58,26 @@ func main() {
 	}
 
 	// 2. Setup tracing
-	log.Debugf(ctx, "connecting to Grafana agent %s", *agentaddr)
-	conn, err := grpc.DialContext(ctx, *agentaddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock())
-	if err != nil {
-		log.Errorf(ctx, err, "failed to connect to Grafana agent")
-		os.Exit(1)
-	}
-	log.Debugf(ctx, "connected to Grafana agent %s", *agentaddr)
-	ctx, err = trace.Context(ctx, genfront.ServiceName, trace.WithGRPCExporter(conn))
-	if err != nil {
-		log.Errorf(ctx, err, "failed to initialize tracing")
-		os.Exit(1)
+	if !*monitoringEnabled {
+		var err error
+		if ctx, err = trace.Context(ctx, genfront.ServiceName, trace.WithDisabled()); err != nil {
+			log.Error(ctx, err, log.KV{K: "msg", V: "failed to initialize tracing"})
+		}
+	} else {
+		log.Debugf(ctx, "connecting to Grafana agent %s", *agentaddr)
+		conn, err := grpc.DialContext(ctx, *agentaddr,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithBlock())
+		if err != nil {
+			log.Errorf(ctx, err, "failed to connect to Grafana agent")
+			os.Exit(1)
+		}
+		log.Debugf(ctx, "connected to Grafana agent %s", *agentaddr)
+		ctx, err = trace.Context(ctx, genfront.ServiceName, trace.WithGRPCExporter(conn))
+		if err != nil {
+			log.Errorf(ctx, err, "failed to initialize tracing")
+			os.Exit(1)
+		}
 	}
 
 	// 3. Setup metrics

@@ -40,6 +40,7 @@ func main() {
 		locatorAddr          = flag.String("locator-addr", ":8082", "Locator service address")
 		locatorHealthAddr    = flag.String("locator-health-addr", ":8083", "Locator service health-check address")
 		debugf               = flag.Bool("debug", false, "Enable debug logs")
+		monitoringEnabled    = flag.Bool("monitoring-enabled", true, "monitoring")
 	)
 	flag.Parse()
 
@@ -56,19 +57,26 @@ func main() {
 	}
 
 	// 2. Setup tracing
-	log.Debugf(ctx, "connecting to Grafana agent %s", *agentaddr)
-	conn, err := grpc.DialContext(ctx, *agentaddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock())
-	if err != nil {
-		log.Errorf(ctx, err, "failed to connect to Grafana agent")
-		os.Exit(1)
-	}
-	log.Debugf(ctx, "connected to Grafana agent %s", *agentaddr)
-	ctx, err = trace.Context(ctx, gentester.ServiceName, trace.WithGRPCExporter(conn))
-	if err != nil {
-		log.Errorf(ctx, err, "failed to initialize tracing")
-		os.Exit(1)
+	if !*monitoringEnabled {
+		var err error
+		if ctx, err = trace.Context(ctx, gentester.ServiceName, trace.WithDisabled()); err != nil {
+			log.Error(ctx, err, log.KV{K: "msg", V: "failed to initialize tracing"})
+		}
+	} else {
+		log.Debugf(ctx, "connecting to Grafana agent %s", *agentaddr)
+		conn, err := grpc.DialContext(ctx, *agentaddr,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithBlock())
+		if err != nil {
+			log.Errorf(ctx, err, "failed to connect to Grafana agent")
+			os.Exit(1)
+		}
+		log.Debugf(ctx, "connected to Grafana agent %s", *agentaddr)
+		ctx, err = trace.Context(ctx, gentester.ServiceName, trace.WithGRPCExporter(conn))
+		if err != nil {
+			log.Errorf(ctx, err, "failed to initialize tracing")
+			os.Exit(1)
+		}
 	}
 
 	// 3. Setup metrics

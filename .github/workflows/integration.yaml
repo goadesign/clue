@@ -1,0 +1,46 @@
+name: Integration Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+      - name: tests
+        run: |
+          echo "stop/disable/kill mono"
+          sudo systemctl stop mono-xsp4.service || true
+          sudo systemctl disable mono-xsp4.service || true
+          sudo pkill mono || true
+          echo "change to weather example directory"
+          cd example/weather
+          echo "run setup script"
+          ./scripts/setup
+          echo "run server"
+          ./bin/forecaster -monitoring-enabled=false &
+          ./bin/locator -monitoring-enabled=false &
+          ./bin/tester -monitoring-enabled=false &
+          ./bin/front -monitoring-enabled=false &
+          sleep 1
+          echo "-----RUN TESTS-----"
+          results=$(curl -X POST http://localhost:8084/tester/smoke)
+          echo "-----RESULTS-----"
+          echo $results
+          echo "----------"
+          if [ $(echo $results | jq '.fail_count') -gt 0 ];
+          then
+            echo "Test errors found."
+            exit 1
+          else
+            echo "Tests passed."
+            exit 0
+          fi
