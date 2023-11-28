@@ -100,18 +100,7 @@ func testerTestCollectionToFrontTestCollection(testCollection *gentester.TestCol
 func testerTestResultsArrToFrontTestResultsArr(testResults []*gentester.TestResult) []*genfront.TestResult {
 	var res []*genfront.TestResult
 	for _, v := range testResults {
-		res = append(res, testerTestResultToFrontTestResult(v))
-	}
-	return res
-}
-
-func testerTestResultToFrontTestResult(testResult *gentester.TestResult) *genfront.TestResult {
-	var res = &genfront.TestResult{}
-	if testResult != nil {
-		res.Name = testResult.Name
-		res.Passed = testResult.Passed
-		res.Error = testResult.Error
-		res.Duration = testResult.Duration
+		res = append(res, (*genfront.TestResult)(v))
 	}
 	return res
 }
