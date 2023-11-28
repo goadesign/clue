@@ -17,30 +17,20 @@ jobs:
           go-version: "1.21"
       - name: tests
         run: |
-          echo "stop/disable mono"
+          echo "stop/disable/kill mono"
           sudo systemctl stop mono-xsp4.service || true
           sudo systemctl disable mono-xsp4.service || true
           sudo pkill mono || true
-          echo "check ports"
-          sudo netstat -nlp | grep 8080 || true
-          sudo netstat -nlp | grep 8081 || true
-          sudo netstat -nlp | grep 8082 || true
-          sudo netstat -nlp | grep 8083 || true
-          sudo netstat -nlp | grep 8084 || true
-          sudo netstat -nlp | grep 8085 || true
           echo "change to weather example directory"
           cd example/weather
           echo "run setup script"
           ./scripts/setup
           echo "run server"
-          # ./scripts/server > /dev/null 2>&1 &
-          # ./scripts/server &
           ./bin/forecaster -monitoring-enabled=false &
           ./bin/locator -monitoring-enabled=false &
           ./bin/tester -monitoring-enabled=false &
           ./bin/front -monitoring-enabled=false &
-          echo "Sleep 3"
-          sleep 3
+          sleep 1
           echo "-----RUN TESTS-----"
           results=$(curl -X POST http://localhost:8084/tester/smoke)
           echo "-----RESULTS-----"
