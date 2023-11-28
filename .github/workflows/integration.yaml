@@ -35,12 +35,12 @@ jobs:
           echo "run server"
           # ./scripts/server > /dev/null 2>&1 &
           # ./scripts/server &
-          ./bin/forecaster &
-          ./bin/locator &
-          ./bin/tester &
-          ./bin/front &
-          echo "Sleep 10"
-          sleep 10
+          ./bin/forecaster -monitoring-enabled=false &
+          ./bin/locator -monitoring-enabled=false &
+          ./bin/tester -monitoring-enabled=false &
+          ./bin/front -monitoring-enabled=false &
+          echo "Sleep 3"
+          sleep 3
           echo "-----RUN TESTS-----"
           results=$(curl -X POST http://localhost:8084/tester/smoke)
           echo "-----RESULTS-----"
