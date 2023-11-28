@@ -61,9 +61,8 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 				if testFunc, ok := testMap[test]; ok {
 					testsToRun[test] = testFunc
 				} else {
-					// QUESTION: Do we want to error the test execution if a test is not found in the test map?
-					// 		I'm thinking no, because it's not really an error, it's just a test that doesn't exist.
-					log.Infof(ctx, "Test [%v] not found in test map", test)
+					err := fmt.Errorf("test [%v] not found in test map", test)
+					logError(ctx, err)
 				}
 			}
 		} else if len(p.Exclude) > 0 { // If there is only an exclude list, we add tests not found in that exclude list to the tests to run
