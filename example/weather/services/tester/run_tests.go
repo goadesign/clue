@@ -1,9 +1,12 @@
 package tester
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"runtime/debug"
 	"strings"
 	"sync"
@@ -22,6 +25,32 @@ func endTest(tr *gentester.TestResult, start time.Time, tc *TestCollection, resu
 	tc.AppendTestResult(results...)
 }
 
+func getStackTrace(wg *sync.WaitGroup, m *sync.Mutex) string {
+	m.Lock()
+	// keep backup of the real stderr
+	old := os.Stderr
+	f, w, _ := os.Pipe()
+	os.Stderr = w
+
+	debug.PrintStack()
+
+	outC := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, f)
+		outC <- buf.String()
+	}()
+
+	w.Close()
+	// restoring the real stderr
+	os.Stderr = old
+	out := <-outC
+	m.Unlock()
+	wg.Done()
+
+	return out
+}
+
 // recovers from a panicked test. This is used to ensure that the test
 // suite does not crash if a test panics.
 func recoverFromTestPanic(ctx context.Context, testName string, testCollection *TestCollection) {
@@ -29,9 +58,14 @@ func recoverFromTestPanic(ctx context.Context, testName string, testCollection *
 		msg := fmt.Sprintf("[Panic Test]: %v", testName)
 		err := errors.New(msg)
 		log.Errorf(ctx, err, fmt.Sprintf("%v", r))
-		// This doesn't work as I'd like because it only prints to stderr, not to a string
-		// 	that I can caputre and put in the goa log.
-		debug.PrintStack()
+		var m sync.Mutex
+		var wg sync.WaitGroup
+		wg.Add(1)
+		trace := getStackTrace(&wg, &m)
+		wg.Wait()
+		err = errors.New(fmt.Sprintf("%v : %v", r, trace))
+		// log the error and add the test result to the test collection
+		logError(ctx, err)
 		resultMsg := fmt.Sprintf("%v | %v", msg, r)
 		testCollection.AppendTestResult(&gentester.TestResult{
 			Name:     testName,
