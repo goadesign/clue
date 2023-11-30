@@ -26,12 +26,12 @@ func (svc *Service) TestAll(ctx context.Context, p *gentester.TesterPayload) (re
 	filteringPayload = p
 	forecasterResults, err := svc.TestForecaster(ctx)
 	if err != nil {
-		logError(ctx, err)
+		_ = logError(ctx, err)
 		return nil, err
 	}
 	locatorResults, err := svc.TestLocator(ctx)
 	if err != nil {
-		logError(ctx, err)
+		_ = logError(ctx, err)
 		return nil, err
 	}
 

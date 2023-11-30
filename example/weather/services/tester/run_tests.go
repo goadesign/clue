@@ -37,7 +37,10 @@ func getStackTrace(wg *sync.WaitGroup, m *sync.Mutex) string {
 	outC := make(chan string)
 	go func() {
 		var buf bytes.Buffer
-		io.Copy(&buf, f)
+		_, err := io.Copy(&buf, f)
+		if err != nil {
+			log.Errorf(context.Background(), err, "error copying buffer when captiring stack trace for test panic")
+		}
 		outC <- buf.String()
 	}()
 
@@ -63,9 +66,9 @@ func recoverFromTestPanic(ctx context.Context, testName string, testCollection *
 		wg.Add(1)
 		trace := getStackTrace(&wg, &m)
 		wg.Wait()
-		err = errors.New(fmt.Sprintf("%v : %v", r, trace))
+		err = fmt.Errorf("%v : %v", r, trace)
 		// log the error and add the test result to the test collection
-		logError(ctx, err)
+		_ = logError(ctx, err)
 		resultMsg := fmt.Sprintf("%v | %v", msg, r)
 		testCollection.AppendTestResult(&gentester.TestResult{
 			Name:     testName,
@@ -96,7 +99,7 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 					testsToRun[test] = testFunc
 				} else {
 					err := fmt.Errorf("test [%v] not found in test map", test)
-					logError(ctx, err)
+					_ = logError(ctx, err)
 				}
 			}
 		} else if len(p.Exclude) > 0 { // If there is only an exclude list, we add tests not found in that exclude list to the tests to run
