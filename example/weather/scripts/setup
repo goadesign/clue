@@ -10,7 +10,7 @@ source ./scripts/utils/common.sh
 proto_pkg="protobuf-compiler"
 
 # install protoc, update version as needed
-PROTO_VER=24.4
+PROTO_VER=25.1
 
 if is_mac; then
   PROTOC_ZIP=protoc-${PROTO_VER}-osx-universal_binary.zip
