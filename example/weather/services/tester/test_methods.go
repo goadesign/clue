@@ -57,7 +57,7 @@ func (svc *Service) TestSmoke(ctx context.Context) (res *gentester.TestResults, 
 	smokeCollection := TestCollection{
 		Name: "Smoke Tests",
 	}
-	return svc.runTests(ctx, filteringPayload, &smokeCollection, smokeTestMap)
+	return svc.runTests(ctx, filteringPayload, &smokeCollection, smokeTestMap, false)
 }
 
 // Runs the ACL Service tests as a collection
@@ -68,7 +68,7 @@ func (svc *Service) TestForecaster(ctx context.Context) (res *gentester.TestResu
 	aclCollection := TestCollection{
 		Name: "Forecaster Tests",
 	}
-	return svc.runTests(ctx, filteringPayload, &aclCollection, forecasterTestMap)
+	return svc.runTests(ctx, filteringPayload, &aclCollection, forecasterTestMap, false)
 }
 
 // Runs the Login Service tests as a collection
@@ -79,5 +79,5 @@ func (svc *Service) TestLocator(ctx context.Context) (res *gentester.TestResults
 	loginCollection := TestCollection{
 		Name: "Locator Tests",
 	}
-	return svc.runTests(ctx, filteringPayload, &loginCollection, locatorTestMap)
+	return svc.runTests(ctx, filteringPayload, &loginCollection, locatorTestMap, false)
 }
