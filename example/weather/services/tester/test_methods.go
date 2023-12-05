@@ -49,7 +49,7 @@ func (svc *Service) TestAll(ctx context.Context, p *gentester.TesterPayload) (re
 	return &retval, nil
 }
 
-// Runs the Smoke tests as a collection
+// Runs the Smoke tests as a collection in parallel
 func (svc *Service) TestSmoke(ctx context.Context) (res *gentester.TestResults, err error) {
 	svc.smokeTestMapInit(ctx)
 
@@ -60,7 +60,7 @@ func (svc *Service) TestSmoke(ctx context.Context) (res *gentester.TestResults, 
 	return svc.runTests(ctx, filteringPayload, &smokeCollection, smokeTestMap, false)
 }
 
-// Runs the ACL Service tests as a collection
+// Runs the ACL Service tests as a collection in parallel
 func (svc *Service) TestForecaster(ctx context.Context) (res *gentester.TestResults, err error) {
 	svc.forecasterTestMapInit(ctx)
 
@@ -71,7 +71,7 @@ func (svc *Service) TestForecaster(ctx context.Context) (res *gentester.TestResu
 	return svc.runTests(ctx, filteringPayload, &aclCollection, forecasterTestMap, false)
 }
 
-// Runs the Login Service tests as a collection
+// Runs the Login Service tests as a collection synchronously
 func (svc *Service) TestLocator(ctx context.Context) (res *gentester.TestResults, err error) {
 	svc.locatorTestMapInit(ctx)
 
@@ -79,5 +79,5 @@ func (svc *Service) TestLocator(ctx context.Context) (res *gentester.TestResults
 	loginCollection := TestCollection{
 		Name: "Locator Tests",
 	}
-	return svc.runTests(ctx, filteringPayload, &loginCollection, locatorTestMap, false)
+	return svc.runTests(ctx, filteringPayload, &loginCollection, locatorTestMap, true)
 }
