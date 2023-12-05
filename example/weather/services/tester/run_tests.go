@@ -80,7 +80,9 @@ func recoverFromTestPanic(ctx context.Context, testName string, testCollection *
 }
 
 // Runs the tests from the testmap and handles filtering/exclusion of tests
-func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, testCollection *TestCollection, testMap map[string]func(context.Context, *TestCollection)) (*gentester.TestResults, error) {
+// Pass in `true` for runSynchronously to run the tests synchronously instead
+// of in parallel.
+func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, testCollection *TestCollection, testMap map[string]func(context.Context, *TestCollection), runSynchronously bool) (*gentester.TestResults, error) {
 	retval := gentester.TestResults{}
 
 	var filtered bool
@@ -119,17 +121,26 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 	}
 
 	// Run the tests that need to be run and add the results to the testCollection.Results array
-	wg := sync.WaitGroup{}
-	for n, test := range testsToRun {
-		wg.Add(1)
-		go func(f func(context.Context, *TestCollection), testName string) {
-			defer wg.Done()
-			defer recoverFromTestPanic(ctx, testName, testCollection)
-			log.Infof(ctx, "RUNNING TEST [%v]", testName)
-			f(ctx, testCollection)
-		}(test, n)
+	if runSynchronously {
+		log.Infof(ctx, "RUNNING TESTS SYNCHRONOUSLY")
+		for n, test := range testsToRun {
+			log.Infof(ctx, "RUNNING TEST [%v]", n)
+			test(ctx, testCollection)
+		}
+	} else {
+		log.Infof(ctx, "RUNNING TESTS IN PARALLEL")
+		wg := sync.WaitGroup{}
+		for n, test := range testsToRun {
+			wg.Add(1)
+			go func(f func(context.Context, *TestCollection), testName string) {
+				defer wg.Done()
+				defer recoverFromTestPanic(ctx, testName, testCollection)
+				log.Infof(ctx, "RUNNING TEST [%v]", testName)
+				f(ctx, testCollection)
+			}(test, n)
+		}
+		wg.Wait()
 	}
-	wg.Wait()
 
 	for _, res := range testCollection.Results {
 		if !res.Passed {

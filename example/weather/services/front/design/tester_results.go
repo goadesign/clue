@@ -40,7 +40,7 @@ var TestCollection = Type("TestCollection", func() {
 })
 
 var TestResults = Type("TestResults", func() {
-	Description("Test results for the iam system integration tests")
+	Description("Test results for the integration tests")
 	Field(1, "collections", ArrayOf(TestCollection), "Test collections")
 	Field(2, "duration", Int64, "Duration of the tests in ms", func() {
 		Example(1234)
