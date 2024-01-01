@@ -7,7 +7,7 @@ toolchain go1.21.3
 require (
 	github.com/aws/smithy-go v1.19.0
 	github.com/go-logfmt/logfmt v0.6.0
-	github.com/prometheus/client_golang v1.17.0
+	github.com/prometheus/client_golang v1.18.0
 	github.com/prometheus/client_model v0.5.0
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.0
