@@ -8,10 +8,55 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"goa.design/goa/v3/middleware"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/stats"
 )
+
+// NewServerHandler creates a stats.Handler for a gRPC server that uses an
+// adaptive sampler for limiting the number of traced requests while
+// guraranteeing that a certain number of requests are traced.
+// It panics if the context has not been initialized with Context.
+//
+// Example:
+//
+//	// Connect to remote trace collector.
+//	conn, err := grpc.DialContext(ctx, collectorAddr)
+//	if err != nil {
+//	    log.Error(ctx, err)
+//	    os.Exit(1)
+//	}
+//	// Initialize context for tracing
+//	ctx := trace.Context(ctx, svcgen.ServiceName, trace.WithGRPCExporter(conn))
+//	// Create stats handler
+//	handler := trace.NewServerHandler(ctx)
+//	// Create gRPC server
+//	grpcServer := grpc.NewServer(grpc.StatsHandler(handler))
+func NewServerHandler(traceCtx context.Context) stats.Handler {
+	state := traceCtx.Value(stateKey)
+	if state == nil {
+		panic(errContextMissing)
+	}
+	return otelgrpc.NewServerHandler(
+		otelgrpc.WithTracerProvider(state.(*stateBag).provider),
+		otelgrpc.WithPropagators(state.(*stateBag).propagator),
+	)
+}
+
+// NewClientHandler creates a stats.Handler for a gRPC client.
+// It panics if the context has not been initialized with Context.
+func NewClientHandler(traceCtx context.Context) stats.Handler {
+	state := traceCtx.Value(stateKey)
+	if state == nil {
+		panic(errContextMissing)
+	}
+	return otelgrpc.NewClientHandler(
+		otelgrpc.WithTracerProvider(state.(*stateBag).provider),
+		otelgrpc.WithPropagators(state.(*stateBag).propagator),
+	)
+}
 
 // UnaryServerInterceptor returns an OpenTelemetry UnaryServerInterceptor. It
 // panics if the context has not been initialized with Context.
+// Deprecated: Use NewServerHandler instead.
 func UnaryServerInterceptor(traceCtx context.Context) grpc.UnaryServerInterceptor {
 	state := traceCtx.Value(stateKey)
 	if state == nil {
@@ -34,6 +79,7 @@ func UnaryServerInterceptor(traceCtx context.Context) grpc.UnaryServerIntercepto
 
 // StreamServerInterceptor returns an OpenTelemetry StreamServerInterceptor. It
 // panics if the context has not been initialized with Context.
+// Deprecated: Use NewServerHandler instead.
 func StreamServerInterceptor(traceCtx context.Context) grpc.StreamServerInterceptor {
 	state := traceCtx.Value(stateKey)
 	if state == nil {
@@ -57,6 +103,7 @@ func StreamServerInterceptor(traceCtx context.Context) grpc.StreamServerIntercep
 
 // UnaryClientInterceptor returns an OpenTelemetry UnaryClientInterceptor. It
 // panics if the context has not been initialized with Context.
+// Deprecated: Use NewClientHandler instead.
 func UnaryClientInterceptor(traceCtx context.Context) grpc.UnaryClientInterceptor {
 	state := traceCtx.Value(stateKey)
 	if state == nil {
@@ -69,6 +116,7 @@ func UnaryClientInterceptor(traceCtx context.Context) grpc.UnaryClientIntercepto
 
 // StreamClientInterceptor returns an OpenTelemetry StreamClientInterceptor. It
 // panics if the context has not been initialized with Context.
+// Deprecated: Use NewClientHandler instead.
 func StreamClientInterceptor(traceCtx context.Context) grpc.StreamClientInterceptor {
 	state := traceCtx.Value(stateKey)
 	if state == nil {

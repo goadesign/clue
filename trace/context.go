@@ -51,11 +51,11 @@ func Context(ctx context.Context, svc string, opts ...TraceOption) (context.Cont
 	}
 
 	if options.disabled {
-		return withProvider(ctx, noop.NewTracerProvider(), options.propagator, svc), nil
+		return withConfig(ctx, noop.NewTracerProvider(), options.propagator, svc), nil
 	}
 
 	if options.exporter == nil {
-		return nil, errors.New("missing exporter")
+		return nil, errors.New("missing exporter, set one with the option 'trace.WithExporter'")
 	}
 
 	res := options.resource
@@ -69,7 +69,7 @@ func Context(ctx context.Context, svc string, opts ...TraceOption) (context.Cont
 		sdktrace.WithResource(res),
 		sdktrace.WithBatcher(options.exporter),
 	)
-	return withProvider(ctx, provider, options.propagator, svc), nil
+	return withConfig(ctx, provider, options.propagator, svc), nil
 }
 
 // IsTraced returns true if the current request is traced.
@@ -84,8 +84,8 @@ func TraceProvider(ctx context.Context) trace.TracerProvider {
 	return sb.provider
 }
 
-// withProvider stores the tracer provider in the context.
-func withProvider(ctx context.Context, provider trace.TracerProvider, propagator propagation.TextMapPropagator, svc string) context.Context {
+// withConfig stores the clue tracing config in the context.
+func withConfig(ctx context.Context, provider trace.TracerProvider, propagator propagation.TextMapPropagator, svc string) context.Context {
 	return context.WithValue(ctx, stateKey, &stateBag{provider: provider, propagator: propagator, svc: svc})
 }
 

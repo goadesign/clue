@@ -12,7 +12,7 @@ import (
 )
 
 func testContext(provider trace.TracerProvider) context.Context {
-	return withProvider(context.Background(), provider, propagation.TraceContext{}, "test")
+	return withConfig(context.Background(), provider, propagation.TraceContext{}, "test")
 }
 
 func TestContext(t *testing.T) {

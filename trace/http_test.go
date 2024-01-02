@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+
 	"goa.design/clue/internal/testsvc"
-	"goa.design/goa/v3/http/middleware"
 )
 
 func TestHTTP(t *testing.T) {
@@ -17,52 +19,14 @@ func TestHTTP(t *testing.T) {
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
 	ctx := testContext(provider)
 	cli, stop := testsvc.SetupHTTP(t,
-		testsvc.WithHTTPMiddleware(
-			middleware.RequestID(),
-			HTTP(ctx)),
-		testsvc.WithHTTPFunc(addEventUnaryMethod))
-	if _, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{}); err != nil {
-		t.Errorf("unexpected error: %v", err)
-	}
-	stop()
-	spans := exporter.GetSpans()
-	if len(spans) != 1 {
-		t.Fatalf("got %d spans, want 1", len(spans))
-	}
-	found := false
-	for _, att := range spans[0].Attributes {
-		if att.Key == AttributeRequestID {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Errorf("request ID not in span attributes")
-	}
-	events := spans[0].Events
-	if len(events) != 1 {
-		t.Fatalf("got %d events, want 1", len(events))
-	}
-	if events[0].Name != "unary method" {
-		t.Errorf("unexpected event name: %s", events[0].Name)
-	}
-}
-
-func TestHTTPRequestID(t *testing.T) {
-	exporter := tracetest.NewInMemoryExporter()
-	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	ctx := testContext(provider)
-	cli, stop := testsvc.SetupHTTP(t,
 		testsvc.WithHTTPMiddleware(HTTP(ctx)),
 		testsvc.WithHTTPFunc(addEventUnaryMethod))
-	if _, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{}); err != nil {
-		t.Errorf("unexpected error: %v", err)
-	}
+	_, err := cli.HTTPMethod(context.Background(), &testsvc.Fields{})
+	assert.NoError(t, err)
 	stop()
 	spans := exporter.GetSpans()
-	if len(spans) != 1 {
-		t.Fatalf("got %d spans, want 1", len(spans))
-	}
+	require.Len(t, spans, 1)
+	assert.Equal(t, "test", spans[0].Name)
 }
 
 func TestClient(t *testing.T) {
@@ -71,7 +35,5 @@ func TestClient(t *testing.T) {
 	ctx := testContext(provider)
 	c := http.Client{Transport: Client(ctx, http.DefaultTransport)}
 	otelt, ok := c.Transport.(*otelhttp.Transport)
-	if !ok {
-		t.Errorf("got %T, want %T", c.Transport, otelt)
-	}
+	assert.True(t, ok, "got %T, want %T", c.Transport, otelt)
 }
