@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"goa.design/clue/internal/testsvc"
@@ -11,8 +13,44 @@ import (
 	"google.golang.org/grpc"
 )
 
-// NOTE: We are not testing otel here, just make sure a span exists and that the
-// request ID is in the attributes on the server.
+func TestNewServerHandler(t *testing.T) {
+	exporter := tracetest.NewInMemoryExporter()
+	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
+	ctx := testContext(provider)
+	handler := NewServerHandler(ctx)
+	require.NotNil(t, handler)
+	cli, stop := testsvc.SetupGRPC(t,
+		testsvc.WithServerOptions(grpc.StatsHandler(handler)),
+		testsvc.WithUnaryFunc(addEventUnaryMethod))
+	_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	stop()
+	spans := exporter.GetSpans()
+	require.Len(t, spans, 1)
+	assert.Equal(t, "test.Test/GrpcMethod", spans[0].Name)
+}
+
+func TestNewClientHandler(t *testing.T) {
+	exporter := tracetest.NewInMemoryExporter()
+	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
+	ctx := testContext(provider)
+	handler := NewClientHandler(ctx)
+	require.NotNil(t, handler)
+	cli, stop := testsvc.SetupGRPC(t,
+		testsvc.WithDialOptions(grpc.WithStatsHandler(handler)),
+		testsvc.WithUnaryFunc(addEventUnaryMethod),
+	)
+	_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	stop()
+	spans := exporter.GetSpans()
+	require.Len(t, spans, 1)
+	assert.Equal(t, "test.Test/GrpcMethod", spans[0].Name)
+}
 
 func TestUnaryServerTrace(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
@@ -133,29 +171,6 @@ func TestUnaryClientTrace(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
-	stop()
-	spans := exporter.GetSpans()
-	if len(spans) != 1 {
-		t.Fatalf("got %d spans, want 1", len(spans))
-	}
-}
-
-func TestStreamClientTrace(t *testing.T) {
-	exporter := tracetest.NewInMemoryExporter()
-	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	cli, stop := testsvc.SetupGRPC(t,
-		testsvc.WithDialOptions(grpc.WithStreamInterceptor(StreamClientInterceptor(testContext(provider)))),
-		testsvc.WithStreamFunc(echoMethod))
-	ctx, cancel := context.WithCancel(context.Background())
-	stream, err := cli.GRPCStream(ctx)
-	if err != nil {
-		t.Errorf("unexpected stream error: %v", err)
-	}
-	if err := stream.Send(&testsvc.Fields{}); err != nil {
-		t.Errorf("unexpected send error: %v", err)
-	}
-	stream.Recv() // nolint: errcheck
-	cancel()
 	stop()
 	spans := exporter.GetSpans()
 	if len(spans) != 1 {
