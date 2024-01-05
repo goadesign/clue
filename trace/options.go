@@ -83,7 +83,7 @@ func WithResource(res *resource.Resource) TraceOption {
 	}
 }
 
-// WithPropagator sets the otel propagators
+// WithPropagator sets the trace propagator.
 func WithPropagator(propagator propagation.TextMapPropagator) TraceOption {
 	return func(_ context.Context, opts *options) error {
 		opts.propagator = propagator
@@ -91,6 +91,7 @@ func WithPropagator(propagator propagation.TextMapPropagator) TraceOption {
 	}
 }
 
+// WithGRPCExporter sets the connection to the span exporter.
 func WithGRPCExporter(conn *grpc.ClientConn) TraceOption {
 	return func(ctx context.Context, opts *options) error {
 		exporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))

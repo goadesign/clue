@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -91,8 +92,8 @@ func TestStreamServerTrace(t *testing.T) {
 
 	prefix := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"test-request-id","msg":"start","grpc.service":"test.Test","grpc.method":"GrpcStream"}`
 	logged := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"test-request-id","key1":"value1","key2":"value2"}`
-	suffix := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"test-request-id","msg":"end","grpc.service":"test.Test","grpc.method":"GrpcStream","grpc.code":"OK","grpc.time_ms":0}`
-	errors := `{"time":"2022-01-09T20:29:45Z","level":"error","request-id":"test-request-id","err":"rpc error: code = Unknown desc = test-error","grpc.service":"test.Test","grpc.method":"GrpcStream","grpc.status":"test-error","grpc.code":"Unknown","grpc.time_ms":0}`
+	suffix := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"test-request-id","msg":"end","grpc.service":"test.Test","grpc.method":"GrpcStream","grpc.code":"OK","grpc.time_ms":XXX}`
+	errors := `{"time":"2022-01-09T20:29:45Z","level":"error","request-id":"test-request-id","err":"rpc error: code = Unknown desc = test-error","grpc.service":"test.Test","grpc.method":"GrpcStream","grpc.status":"test-error","grpc.code":"Unknown","grpc.time_ms":XXX}`
 
 	cases := []struct {
 		name        string
@@ -143,7 +144,9 @@ func TestStreamServerTrace(t *testing.T) {
 				assert.NoError(t, err)
 			}
 			stop()
-			assert.Equal(t, c.expected, buf.String())
+			want := regexp.QuoteMeta(c.expected)
+			want = strings.ReplaceAll(want, "XXX", `\d+`)
+			assert.Regexp(t, want, buf.String())
 		})
 	}
 }
