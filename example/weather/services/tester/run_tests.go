@@ -27,29 +27,26 @@ func endTest(tr *gentester.TestResult, start time.Time, tc *TestCollection, resu
 
 func getStackTrace(wg *sync.WaitGroup, m *sync.Mutex) string {
 	m.Lock()
+	defer wg.Done()
+	defer m.Unlock()
 	// keep backup of the real stderr
 	old := os.Stderr
 	f, w, _ := os.Pipe()
 	os.Stderr = w
+	defer w.Close()
 
 	debug.PrintStack()
 
 	outC := make(chan string)
 	go func() {
 		var buf bytes.Buffer
-		_, err := io.Copy(&buf, f)
-		if err != nil {
-			log.Errorf(context.Background(), err, "error copying buffer when captiring stack trace for test panic")
-		}
+		io.Copy(&buf, f)
 		outC <- buf.String()
 	}()
 
-	w.Close()
 	// restoring the real stderr
 	os.Stderr = old
 	out := <-outC
-	m.Unlock()
-	wg.Done()
 
 	return out
 }
