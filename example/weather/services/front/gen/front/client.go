@@ -16,13 +16,17 @@ import (
 
 // Client is the "front" service client.
 type Client struct {
-	ForecastEndpoint goa.Endpoint
+	ForecastEndpoint  goa.Endpoint
+	TestAllEndpoint   goa.Endpoint
+	TestSmokeEndpoint goa.Endpoint
 }
 
 // NewClient initializes a "front" service client given the endpoints.
-func NewClient(forecast goa.Endpoint) *Client {
+func NewClient(forecast, testAll, testSmoke goa.Endpoint) *Client {
 	return &Client{
-		ForecastEndpoint: forecast,
+		ForecastEndpoint:  forecast,
+		TestAllEndpoint:   testAll,
+		TestSmokeEndpoint: testSmoke,
 	}
 }
 
@@ -37,4 +41,24 @@ func (c *Client) Forecast(ctx context.Context, p string) (res *Forecast2, err er
 		return
 	}
 	return ires.(*Forecast2), nil
+}
+
+// TestAll calls the "test_all" endpoint of the "front" service.
+func (c *Client) TestAll(ctx context.Context, p *TestAllPayload) (res *TestResults, err error) {
+	var ires any
+	ires, err = c.TestAllEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*TestResults), nil
+}
+
+// TestSmoke calls the "test_smoke" endpoint of the "front" service.
+func (c *Client) TestSmoke(ctx context.Context) (res *TestResults, err error) {
+	var ires any
+	ires, err = c.TestSmokeEndpoint(ctx, nil)
+	if err != nil {
+		return
+	}
+	return ires.(*TestResults), nil
 }

@@ -1,0 +1,69 @@
+name: Integration Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+      - name: tests
+        run: |
+          check_service_health() {
+              local health_url="$1"
+              local start_time=$(date +%s)
+          
+              while : ; do
+                  if curl -s --fail "$health_url" > /dev/null; then
+                      echo "Service is up!"
+                      return 0
+                  fi
+          
+                  local current_time=$(date +%s)
+                  if (( current_time - start_time >= 5 )); then
+                      echo "Timed out waiting for service to be up."
+                      return 1
+                  fi
+          
+                  sleep 0.2
+              done
+          }
+          echo "stop/disable/kill mono"
+          sudo systemctl stop mono-xsp4.service || true
+          sudo systemctl disable mono-xsp4.service || true
+          sudo pkill mono || true
+          echo "change to weather example directory"
+          cd example/weather
+          echo "run setup script"
+          ./scripts/setup
+          echo "run server"
+          ./bin/forecaster -monitoring-enabled=false &
+          ./bin/locator -monitoring-enabled=false &
+          ./bin/tester -monitoring-enabled=false &
+          ./bin/front -monitoring-enabled=false &
+          check_service_health "http://localhost:8081/healthz" &
+          check_service_health "http://localhost:8083/healthz" &
+          check_service_health "http://localhost:8091/healthz" &
+          check_service_health "http://localhost:8085/healthz" &
+          wait -n
+          echo "-----RUN TESTS-----"
+          results=$(curl -X POST http://localhost:8084/tester/smoke)
+          echo "-----RESULTS-----"
+          echo $results
+          echo "----------"
+          if [ $(echo $results | jq '.fail_count') -gt 0 ];
+          then
+            echo "Test errors found."
+            exit 1
+          else
+            echo "Tests passed."
+            exit 0
+          fi

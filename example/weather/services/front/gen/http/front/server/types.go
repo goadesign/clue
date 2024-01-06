@@ -13,6 +13,15 @@ import (
 	goa "goa.design/goa/v3/pkg"
 )
 
+// TestAllRequestBody is the type of the "front" service "test_all" endpoint
+// HTTP request body.
+type TestAllRequestBody struct {
+	// Tests to run
+	Include []string `form:"include,omitempty" json:"include,omitempty" xml:"include,omitempty"`
+	// Tests to exclude
+	Exclude []string `form:"exclude,omitempty" json:"exclude,omitempty" xml:"exclude,omitempty"`
+}
+
 // ForecastResponseBody is the type of the "front" service "forecast" endpoint
 // HTTP response body.
 type ForecastResponseBody struct {
@@ -20,6 +29,32 @@ type ForecastResponseBody struct {
 	Location *LocationResponseBody `form:"location" json:"location" xml:"location"`
 	// Weather forecast periods
 	Periods []*PeriodResponseBody `form:"periods" json:"periods" xml:"periods"`
+}
+
+// TestAllResponseBody is the type of the "front" service "test_all" endpoint
+// HTTP response body.
+type TestAllResponseBody struct {
+	// Test collections
+	Collections []*TestCollectionResponseBody `form:"collections" json:"collections" xml:"collections"`
+	// Duration of the tests in ms
+	Duration int64 `form:"duration" json:"duration" xml:"duration"`
+	// Number of tests that passed
+	PassCount int `form:"pass_count" json:"pass_count" xml:"pass_count"`
+	// Number of tests that failed
+	FailCount int `form:"fail_count" json:"fail_count" xml:"fail_count"`
+}
+
+// TestSmokeResponseBody is the type of the "front" service "test_smoke"
+// endpoint HTTP response body.
+type TestSmokeResponseBody struct {
+	// Test collections
+	Collections []*TestCollectionResponseBody `form:"collections" json:"collections" xml:"collections"`
+	// Duration of the tests in ms
+	Duration int64 `form:"duration" json:"duration" xml:"duration"`
+	// Number of tests that passed
+	PassCount int `form:"pass_count" json:"pass_count" xml:"pass_count"`
+	// Number of tests that failed
+	FailCount int `form:"fail_count" json:"fail_count" xml:"fail_count"`
 }
 
 // ForecastNotUsaResponseBody is the type of the "front" service "forecast"
@@ -68,6 +103,32 @@ type PeriodResponseBody struct {
 	Summary string `form:"summary" json:"summary" xml:"summary"`
 }
 
+// TestCollectionResponseBody is used to define fields on response body types.
+type TestCollectionResponseBody struct {
+	// Name of the test collection
+	Name string `form:"name" json:"name" xml:"name"`
+	// Test results
+	Results []*TestResultResponseBody `form:"results,omitempty" json:"results,omitempty" xml:"results,omitempty"`
+	// Duration of the tests in ms
+	Duration int64 `form:"duration" json:"duration" xml:"duration"`
+	// Number of tests that passed
+	PassCount int `form:"pass_count" json:"pass_count" xml:"pass_count"`
+	// Number of tests that failed
+	FailCount int `form:"fail_count" json:"fail_count" xml:"fail_count"`
+}
+
+// TestResultResponseBody is used to define fields on response body types.
+type TestResultResponseBody struct {
+	// Name of the test
+	Name string `form:"name" json:"name" xml:"name"`
+	// Status of the test
+	Passed bool `form:"passed" json:"passed" xml:"passed"`
+	// Error message if the test failed
+	Error *string `form:"error,omitempty" json:"error,omitempty" xml:"error,omitempty"`
+	// Duration of the test in ms
+	Duration int64 `form:"duration" json:"duration" xml:"duration"`
+}
+
 // NewForecastResponseBody builds the HTTP response body from the result of the
 // "forecast" endpoint of the "front" service.
 func NewForecastResponseBody(res *front.Forecast2) *ForecastResponseBody {
@@ -86,6 +147,44 @@ func NewForecastResponseBody(res *front.Forecast2) *ForecastResponseBody {
 	return body
 }
 
+// NewTestAllResponseBody builds the HTTP response body from the result of the
+// "test_all" endpoint of the "front" service.
+func NewTestAllResponseBody(res *front.TestResults) *TestAllResponseBody {
+	body := &TestAllResponseBody{
+		Duration:  res.Duration,
+		PassCount: res.PassCount,
+		FailCount: res.FailCount,
+	}
+	if res.Collections != nil {
+		body.Collections = make([]*TestCollectionResponseBody, len(res.Collections))
+		for i, val := range res.Collections {
+			body.Collections[i] = marshalFrontTestCollectionToTestCollectionResponseBody(val)
+		}
+	} else {
+		body.Collections = []*TestCollectionResponseBody{}
+	}
+	return body
+}
+
+// NewTestSmokeResponseBody builds the HTTP response body from the result of
+// the "test_smoke" endpoint of the "front" service.
+func NewTestSmokeResponseBody(res *front.TestResults) *TestSmokeResponseBody {
+	body := &TestSmokeResponseBody{
+		Duration:  res.Duration,
+		PassCount: res.PassCount,
+		FailCount: res.FailCount,
+	}
+	if res.Collections != nil {
+		body.Collections = make([]*TestCollectionResponseBody, len(res.Collections))
+		for i, val := range res.Collections {
+			body.Collections[i] = marshalFrontTestCollectionToTestCollectionResponseBody(val)
+		}
+	} else {
+		body.Collections = []*TestCollectionResponseBody{}
+	}
+	return body
+}
+
 // NewForecastNotUsaResponseBody builds the HTTP response body from the result
 // of the "forecast" endpoint of the "front" service.
 func NewForecastNotUsaResponseBody(res *goa.ServiceError) *ForecastNotUsaResponseBody {
@@ -98,4 +197,23 @@ func NewForecastNotUsaResponseBody(res *goa.ServiceError) *ForecastNotUsaRespons
 		Fault:     res.Fault,
 	}
 	return body
+}
+
+// NewTestAllPayload builds a front service test_all endpoint payload.
+func NewTestAllPayload(body *TestAllRequestBody) *front.TestAllPayload {
+	v := &front.TestAllPayload{}
+	if body.Include != nil {
+		v.Include = make([]string, len(body.Include))
+		for i, val := range body.Include {
+			v.Include[i] = val
+		}
+	}
+	if body.Exclude != nil {
+		v.Exclude = make([]string, len(body.Exclude))
+		for i, val := range body.Exclude {
+			v.Exclude[i] = val
+		}
+	}
+
+	return v
 }

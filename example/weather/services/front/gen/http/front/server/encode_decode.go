@@ -11,6 +11,7 @@ package server
 import (
 	"context"
 	"errors"
+	"io"
 	"net/http"
 
 	front "goa.design/clue/example/weather/services/front/gen/front"
@@ -80,6 +81,51 @@ func EncodeForecastError(encoder func(context.Context, http.ResponseWriter) goah
 	}
 }
 
+// EncodeTestAllResponse returns an encoder for responses returned by the front
+// test_all endpoint.
+func EncodeTestAllResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		res, _ := v.(*front.TestResults)
+		enc := encoder(ctx, w)
+		body := NewTestAllResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
+	}
+}
+
+// DecodeTestAllRequest returns a decoder for requests sent to the front
+// test_all endpoint.
+func DecodeTestAllRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body TestAllRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		payload := NewTestAllPayload(&body)
+
+		return payload, nil
+	}
+}
+
+// EncodeTestSmokeResponse returns an encoder for responses returned by the
+// front test_smoke endpoint.
+func EncodeTestSmokeResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		res, _ := v.(*front.TestResults)
+		enc := encoder(ctx, w)
+		body := NewTestSmokeResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
+	}
+}
+
 // marshalFrontLocationToLocationResponseBody builds a value of type
 // *LocationResponseBody from a value of type *front.Location.
 func marshalFrontLocationToLocationResponseBody(v *front.Location) *LocationResponseBody {
@@ -103,6 +149,41 @@ func marshalFrontPeriodToPeriodResponseBody(v *front.Period) *PeriodResponseBody
 		Temperature:     v.Temperature,
 		TemperatureUnit: v.TemperatureUnit,
 		Summary:         v.Summary,
+	}
+
+	return res
+}
+
+// marshalFrontTestCollectionToTestCollectionResponseBody builds a value of
+// type *TestCollectionResponseBody from a value of type *front.TestCollection.
+func marshalFrontTestCollectionToTestCollectionResponseBody(v *front.TestCollection) *TestCollectionResponseBody {
+	res := &TestCollectionResponseBody{
+		Name:      v.Name,
+		Duration:  v.Duration,
+		PassCount: v.PassCount,
+		FailCount: v.FailCount,
+	}
+	if v.Results != nil {
+		res.Results = make([]*TestResultResponseBody, len(v.Results))
+		for i, val := range v.Results {
+			res.Results[i] = marshalFrontTestResultToTestResultResponseBody(val)
+		}
+	}
+
+	return res
+}
+
+// marshalFrontTestResultToTestResultResponseBody builds a value of type
+// *TestResultResponseBody from a value of type *front.TestResult.
+func marshalFrontTestResultToTestResultResponseBody(v *front.TestResult) *TestResultResponseBody {
+	if v == nil {
+		return nil
+	}
+	res := &TestResultResponseBody{
+		Name:     v.Name,
+		Passed:   v.Passed,
+		Error:    v.Error,
+		Duration: v.Duration,
 	}
 
 	return res

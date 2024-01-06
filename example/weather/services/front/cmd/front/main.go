@@ -26,6 +26,7 @@ import (
 	"goa.design/clue/example/weather/services/front"
 	"goa.design/clue/example/weather/services/front/clients/forecaster"
 	"goa.design/clue/example/weather/services/front/clients/locator"
+	"goa.design/clue/example/weather/services/front/clients/tester"
 	genfront "goa.design/clue/example/weather/services/front/gen/front"
 	genhttp "goa.design/clue/example/weather/services/front/gen/http/front/server"
 )
@@ -40,6 +41,7 @@ func main() {
 		locatorHealthAddr    = flag.String("locator-health-addr", ":8083", "Locator service health-check address")
 		coladdr              = flag.String("otel-addr", ":4317", "OpenTelemtry collector listen address")
 		debugf               = flag.Bool("debug", false, "Enable debug logs")
+		testerAddr           = flag.String("tester-addr", ":8090", "Tester service address")
 	)
 	flag.Parse()
 
@@ -106,9 +108,18 @@ func main() {
 		log.Fatalf(ctx, err, "failed to connect to forecast")
 	}
 	fc := forecaster.New(fcc)
+	tcc, err := grpc.DialContext(ctx, *testerAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(log.UnaryClientInterceptor()),
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
+	if err != nil {
+		log.Errorf(ctx, err, "failed to connect to tester")
+		os.Exit(1)
+	}
+	tc := tester.New(tcc)
 
 	// 4. Create service & endpoints
-	svc := front.New(fc, lc)
+	svc := front.New(fc, lc, tc)
 	endpoints := genfront.NewEndpoints(svc)
 	endpoints.Use(debug.LogPayloads())
 	endpoints.Use(log.Endpoint)
@@ -128,6 +139,8 @@ func main() {
 	httpServer := &http.Server{Addr: *httpListenAddr, Handler: handler}
 
 	// 6. Mount health check & metrics on separate HTTP server (different listen port)
+	// No testerHealthAddr pinger because we don't want the whole system to die just because
+	// tester isn't healthy for some reason
 	check := health.Handler(health.NewChecker(
 		health.NewPinger("locator", *locatorHealthAddr),
 		health.NewPinger("forecaster", *forecasterHealthAddr)))

@@ -23,7 +23,7 @@ import (
 //
 //	command (subcommand1|subcommand2|...)
 func UsageCommands() string {
-	return `front forecast
+	return `front (forecast|test-all|test-smoke)
 `
 }
 
@@ -47,9 +47,16 @@ func ParseEndpoint(
 
 		frontForecastFlags = flag.NewFlagSet("forecast", flag.ExitOnError)
 		frontForecastPFlag = frontForecastFlags.String("p", "REQUIRED", "string is the payload type of the front service forecast method.")
+
+		frontTestAllFlags    = flag.NewFlagSet("test-all", flag.ExitOnError)
+		frontTestAllBodyFlag = frontTestAllFlags.String("body", "REQUIRED", "")
+
+		frontTestSmokeFlags = flag.NewFlagSet("test-smoke", flag.ExitOnError)
 	)
 	frontFlags.Usage = frontUsage
 	frontForecastFlags.Usage = frontForecastUsage
+	frontTestAllFlags.Usage = frontTestAllUsage
+	frontTestSmokeFlags.Usage = frontTestSmokeUsage
 
 	if err := flag.CommandLine.Parse(os.Args[1:]); err != nil {
 		return nil, nil, err
@@ -88,6 +95,12 @@ func ParseEndpoint(
 			case "forecast":
 				epf = frontForecastFlags
 
+			case "test-all":
+				epf = frontTestAllFlags
+
+			case "test-smoke":
+				epf = frontTestSmokeFlags
+
 			}
 
 		}
@@ -116,6 +129,12 @@ func ParseEndpoint(
 			case "forecast":
 				endpoint = c.Forecast()
 				data = *frontForecastPFlag
+			case "test-all":
+				endpoint = c.TestAll()
+				data, err = frontc.BuildTestAllPayload(*frontTestAllBodyFlag)
+			case "test-smoke":
+				endpoint = c.TestSmoke()
+				data = nil
 			}
 		}
 	}
@@ -134,6 +153,8 @@ Usage:
 
 COMMAND:
     forecast: Retrieve weather forecast for given IP
+    test-all: Endpoint for running ALL API Integration Tests for the Weather System, allowing for filtering on included or excluded tests
+    test-smoke: Endpoint for running API Integration Tests' Smoke Tests ONLY for the Weather System
 
 Additional help:
     %[1]s front COMMAND --help
@@ -147,5 +168,35 @@ Retrieve weather forecast for given IP
 
 Example:
     %[1]s front forecast --p "225.242.127.107"
+`, os.Args[0])
+}
+
+func frontTestAllUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] front test-all -body JSON
+
+Endpoint for running ALL API Integration Tests for the Weather System, allowing for filtering on included or excluded tests
+    -body JSON: 
+
+Example:
+    %[1]s front test-all --body '{
+      "exclude": [
+         "Repudiandae enim molestiae.",
+         "Ut id iure."
+      ],
+      "include": [
+         "Dolor sunt maiores.",
+         "Asperiores omnis ducimus ad et mollitia."
+      ]
+   }'
+`, os.Args[0])
+}
+
+func frontTestSmokeUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] front test-smoke
+
+Endpoint for running API Integration Tests' Smoke Tests ONLY for the Weather System
+
+Example:
+    %[1]s front test-smoke
 `, os.Args[0])
 }

@@ -16,19 +16,25 @@ import (
 
 // Endpoints wraps the "front" service endpoints.
 type Endpoints struct {
-	Forecast goa.Endpoint
+	Forecast  goa.Endpoint
+	TestAll   goa.Endpoint
+	TestSmoke goa.Endpoint
 }
 
 // NewEndpoints wraps the methods of the "front" service with endpoints.
 func NewEndpoints(s Service) *Endpoints {
 	return &Endpoints{
-		Forecast: NewForecastEndpoint(s),
+		Forecast:  NewForecastEndpoint(s),
+		TestAll:   NewTestAllEndpoint(s),
+		TestSmoke: NewTestSmokeEndpoint(s),
 	}
 }
 
 // Use applies the given middleware to all the "front" service endpoints.
 func (e *Endpoints) Use(m func(goa.Endpoint) goa.Endpoint) {
 	e.Forecast = m(e.Forecast)
+	e.TestAll = m(e.TestAll)
+	e.TestSmoke = m(e.TestSmoke)
 }
 
 // NewForecastEndpoint returns an endpoint function that calls the method
@@ -37,5 +43,22 @@ func NewForecastEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(string)
 		return s.Forecast(ctx, p)
+	}
+}
+
+// NewTestAllEndpoint returns an endpoint function that calls the method
+// "test_all" of service "front".
+func NewTestAllEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*TestAllPayload)
+		return s.TestAll(ctx, p)
+	}
+}
+
+// NewTestSmokeEndpoint returns an endpoint function that calls the method
+// "test_smoke" of service "front".
+func NewTestSmokeEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		return s.TestSmoke(ctx)
 	}
 }

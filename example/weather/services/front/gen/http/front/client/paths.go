@@ -16,3 +16,13 @@ import (
 func ForecastFrontPath(ip string) string {
 	return fmt.Sprintf("/forecast/%v", ip)
 }
+
+// TestAllFrontPath returns the URL path to the front service test_all HTTP endpoint.
+func TestAllFrontPath() string {
+	return "/tester/all"
+}
+
+// TestSmokeFrontPath returns the URL path to the front service test_smoke HTTP endpoint.
+func TestSmokeFrontPath() string {
+	return "/tester/smoke"
+}

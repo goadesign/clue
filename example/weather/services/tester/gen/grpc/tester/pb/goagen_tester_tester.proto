@@ -1,0 +1,110 @@
+// Code generated with goa v3.14.2, DO NOT EDIT.
+//
+// tester protocol buffer definition
+//
+// Command:
+// $ goa gen goa.design/clue/example/weather/services/tester/design -o
+// services/tester
+
+syntax = "proto3";
+
+package weather_tester;
+
+option go_package = "/weather_testerpb";
+
+// The Weather System Tester Service is used to manage the integration testing
+// of the weater system
+service Tester {
+	// Runs all tests in the iam system
+	rpc TestAll (TestAllRequest) returns (TestAllResponse);
+	// Runs smoke tests in the iam system
+	rpc TestSmoke (TestSmokeRequest) returns (TestSmokeResponse);
+	// Runs tests for the forecaster service
+	rpc TestForecaster (TestForecasterRequest) returns (TestForecasterResponse);
+	// Runs tests for the locator service
+	rpc TestLocator (TestLocatorRequest) returns (TestLocatorResponse);
+}
+
+message TestAllRequest {
+	// Tests to run
+	repeated string include = 1;
+	// Tests to exclude
+	repeated string exclude = 2;
+}
+
+message TestAllResponse {
+	// Test collections
+	repeated TestCollection collections = 1;
+	// Duration of the tests in ms
+	sint64 duration = 2;
+	// Number of tests that passed
+	sint32 pass_count = 3;
+	// Number of tests that failed
+	sint32 fail_count = 4;
+}
+// Collection of test results for grouping by service
+message TestCollection {
+	// Name of the test collection
+	string name = 1;
+	// Test results
+	repeated TestResult results = 2;
+	// Duration of the tests in ms
+	sint64 duration = 3;
+	// Number of tests that passed
+	sint32 pass_count = 4;
+	// Number of tests that failed
+	sint32 fail_count = 5;
+}
+// Test result for a single test
+message TestResult {
+	// Name of the test
+	string name = 1;
+	// Status of the test
+	bool passed = 2;
+	// Error message if the test failed
+	optional string error = 3;
+	// Duration of the test in ms
+	sint64 duration = 4;
+}
+
+message TestSmokeRequest {
+}
+
+message TestSmokeResponse {
+	// Test collections
+	repeated TestCollection collections = 1;
+	// Duration of the tests in ms
+	sint64 duration = 2;
+	// Number of tests that passed
+	sint32 pass_count = 3;
+	// Number of tests that failed
+	sint32 fail_count = 4;
+}
+
+message TestForecasterRequest {
+}
+
+message TestForecasterResponse {
+	// Test collections
+	repeated TestCollection collections = 1;
+	// Duration of the tests in ms
+	sint64 duration = 2;
+	// Number of tests that passed
+	sint32 pass_count = 3;
+	// Number of tests that failed
+	sint32 fail_count = 4;
+}
+
+message TestLocatorRequest {
+}
+
+message TestLocatorResponse {
+	// Test collections
+	repeated TestCollection collections = 1;
+	// Duration of the tests in ms
+	sint64 duration = 2;
+	// Number of tests that passed
+	sint32 pass_count = 3;
+	// Number of tests that failed
+	sint32 fail_count = 4;
+}
