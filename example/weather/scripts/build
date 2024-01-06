@@ -10,7 +10,7 @@ echo "Rebuilding services..."
 
 mkdir -p bin
 
-for svc in forecaster locator front; do
+for svc in forecaster locator front tester; do
   go build -o bin/${svc} -ldflags "-X goa.design/clue/health.Version=$GIT_COMMIT" goa.design/clue/example/weather/services/${svc}/cmd/${svc}
 done
 

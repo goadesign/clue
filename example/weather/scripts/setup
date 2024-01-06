@@ -9,9 +9,20 @@ source ./scripts/utils/common.sh
 
 proto_pkg="protobuf-compiler"
 
+# install protoc, update version as needed
+PROTO_VER=25.1
+
 if is_mac; then
+  PROTOC_ZIP=protoc-${PROTO_VER}-osx-universal_binary.zip
   proto_pkg="protobuf"
+else
+  PROTOC_ZIP=protoc-${PROTO_VER}-linux-x86_64.zip
 fi
+
+curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v${PROTO_VER}/${PROTOC_ZIP}
+sudo unzip -o $PROTOC_ZIP -d /usr/local bin/protoc
+sudo unzip -o $PROTOC_ZIP -d /usr/local 'include/*'
+rm -f $PROTOC_ZIP
 
 check_required_cmd "protoc" $proto_pkg
 

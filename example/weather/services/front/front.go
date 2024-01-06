@@ -6,6 +6,7 @@ import (
 
 	"goa.design/clue/example/weather/services/front/clients/forecaster"
 	"goa.design/clue/example/weather/services/front/clients/locator"
+	"goa.design/clue/example/weather/services/front/clients/tester"
 	genfront "goa.design/clue/example/weather/services/front/gen/front"
 )
 
@@ -14,12 +15,13 @@ type (
 	Service struct {
 		fc forecaster.Client
 		lc locator.Client
+		tc tester.Client
 	}
 )
 
 // New instantiates a new front service.
-func New(fc forecaster.Client, lc locator.Client) *Service {
-	return &Service{fc: fc, lc: lc}
+func New(fc forecaster.Client, lc locator.Client, tc tester.Client) *Service {
+	return &Service{fc: fc, lc: lc, tc: tc}
 }
 
 // Forecast returns the forecast for the location at the given IP.
@@ -47,4 +49,14 @@ func (s *Service) Forecast(ctx context.Context, ip string) (*genfront.Forecast2,
 		ps[i] = &pval
 	}
 	return &genfront.Forecast2{Location: &loc, Periods: ps}, nil
+}
+
+// Runs ALL API Integration Tests from the Tester service, allowing for filtering on included or excluded tests
+func (s *Service) TestAll(ctx context.Context, payload *genfront.TestAllPayload) (*genfront.TestResults, error) {
+	return s.tc.TestAll(ctx, payload.Include, payload.Exclude)
+}
+
+// Runs API Integration Tests' Smoke Tests ONLY from the Tester service
+func (s *Service) TestSmoke(ctx context.Context) (*genfront.TestResults, error) {
+	return s.tc.TestSmoke(ctx)
 }
