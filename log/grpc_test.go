@@ -12,8 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"goa.design/clue/internal/testsvc"
-	grpcmiddleware "goa.design/goa/v3/grpc/middleware"
-	goamiddleware "goa.design/goa/v3/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,13 +22,13 @@ func TestUnaryServerInterceptor(t *testing.T) {
 	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
 	defer func() { timeNow = now }()
 
-	testRequestID := "test-request-id"
-	requestIDInterceptor := unaryStaticRequestIDInterceptor(testRequestID)
+	shortID = func() string { return "test-request-id" }
+	defer func() { shortID = randShortID }()
 
-	prefix := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"test-request-id","msg":"start","grpc.service":"test.Test","grpc.method":"GrpcMethod"}`
-	logged := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"test-request-id","key1":"value1","key2":"value2"}`
-	suffix := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"test-request-id","msg":"end","grpc.service":"test.Test","grpc.method":"GrpcMethod","grpc.code":"OK","grpc.time_ms":0}`
-	errors := `{"time":"2022-01-09T20:29:45Z","level":"error","request-id":"test-request-id","err":"rpc error: code = Unknown desc = test-error","grpc.service":"test.Test","grpc.method":"GrpcMethod","grpc.status":"test-error","grpc.code":"Unknown","grpc.time_ms":0}`
+	prefix := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","msg":"start","grpc.service":"test.Test","grpc.method":"GrpcMethod"}`
+	logged := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","key1":"value1","key2":"value2"}`
+	suffix := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","msg":"end","grpc.service":"test.Test","grpc.method":"GrpcMethod","grpc.code":"OK","grpc.time_ms":0}`
+	errors := `{"time":"2022-01-09T20:29:45Z","level":"error","request_id":"test-request-id","err":"rpc error: code = Unknown desc = test-error","grpc.service":"test.Test","grpc.method":"GrpcMethod","grpc.status":"test-error","grpc.code":"Unknown","grpc.time_ms":0}`
 
 	cases := []struct {
 		name        string
@@ -65,7 +63,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
 			logInterceptor := UnaryServerInterceptor(ctx, c.options...)
 			cli, stop := testsvc.SetupGRPC(t,
-				testsvc.WithServerOptions(grpc.ChainUnaryInterceptor(requestIDInterceptor, logInterceptor)),
+				testsvc.WithServerOptions(grpc.UnaryInterceptor(logInterceptor)),
 				testsvc.WithUnaryFunc(c.method))
 
 			_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{})
@@ -87,13 +85,13 @@ func TestStreamServerTrace(t *testing.T) {
 	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
 	defer func() { timeNow = now }()
 
-	testRequestID := "test-request-id"
-	requestIDInterceptor := streamStaticRequestIDInterceptor(testRequestID)
+	shortID = func() string { return "test-request-id" }
+	defer func() { shortID = randShortID }()
 
-	prefix := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"test-request-id","msg":"start","grpc.service":"test.Test","grpc.method":"GrpcStream"}`
-	logged := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"test-request-id","key1":"value1","key2":"value2"}`
-	suffix := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"test-request-id","msg":"end","grpc.service":"test.Test","grpc.method":"GrpcStream","grpc.code":"OK","grpc.time_ms":XXX}`
-	errors := `{"time":"2022-01-09T20:29:45Z","level":"error","request-id":"test-request-id","err":"rpc error: code = Unknown desc = test-error","grpc.service":"test.Test","grpc.method":"GrpcStream","grpc.status":"test-error","grpc.code":"Unknown","grpc.time_ms":XXX}`
+	prefix := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","msg":"start","grpc.service":"test.Test","grpc.method":"GrpcStream"}`
+	logged := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","key1":"value1","key2":"value2"}`
+	suffix := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","msg":"end","grpc.service":"test.Test","grpc.method":"GrpcStream","grpc.code":"OK","grpc.time_ms":XXX}`
+	errors := `{"time":"2022-01-09T20:29:45Z","level":"error","request_id":"test-request-id","err":"rpc error: code = Unknown desc = test-error","grpc.service":"test.Test","grpc.method":"GrpcStream","grpc.status":"test-error","grpc.code":"Unknown","grpc.time_ms":XXX}`
 
 	cases := []struct {
 		name        string
@@ -128,7 +126,7 @@ func TestStreamServerTrace(t *testing.T) {
 			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
 			logInterceptor := StreamServerInterceptor(ctx, c.options...)
 			cli, stop := testsvc.SetupGRPC(t,
-				testsvc.WithServerOptions(grpc.ChainStreamInterceptor(requestIDInterceptor, logInterceptor)),
+				testsvc.WithServerOptions(grpc.StreamInterceptor(logInterceptor)),
 				testsvc.WithStreamFunc(c.method))
 
 			stream, err := cli.GRPCStream(context.Background())
@@ -156,6 +154,7 @@ func TestUnaryClientInterceptor(t *testing.T) {
 	endLog := `time=2022-01-09T20:29:45Z level=info msg=end grpc.service=test.Test grpc.method=GrpcMethod grpc.code=OK grpc.time_ms=42`
 	errorLog := `time=2022-01-09T20:29:45Z level=error err="rpc error: code = Unknown desc = error" grpc.service=test.Test grpc.method=GrpcMethod grpc.status=error grpc.code=Unknown grpc.time_ms=42`
 	statusLog := `time=2022-01-09T20:29:45Z level=error err="rpc error: code = Unknown desc = error" grpc.service=test.Test grpc.method=GrpcMethod grpc.status=error grpc.code=Unknown grpc.time_ms=42`
+
 	cases := []struct {
 		name      string
 		noLog     bool
@@ -219,6 +218,7 @@ func TestUnaryClientInterceptor(t *testing.T) {
 func TestStreamClientInterceptor(t *testing.T) {
 	startLog := `time=2022-01-09T20:29:45Z level=info msg=start grpc.service=test.Test grpc.method=GrpcStream`
 	endLog := `time=2022-01-09T20:29:45Z level=info msg=end grpc.service=test.Test grpc.method=GrpcStream grpc.code=OK grpc.time_ms=42`
+
 	cases := []struct {
 		name     string
 		noLog    bool
@@ -259,8 +259,7 @@ func TestStreamClientInterceptor(t *testing.T) {
 
 func logUnaryMethod(ctx context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
 	Print(ctx, KV{"key1", "value1"}, KV{"key2", "value2"})
-	reqID := ctx.Value(goamiddleware.RequestIDKey).(string)
-	return &testsvc.Fields{S: &reqID}, nil
+	return &testsvc.Fields{}, nil
 }
 
 func errorMethod(ctx context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
@@ -273,8 +272,6 @@ func echoMethod(ctx context.Context, stream testsvc.Stream) (err error) {
 	if err != nil {
 		return err
 	}
-	reqID := ctx.Value(goamiddleware.RequestIDKey).(string)
-	f.S = &reqID
 	if err := stream.Send(f); err != nil {
 		return err
 	}
@@ -297,20 +294,5 @@ func dummyMethod(err error) func(context.Context, *testsvc.Fields) (*testsvc.Fie
 func dummyStreamMethod() func(context.Context, testsvc.Stream) error {
 	return func(ctx context.Context, stream testsvc.Stream) error {
 		return stream.Close()
-	}
-}
-
-func unaryStaticRequestIDInterceptor(id string) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		ctx = context.WithValue(ctx, goamiddleware.RequestIDKey, id) // nolint:staticcheck
-		return handler(ctx, req)
-	}
-}
-
-func streamStaticRequestIDInterceptor(id string) grpc.StreamServerInterceptor {
-	return func(srv interface{}, stream grpc.ServerStream, _ *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		ctx := context.WithValue(stream.Context(), goamiddleware.RequestIDKey, id) // nolint:staticcheck
-		wss := grpcmiddleware.NewWrappedServerStream(ctx, stream)
-		return handler(srv, wss)
 	}
 }

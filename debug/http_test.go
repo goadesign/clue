@@ -7,13 +7,17 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"goa.design/clue/log"
 )
 
 func TestHTTP(t *testing.T) {
 	// Create log context
 	var buf bytes.Buffer
-	ctx := log.Context(context.Background(), log.WithOutput(&buf), log.WithFormat(logKeyValsOnly))
+	ctx := log.Context(context.Background(),
+		log.WithOutput(&buf),
+		log.WithFormat(logKeyValsOnly))
 	log.FlushAndDisableBuffering(ctx)
 
 	// Create HTTP handler
@@ -32,7 +36,9 @@ func TestHTTP(t *testing.T) {
 	// Mount debug handler and log middleware
 	MountDebugLogEnabler(mux)
 	handler = HTTP()(handler)
-	handler = log.HTTP(ctx, log.WithDisableRequestLogging())(handler)
+	handler = log.HTTP(ctx,
+		log.WithDisableRequestLogging(),
+		log.WithDisableRequestID())(handler)
 
 	// Start test server
 	mux.Handle("/", handler)
@@ -40,17 +46,16 @@ func TestHTTP(t *testing.T) {
 	defer ts.Close()
 
 	steps := []struct {
-		name         string
-		on           bool
-		off          bool
-		expectedResp string
-		expectedLogs string
+		name    string
+		on      bool
+		off     bool
+		wantLog string
 	}{
-		{"start", false, false, "", "test=info "},
-		{"turn debug logs on", true, false, `{"debug-logs":true}`, "test=info test=debug "},
-		{"with debug logs on", false, false, `{"debug-logs":true}`, "test=info test=debug "},
-		{"turn debug logs off", false, true, `{"debug-logs":false}`, "test=info "},
-		{"with debug logs off", false, false, `{"debug-logs":false}`, "test=info "},
+		{"start", false, false, "test=info "},
+		{"turn debug logs on", true, false, "test=info test=debug "},
+		{"with debug logs on", false, false, "test=info test=debug "},
+		{"turn debug logs off", false, true, "test=info "},
+		{"with debug logs off", false, false, "test=info "},
 	}
 	for _, step := range steps {
 		if step.on {
@@ -62,15 +67,9 @@ func TestHTTP(t *testing.T) {
 
 		status, resp := makeRequest(t, ts.URL)
 
-		if status != http.StatusOK {
-			t.Errorf("%s: got status %d, expected %d", step.name, status, http.StatusOK)
-		}
-		if resp != "OK" {
-			t.Errorf("%s: got body %q, expected %q", step.name, resp, "OK")
-		}
-		if buf.String() != step.expectedLogs {
-			t.Errorf("%s: got logs %q, expected %q", step.name, buf.String(), step.expectedLogs)
-		}
+		assert.Equal(t, http.StatusOK, status)
+		assert.Equal(t, "OK", resp)
+		assert.Equal(t, step.wantLog, buf.String())
 		buf.Reset()
 	}
 }

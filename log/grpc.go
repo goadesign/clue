@@ -2,6 +2,9 @@ package log
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
+	"io"
 	"path"
 	"time"
 
@@ -23,8 +26,12 @@ type (
 	grpcOptions struct {
 		iserr              func(codes.Code) bool
 		disableCallLogging bool
+		disableCallID      bool
 	}
 )
+
+// Be nice to tests
+var shortID = randShortID
 
 // UnaryServerInterceptor returns a unary interceptor that performs two tasks:
 // 1. Enriches the request context with the logger specified in logCtx.
@@ -43,6 +50,9 @@ func UnaryServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc.
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 		ctx = WithContext(ctx, logCtx)
+		if !o.disableCallID {
+			ctx = With(ctx, KV{RequestIDKey, shortID()})
+		}
 		if o.disableCallLogging {
 			return handler(ctx, req)
 		}
@@ -84,6 +94,9 @@ func StreamServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc
 		handler grpc.StreamHandler,
 	) error {
 		ctx := WithContext(stream.Context(), logCtx)
+		if !o.disableCallID {
+			ctx = With(ctx, KV{RequestIDKey, shortID()})
+		}
 		stream = &streamWithContext{stream, ctx}
 		if o.disableCallLogging {
 			return handler(srv, stream)
@@ -197,6 +210,14 @@ func WithDisableCallLogging() GRPCLogOption {
 	}
 }
 
+// WithDisableCallID returns a GRPC logger option that disables the
+// generation of request IDs.
+func WithDisableCallID() GRPCLogOption {
+	return func(o *grpcOptions) {
+		o.disableCallID = true
+	}
+}
+
 func defaultGRPCOptions() *grpcOptions {
 	return &grpcOptions{
 		iserr: func(c codes.Code) bool {
@@ -212,4 +233,12 @@ type streamWithContext struct {
 
 func (s *streamWithContext) Context() context.Context {
 	return s.ctx
+}
+
+// randShortID produces a "unique" 6 bytes long string.
+// This algorithm favors simplicity and efficiency over true uniqueness.
+func randShortID() string {
+	b := make([]byte, 6)
+	io.ReadFull(rand.Reader, b) // nolint: errcheck
+	return base64.RawURLEncoding.EncodeToString(b)
 }

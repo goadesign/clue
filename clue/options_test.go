@@ -5,73 +5,61 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel/propagation"
 	"goa.design/clue/log"
 )
 
 func TestOptions(t *testing.T) {
 	ctx := log.Context(context.Background())
 	cases := []struct {
-		name    string
-		options []Option
-		want    *options
+		name   string
+		option Option
+		want   func(*options) // mutate default options
 	}{
 		{
 			name: "default",
-			want: defaultOptions(ctx),
 		},
 		{
-			name:    "with reader interval",
-			options: []Option{WithReaderInterval(10)},
-			want: func() *options {
-				o := defaultOptions(ctx)
-				o.readerInterval = 10
-				return o
-			}(),
+			name:   "with reader interval",
+			option: WithReaderInterval(1000),
+			want:   func(o *options) { o.readerInterval = 1000 },
 		},
 		{
-			name:    "with max sampling rate",
-			options: []Option{WithMaxSamplingRate(10)},
-			want: func() *options {
-				o := defaultOptions(ctx)
-				o.maxSamplingRate = 10
-				return o
-			}(),
+			name:   "with max sampling rate",
+			option: WithMaxSamplingRate(1000),
+			want:   func(o *options) { o.maxSamplingRate = 1000 },
 		},
 		{
-			name:    "with sample size",
-			options: []Option{WithSampleSize(10)},
-			want: func() *options {
-				o := defaultOptions(ctx)
-				o.sampleSize = 10
-				return o
-			}(),
+			name:   "with sample size",
+			option: WithSampleSize(1000),
+			want:   func(o *options) { o.sampleSize = 1000 },
 		},
 		{
-			name:    "with propagator",
-			options: []Option{WithPropagators(nil)},
-			want: func() *options {
-				o := defaultOptions(ctx)
-				o.propagators = nil
-				return o
-			}(),
+			name:   "with propagator",
+			option: WithPropagators(propagation.TraceContext{}),
+			want:   func(o *options) { o.propagators = propagation.TraceContext{} },
 		},
 		{
-			name:    "with error handler",
-			options: []Option{WithErrorHandler(dummyErrorHandler{})},
-			want: func() *options {
-				o := defaultOptions(ctx)
-				o.errorHandler = dummyErrorHandler{}
-				return o
-			}(),
+			name:   "with error handler",
+			option: WithErrorHandler(dummyErrorHandler{}),
+			want:   func(o *options) { o.errorHandler = dummyErrorHandler{} },
 		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			got := defaultOptions(ctx)
-			for _, o := range c.options {
-				o(got)
+			if c.option != nil {
+				c.option(got)
 			}
-			assert.Equal(t, c.want, got)
+			want := defaultOptions(ctx)
+			if c.want != nil {
+				c.want(want)
+			}
+			assert.Equal(t, want.maxSamplingRate, got.maxSamplingRate)
+			assert.Equal(t, want.sampleSize, got.sampleSize)
+			assert.Equal(t, want.readerInterval, got.readerInterval)
+			assert.Equal(t, want.propagators, got.propagators)
+			assert.IsType(t, want.errorHandler, got.errorHandler)
 		})
 	}
 }

@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"goa.design/goa/v3/middleware"
 	goa "goa.design/goa/v3/pkg"
 )
 
@@ -22,10 +21,12 @@ func TestHTTP(t *testing.T) {
 	defer func() { timeNow = now }()
 	timeSince = func(_ time.Time) time.Duration { return 42 * time.Millisecond }
 	defer func() { timeSince = time.Since }()
+	shortID = func() string { return "test-request-id" }
+	defer func() { shortID = randShortID }()
 
-	prefix := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"request-id","msg":"start","http.method":"GET","http.url":"http://example.com","http.remote_addr":""}`
-	entry := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"request-id","key1":"value1","key2":"value2"}`
-	suffix := `{"time":"2022-01-09T20:29:45Z","level":"info","request-id":"request-id","msg":"end","http.method":"GET","http.url":"http://example.com","http.status":0,"http.time_ms":42,"http.bytes":0}`
+	prefix := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","msg":"start","http.method":"GET","http.url":"http://example.com","http.remote_addr":""}`
+	entry := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","key1":"value1","key2":"value2"}`
+	suffix := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","msg":"end","http.method":"GET","http.url":"http://example.com","http.status":0,"http.time_ms":42,"http.bytes":0}`
 
 	cases := []struct {
 		name     string
@@ -56,9 +57,7 @@ func TestHTTP(t *testing.T) {
 
 			handler = HTTP(ctx, c.opt)(handler)
 
-			requestIDCtx := context.WithValue(context.Background(), middleware.RequestIDKey, "request-id") //nolint:staticcheck
 			req, _ := http.NewRequest("GET", "http://example.com", nil)
-			req = req.WithContext(requestIDCtx)
 
 			handler.ServeHTTP(nil, req)
 
