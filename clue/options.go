@@ -1,6 +1,7 @@
 package clue
 
 import (
+	"context"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -29,11 +30,13 @@ type (
 )
 
 // defaultOptions returns a new options struct with default values.
-func defaultOptions() *options {
+// The logger in ctx is used to log errors.
+func defaultOptions(ctx context.Context) *options {
 	return &options{
 		maxSamplingRate: 2,
 		sampleSize:      10,
 		propagators:     propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}),
+		errorHandler:    NewErrorHandler(ctx),
 	}
 }
 

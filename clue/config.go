@@ -43,9 +43,7 @@ func ConfigureOpenTelemetry(ctx context.Context, cfg *Config) {
 	otel.SetTracerProvider(cfg.TracerProvider)
 	otel.SetTextMapPropagator(cfg.Propagators)
 	otel.SetLogger(logr.New(log.ToLogrSink(ctx)))
-	if cfg.ErrorHandler != nil {
-		otel.SetErrorHandler(cfg.ErrorHandler)
-	}
+	otel.SetErrorHandler(cfg.ErrorHandler)
 }
 
 // NewConfig creates a new Config object adequate for use by
@@ -70,13 +68,14 @@ func ConfigureOpenTelemetry(ctx context.Context, cfg *Config) {
 //	}
 //	cfg := clue.NewConfig("mysvc", "1.0.0", metricsExporter, spanExporter)
 func NewConfig(
+	ctx context.Context,
 	svcName string,
 	svcVersion string,
 	metricsExporter sdkmetric.Exporter,
 	spanExporter sdktrace.SpanExporter,
 	opts ...Option,
 ) (*Config, error) {
-	options := defaultOptions()
+	options := defaultOptions(ctx)
 	for _, o := range opts {
 		o(options)
 	}
@@ -127,4 +126,12 @@ func NewConfig(
 		Propagators:    options.propagators,
 		ErrorHandler:   options.errorHandler,
 	}, nil
+}
+
+// NewErrorHandler returns an error handler that logs errors using the clue
+// logger configured in ctx.
+func NewErrorHandler(ctx context.Context) otel.ErrorHandler {
+	return otel.ErrorHandlerFunc(func(err error) {
+		log.Error(ctx, err)
+	})
 }

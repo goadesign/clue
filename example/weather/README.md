@@ -31,7 +31,7 @@ scripts/server
 ### Making a Request
 
 Assuming you have a running weather system, you can make a request to the front
-service using the `curl` command:
+service using the `curl` command as follows:
 
 ```bash
 curl http://localhost:8084/forecast/8.8.8.8
@@ -89,9 +89,11 @@ grpcsvr := grpc.NewServer(
     grpc.StatsHandler(otelgrpc.NewServerHandler())) 
 ```
 
-### Instrumentation
+### Metrics and Tracing
 
 The example runs a self-hosted deployment of [SigNoz](https://signoz.io/) as backend for instrumentation. Each service sends telemetry data to the OpenTelemetry collector running in the `docker-compose` configuration. The collector then forwards the data to the SigNoz backend.
+
+The collector is configured in the `main` function of each service:
 
 ```go
 spanExporter, err := otlptracegrpc.New(ctx,
@@ -116,7 +118,7 @@ defer func() {
         log.Errorf(ctx, err, "failed to shutdown metrics")
     }
 }()
-cfg, err := clue.NewConfig(
+cfg, err := clue.NewConfig(ctx,
     genforecaster.ServiceName,
     genforecaster.APIVersion,
     metricExporter,
@@ -128,20 +130,36 @@ if err != nil {
 clue.ConfigureOpenTelemetry(ctx, cfg)
 ```
 
-HTTP dependency clients use the `trace.Client` middleware to create spans for
-each outgoing request:
+Clients of downstream services are also instrumented using OpenTelemetry. For
+example the following code creates an instrumented gRPC connection and uses it
+to create a client to the `Locator` service:
 
 ```go
-c := &http.Client{Transport: trace.Client(ctx, http.DefaultTransport)}
+lcc, err := grpc.DialContext(ctx,
+    *locatorAddr,
+    grpc.WithTransportCredentials(insecure.NewCredentials()),
+    grpc.WithUnaryInterceptor(log.UnaryClientInterceptor()), // Log requests
+    grpc.WithStatsHandler(otelgrpc.NewClientHandler()))      // Collect metrics and traces
+if err != nil {
+    log.Fatalf(ctx, err, "failed to connect to locator")
+}
+lc := locator.New(lcc) // Create client using instrumented connection
 ```
 
-gRPC dependency clients use the `trace.UnaryClientInterceptor` interceptor to
-create spans for each outgoing request:
+The example also showcases the instrumentation of clients to external services.
+For example, the `Locator` service demonstrates how the HTTP client used to
+create the IP Location service client is instrumented:
 
 ```go
-lcc, err := grpc.DialContext(ctx, *locatorAddr,
-        grpc.WithTransportCredentials(insecure.NewCredentials()),
-        grpc.WithUnaryInterceptor(trace.UnaryClientInterceptor(ctx)))
+httpc := &http.Client{
+    Transport: log.Client( // Log requests
+        otelhttp.NewTransport(
+            http.DefaultTransport,
+            otelhttp.WithClientTrace(func(ctx context.Context) *httptrace.ClientTrace {
+                return otelhttptrace.NewClientTrace(ctx)
+            }), // Propagate traces
+        ))}
+ipc := ipapi.New(httpc)
 ```
 
 ### Health Checks

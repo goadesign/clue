@@ -77,7 +77,7 @@ func main() {
 			log.Errorf(ctx, err, "failed to shutdown metrics")
 		}
 	}()
-	cfg, err := clue.NewConfig(
+	cfg, err := clue.NewConfig(ctx,
 		genfront.ServiceName,
 		genfront.APIVersion,
 		metricExporter,

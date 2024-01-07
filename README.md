@@ -93,7 +93,7 @@ ctx := log.Context(context.Background(),    // Create a clue logger context.
 
 metricExporter := stdoutmetric.New()        // Create metric and span exporters.
 spanExporter := stdouttrace.New()
-cfg := clue.NewConfig("service", "1.0.0", metricExporter, spanExporter)
+cfg := clue.NewConfig(ctx, "service", "1.0.0", metricExporter, spanExporter)
 clue.ConfigureOpenTelemetry(ctx, cfg)       // Configure OpenTelemetry.
 
 handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -121,7 +121,7 @@ ctx := log.Context(context.Background(),    // Create a clue logger context.
 
 metricExporter := stdoutmetric.New()
 spanExporter := stdouttrace.New()
-cfg := clue.NewConfig("service", "1.0.0", metricExporter, spanExporter)
+cfg := clue.NewConfig(ctx, "service", "1.0.0", metricExporter, spanExporter)
 clue.ConfigureOpenTelemetry(ctx, cfg)       // Configure OpenTelemetry.
 
 svr := grpc.NewServer(
@@ -178,7 +178,7 @@ These exporters can then be used to configure Clue:
         
 ```go
 // Configure OpenTelemetry.
-cfg := clue.NewConfig("service", "1.0.0", metricExporter, spanExporter)
+cfg := clue.NewConfig(ctx, "service", "1.0.0", metricExporter, spanExporter)
 clue.ConfigureOpenTelemetry(ctx, cfg)
 ```
 
@@ -287,10 +287,10 @@ endpoints.Use(log.Endpoint)
 
 ## Example
 
-The [weather](example/weather) example illustrates how to use `clue` to
-instrument a system of Goa microservices. The example comes with a set of
-scripts that can be used to compile and start the system as well as a complete
-Grafana stack to query metrics and traces. See the
+The [weather](example/weather) example illustrates how to use Clue to instrument
+a system of Goa microservices. The example comes with a set of scripts that can
+be used to install all necessary dependencies including the
+[SigNoz](https://signoz.io/) instrumentation backend.  See the
 [README](example/weather/README.md) for more information.
 
 ## Migrating from v0.x to v1.x
@@ -324,7 +324,7 @@ v1.x:
 ctx := log.Context(context.Background())
 traceExporter := tracestdout.New()
 metricsExporter := metricstdout.New()
-cfg := clue.NewConfig("service", "1.0.0", metricsExporter, traceExporter)
+cfg := clue.NewConfig(ctx, "service", "1.0.0", metricsExporter, traceExporter)
 clue.ConfigureOpenTelemetry(ctx, cfg)
 ```
 
