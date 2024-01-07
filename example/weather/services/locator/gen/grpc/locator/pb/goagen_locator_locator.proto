@@ -1,0 +1,36 @@
+// Code generated with goa v3.14.2, DO NOT EDIT.
+//
+// locator protocol buffer definition
+//
+// Command:
+// $ goa gen goa.design/clue/example/weather/services/locator/design -o
+// services/locator
+
+syntax = "proto3";
+
+package locator;
+
+option go_package = "/locatorpb";
+
+// Public HTTP frontend
+service Locator {
+	// Retrieve location information for a given IP address
+	rpc GetLocation (GetLocationRequest) returns (GetLocationResponse);
+}
+
+message GetLocationRequest {
+	string field = 1;
+}
+
+message GetLocationResponse {
+	// Latitude
+	double lat = 1;
+	// Longitude
+	double long = 2;
+	// City
+	string city = 3;
+	// State, region etc.
+	string region = 4;
+	// Country
+	string country = 5;
+}

@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
     title: Weather Forecast Service API
     description: The weather forecast service API produces weather forecasts from US-based IPs. It uses IP location to find the appropriate weather station.
-    version: "1.0"
+    version: 1.0.0
 servers:
     - url: http://localhost:80
       description: Default server for Weather
@@ -20,9 +20,9 @@ paths:
                   required: true
                   schema:
                     type: string
-                    example: 26.102.183.14
+                    example: 50.85.214.174
                     format: ip
-                  example: 169.98.225.210
+                  example: 46.147.119.12
             responses:
                 "200":
                     description: OK response.
@@ -69,7 +69,7 @@ components:
                 fault:
                     type: boolean
                     description: Is the error a server-side fault?
-                    example: false
+                    example: true
                 id:
                     type: string
                     description: ID is a unique identifier for this particular occurrence of the problem.
@@ -92,9 +92,12 @@ components:
                     example: false
             description: IP address is not in the US
             example:
-                id: 3F1FKVRR
-                message: Value of ID must be an integer
+                fault: true
+                id: 123abc
+                message: parameter 'p' must be an integer
                 name: bad_request
+                temporary: true
+                timeout: false
             required:
                 - name
                 - id
@@ -131,6 +134,12 @@ components:
                           summary: Clear
                           temperature: 70
                           temperatureUnit: F
+                        - endTime: "2020-01-01T00:00:00Z"
+                          name: Morning
+                          startTime: "2020-01-01T00:00:00Z"
+                          summary: Clear
+                          temperature: 70
+                          temperatureUnit: F
             example:
                 location:
                     city: San Francisco
@@ -138,6 +147,12 @@ components:
                     long: -122.4233
                     state: CA
                 periods:
+                    - endTime: "2020-01-01T00:00:00Z"
+                      name: Morning
+                      startTime: "2020-01-01T00:00:00Z"
+                      summary: Clear
+                      temperature: 70
+                      temperatureUnit: F
                     - endTime: "2020-01-01T00:00:00Z"
                       name: Morning
                       startTime: "2020-01-01T00:00:00Z"

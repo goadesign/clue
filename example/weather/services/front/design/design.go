@@ -9,6 +9,7 @@ import (
 var _ = API("Weather", func() {
 	Title("Weather Forecast Service API")
 	Description("The weather forecast service API produces weather forecasts from US-based IPs. It uses IP location to find the appropriate weather station.")
+	Version("1.0.0")
 })
 
 var _ = Service("front", func() {

@@ -5,7 +5,6 @@ import (
 	"path"
 	"time"
 
-	goamiddleware "goa.design/goa/v3/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -44,9 +43,6 @@ func UnaryServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc.
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 		ctx = WithContext(ctx, logCtx)
-		if reqID := ctx.Value(goamiddleware.RequestIDKey); reqID != nil {
-			ctx = With(ctx, KV{RequestIDKey, reqID})
-		}
 		if o.disableCallLogging {
 			return handler(ctx, req)
 		}
@@ -88,9 +84,6 @@ func StreamServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc
 		handler grpc.StreamHandler,
 	) error {
 		ctx := WithContext(stream.Context(), logCtx)
-		if reqID := ctx.Value(goamiddleware.RequestIDKey); reqID != nil {
-			ctx = With(ctx, KV{RequestIDKey, reqID})
-		}
 		stream = &streamWithContext{stream, ctx}
 		if o.disableCallLogging {
 			return handler(srv, stream)

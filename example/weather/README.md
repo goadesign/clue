@@ -22,11 +22,11 @@ scripts/setup
 scripts/server
 ```
 
-`scripts/setup` download build dependencies and compiles the services.
+`scripts/setup` configures all the required dependencies and compiles the services.
 `scripts/server` runs the services using
 [overmind](https://github.com/DarthSim/overmind). `scripts/server` also starts
-`docker-compose` with a configuration that runs the Grafana agent, cortex, tempo
-and dashboard locally.
+`docker-compose` with a configuration that runs a self-hosted deployment of
+[SigNoz](https://signoz.io/) as backend for instrumentation.
 
 ### Making a Request
 
@@ -37,33 +37,33 @@ service using the `curl` command:
 curl http://localhost:8084/forecast/8.8.8.8
 ```
 
-### Looking at Traces
+If this returns successfully start the script that generates load:
 
-To analyze traces:
-
-* Retrieve the front service trace ID from its logs, for example:
-
-```text
-front      | DEBG[0003] svc=front request-id=aZtVOM7L trace-id=fcb9bb474db0b095923b110b7c1cdcab
+```bash
+scripts/load
 ```
 
-* Open the Grafana dashboard running on
-  [http://localhost:3000](http://localhost:3000), click on `Explore` in the left
-  pane and select `Tempo` in the top dropdown. Enter the trace ID and voila:
+### Looking at Telemetry Data
 
-![Tempo Screenshot](./images/tempo.png)
+To analyze traces open the SigNoz dashboard running on
+[http://localhost:3301](http://localhost:3301).
+
+![SigNoz Screenshot](./images/signoz.png)
 
 ## Instrumentation
 
 ### Logging
 
 The three services make use of the
-[log](https://github.com/goadesign/clue/tree/main/log) package. The package
-is initialized with the key / value pair `svc`:`<name of service>`, for example:
+[log](https://github.com/goadesign/clue/tree/main/log) package initialized in
+`main`:
 
 ```go
-ctx := log.With(log.Context(context.Background()), "svc", genfront.ServiceName)
+ctx := log.Context(context.Background(), log.WithFormat(format), log.WithFunc(log.Span))
 ```
+
+The `log.WithFormat` option enables colors when logging to a terminal while the
+`log.Span` option adds the trace and span IDs to each log entry.
 
 The `front` service uses the HTTP middleware to initialize the log context for
 for every request:
@@ -83,51 +83,49 @@ The gRPC services (`locator` and `forecaster`) use the gRPC interceptor returned
 
 ```go
 grpcsvr := grpc.NewServer(
-        grpcmiddleware.WithUnaryServerChain(
-                goagrpcmiddleware.UnaryRequestID(),
-                log.UnaryServerInterceptor(ctx), // <--
-                goagrpcmiddleware.UnaryServerLogContext(log.AsGoaMiddlewareLogger),
-                metrics.UnaryServerInterceptor(ctx, genforecast.ServiceName),
-                trace.UnaryServerInterceptor(ctx),
-        ))
+    grpc.ChainUnaryInterceptor(
+        log.UnaryServerInterceptor(ctx), // <--
+        debug.UnaryServerInterceptor()), 
+    grpc.StatsHandler(otelgrpc.NewServerHandler())) 
 ```
 
-### Tracing
+### Instrumentation
 
-The example runs a [Grafana agent](https://grafana.com/docs/grafana-cloud/agent/)
-configured to listen to OLTP gRPC requests. The agent forwards the traces to
-the [Tempo](https://grafana.com/docs/tempo/latest/) service also running locally.
-
-Each service uses the
-[trace](https://github.com/goadesign/clue/tree/main/trace) package to ship
-traces to the agent:
+The example runs a self-hosted deployment of [SigNoz](https://signoz.io/) as backend for instrumentation. Each service sends telemetry data to the OpenTelemetry collector running in the `docker-compose` configuration. The collector then forwards the data to the SigNoz backend.
 
 ```go
-conn, err := grpc.DialContext(ctx, *collectorAddr,
-        grpc.WithTransportCredentials(insecure.NewCredentials()),
-        grpc.WithBlock())
-ctx, err = trace.Context(ctx, genfront.ServiceName, trace.WithGRPCExporter(conn))
-```
-
-gRPC services use the `trace.UnaryServerInterceptor` to create a span for each
-request:
-
-```go
-grpcsvr := grpc.NewServer(
-        grpcmiddleware.WithUnaryServerChain(
-                goagrpcmiddleware.UnaryRequestID(),
-                log.UnaryServerInterceptor(ctx),
-                goagrpcmiddleware.UnaryServerLogContext(log.AsGoaMiddlewareLogger),
-                metrics.UnaryServerInterceptor(ctx, genforecast.ServiceName),
-                trace.UnaryServerInterceptor(ctx), // <--
-        ))
-```
-
-The front service uses the `trace.HTTP` middleware to create a span for each
-request:
-
-```go
-handler = trace.HTTP(ctx)(handler)
+spanExporter, err := otlptracegrpc.New(ctx,
+    otlptracegrpc.WithEndpoint(*oteladdr),
+    otlptracegrpc.WithTLSCredentials(insecure.NewCredentials()))
+if err != nil {
+    log.Fatalf(ctx, err, "failed to initialize tracing")
+}
+defer func() {
+    if err := spanExporter.Shutdown(ctx); err != nil {
+        log.Errorf(ctx, err, "failed to shutdown tracing")
+    }
+}()
+metricExporter, err := otlpmetricgrpc.New(ctx,
+    otlpmetricgrpc.WithEndpoint(*oteladdr),
+    otlpmetricgrpc.WithTLSCredentials(insecure.NewCredentials()))
+if err != nil {
+    log.Fatalf(ctx, err, "failed to initialize metrics")
+}
+defer func() {
+    if err := metricExporter.Shutdown(ctx); err != nil {
+        log.Errorf(ctx, err, "failed to shutdown metrics")
+    }
+}()
+cfg, err := clue.NewConfig(
+    genforecaster.ServiceName,
+    genforecaster.APIVersion,
+    metricExporter,
+    spanExporter,
+)
+if err != nil {
+    log.Fatalf(ctx, err, "failed to initialize instrumentation")
+}
+clue.ConfigureOpenTelemetry(ctx, cfg)
 ```
 
 HTTP dependency clients use the `trace.Client` middleware to create spans for
@@ -144,46 +142,6 @@ create spans for each outgoing request:
 lcc, err := grpc.DialContext(ctx, *locatorAddr,
         grpc.WithTransportCredentials(insecure.NewCredentials()),
         grpc.WithUnaryInterceptor(trace.UnaryClientInterceptor(ctx)))
-```
-
-### Metrics
-
-The `metrics` package provides a set of instrumentation middleware that
-collects metrics from HTTP and gRPC servers and sends them to the
-[Tempo](https://grafana.com/docs/tempo/latest/) service.
-
-First the context is initialized with the service name and optional
-options:
-
-```go
-ctx = metrics.Context(ctx, genfront.ServiceName)
-```
-
-The gRPC services are instrumented with the `metrics.UnaryServerInterceptor`
-interceptor:
-
-```go
-grpcsvr := grpc.NewServer(
-        grpcmiddleware.WithUnaryServerChain(
-                goagrpcmiddleware.UnaryRequestID(),
-                log.UnaryServerInterceptor(ctx),
-                goagrpcmiddleware.UnaryServerLogContext(log.AsGoaMiddlewareLogger),
-                metrics.UnaryServerInterceptor(ctx), // <--
-                trace.UnaryServerInterceptor(ctx),
-        ))
-```
-
-The front service is instrumented with the `metrics.HTTP` middleware:
-
-```go
-handler = metrics.HTTP(ctx)(handler)
-```
-
-All the services run a HTTP server that exposes a Prometheus metrics endpoint at
-`/metrics`.
-
-```go
-http.Handle("/metrics", metrics.Handler(ctx))
 ```
 
 ### Health Checks

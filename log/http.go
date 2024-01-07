@@ -9,8 +9,7 @@ import (
 	"net/http"
 	"regexp"
 
-	goahttpmiddleware "goa.design/goa/v3/http/middleware"
-	"goa.design/goa/v3/middleware"
+	"goa.design/goa/v3/http/middleware"
 	goa "goa.design/goa/v3/pkg"
 )
 
@@ -63,9 +62,6 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 				}
 			}
 			ctx := WithContext(req.Context(), logCtx)
-			if requestID := req.Context().Value(middleware.RequestIDKey); requestID != nil {
-				ctx = With(ctx, KV{RequestIDKey, requestID})
-			}
 			if options.disableRequestLogging {
 				h.ServeHTTP(w, req.WithContext(ctx))
 				return
@@ -75,7 +71,7 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 			fromKV := KV{K: HTTPFromKey, V: from(req)}
 			Print(ctx, KV{K: MessageKey, V: "start"}, methKV, urlKV, fromKV)
 
-			rw := goahttpmiddleware.CaptureResponse(w)
+			rw := middleware.CaptureResponse(w)
 			started := timeNow()
 			h.ServeHTTP(rw, req.WithContext(ctx))
 

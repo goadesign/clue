@@ -3,10 +3,12 @@ package log
 import (
 	"bytes"
 	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/aws/smithy-go/logging"
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -130,4 +132,68 @@ func TestAsAWSLogger(t *testing.T) {
 	logger.Logf(logging.Classification("INFO"), "hello %v world", logger.(*AWSLogger).Context.Value(key))
 	want = "time=2022-01-09T20:29:45Z level=info msg=\"hello small world\"\n"
 	assert.Equal(t, buf.String(), want)
+}
+
+func TestToLogrSink(t *testing.T) {
+	restore := timeNow
+	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
+	defer func() { timeNow = restore }()
+	var buf bytes.Buffer
+	ctx := Context(context.Background(), WithOutput(&buf), WithDebug())
+	var sink logr.LogSink = ToLogrSink(ctx)
+
+	sink.Init(logr.RuntimeInfo{})
+	assert.True(t, sink.Enabled(0))
+	assert.True(t, sink.Enabled(1))
+	assert.True(t, sink.Enabled(2))
+	assert.True(t, sink.Enabled(3))
+
+	msg := "hello world"
+	expected := "time=2022-01-09T20:29:45Z level=info msg=\"hello world\"\n"
+	expecteddebug := "time=2022-01-09T20:29:45Z level=debug msg=\"hello world\"\n"
+	expectederr := "time=2022-01-09T20:29:45Z level=error err=error msg=\"hello world\"\n"
+	empty := ""
+
+	logger := logr.New(sink)
+	logger.Info(msg)
+	assert.Equal(t, expected, buf.String())
+
+	buf.Reset()
+	logger.V(1).Info(msg)
+	assert.Equal(t, expecteddebug, buf.String())
+
+	buf.Reset()
+	logger.Error(errors.New("error"), msg)
+	assert.Equal(t, expectederr, buf.String())
+
+	ctx = Context(context.Background(), WithOutput(&buf))
+	sink = ToLogrSink(ctx)
+	logger = logr.New(sink)
+
+	buf.Reset()
+	logger.Info(msg)
+	assert.Equal(t, empty, buf.String())
+
+	FlushAndDisableBuffering(ctx)
+	buf.Reset()
+	logger.Info(msg)
+	assert.Equal(t, expected, buf.String())
+
+	buf.Reset()
+	logger.V(1).Info(msg)
+	assert.Equal(t, empty, buf.String())
+
+	sink = sink.WithValues("key", "value")
+	expectedWithValues := "time=2022-01-09T20:29:45Z level=info key=value msg=\"hello world\"\n"
+	logger = logr.New(sink)
+	buf.Reset()
+	logger.Info(msg)
+	assert.Equal(t, expectedWithValues, buf.String())
+
+	sink = sink.WithName("name")
+	expectedWithName := "time=2022-01-09T20:29:45Z level=info key=value log=name msg=\"hello world\"\n"
+	logger = logr.New(sink)
+	buf.Reset()
+	logger.Info(msg)
+	assert.Equal(t, expectedWithName, buf.String())
 }
