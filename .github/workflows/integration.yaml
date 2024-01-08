@@ -45,10 +45,10 @@ jobs:
           echo "run setup script"
           ./scripts/setup
           echo "run server"
-          ./bin/forecaster -monitoring-enabled=false &
-          ./bin/locator -monitoring-enabled=false &
-          ./bin/tester -monitoring-enabled=false &
-          ./bin/front -monitoring-enabled=false &
+          ./bin/forecaster &
+          ./bin/locator &
+          ./bin/tester &
+          ./bin/front &
           check_service_health "http://localhost:8081/healthz" &
           check_service_health "http://localhost:8083/healthz" &
           check_service_health "http://localhost:8091/healthz" &
