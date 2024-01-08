@@ -1,16 +1,16 @@
 package log
 
 import (
+	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"regexp"
 
-	goahttpmiddleware "goa.design/goa/v3/http/middleware"
-	"goa.design/goa/v3/middleware"
 	goa "goa.design/goa/v3/pkg"
 )
 
@@ -26,6 +26,7 @@ type (
 	httpLogOptions struct {
 		pathFilters           []*regexp.Regexp
 		disableRequestLogging bool
+		disableRequestID      bool
 	}
 
 	httpClientOptions struct {
@@ -37,6 +38,14 @@ type (
 	client struct {
 		http.RoundTripper
 		options *httpClientOptions
+	}
+
+	// responseCapture is a http.ResponseWriter which captures the response status
+	// code and content length.
+	responseCapture struct {
+		http.ResponseWriter
+		StatusCode    int
+		ContentLength int
 	}
 )
 
@@ -63,8 +72,8 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 				}
 			}
 			ctx := WithContext(req.Context(), logCtx)
-			if requestID := req.Context().Value(middleware.RequestIDKey); requestID != nil {
-				ctx = With(ctx, KV{RequestIDKey, requestID})
+			if !options.disableRequestID {
+				ctx = With(ctx, KV{RequestIDKey, shortID()})
 			}
 			if options.disableRequestLogging {
 				h.ServeHTTP(w, req.WithContext(ctx))
@@ -75,7 +84,7 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 			fromKV := KV{K: HTTPFromKey, V: from(req)}
 			Print(ctx, KV{K: MessageKey, V: "start"}, methKV, urlKV, fromKV)
 
-			rw := goahttpmiddleware.CaptureResponse(w)
+			rw := &responseCapture{ResponseWriter: w}
 			started := timeNow()
 			h.ServeHTTP(rw, req.WithContext(ctx))
 
@@ -146,6 +155,14 @@ func WithDisableRequestLogging() HTTPLogOption {
 	}
 }
 
+// WithDisableRequestID returns a HTTP middleware option that disables the
+// generation of request IDs.
+func WithDisableRequestID() HTTPLogOption {
+	return func(o *httpLogOptions) {
+		o.disableRequestID = true
+	}
+}
+
 // RoundTrip executes the given HTTP request and logs the request and response. The
 // request context must be initialized with a clue logger.
 func (c *client) RoundTrip(req *http.Request) (resp *http.Response, err error) {
@@ -177,6 +194,44 @@ func (c *client) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	}
 	Print(req.Context(), msgKV, methKV, urlKV, statusKV, durKV)
 	return
+}
+
+// WriteHeader records the value of the status code before writing it.
+func (w *responseCapture) WriteHeader(code int) {
+	w.StatusCode = code
+	w.ResponseWriter.WriteHeader(code)
+}
+
+// Write computes the written len and stores it in ContentLength.
+func (w *responseCapture) Write(b []byte) (int, error) {
+	n, err := w.ResponseWriter.Write(b)
+	w.ContentLength += n
+	return n, err
+}
+
+// Flush implements the http.Flusher interface if the underlying response
+// writer supports it.
+func (w *responseCapture) Flush() {
+	if f, ok := w.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+// Push implements the http.Pusher interface if the underlying response
+// writer supports it.
+func (w *responseCapture) Push(target string, opts *http.PushOptions) error {
+	if p, ok := w.ResponseWriter.(http.Pusher); ok {
+		return p.Push(target, opts)
+	}
+	return errors.New("push not supported")
+}
+
+// Hijack supports the http.Hijacker interface.
+func (w *responseCapture) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if h, ok := w.ResponseWriter.(http.Hijacker); ok {
+		return h.Hijack()
+	}
+	return nil, nil, fmt.Errorf("response writer does not support hijacking: %T", w.ResponseWriter)
 }
 
 // from returns the client address from the request.

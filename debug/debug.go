@@ -24,18 +24,19 @@ var (
 	debugLogs bool
 )
 
-// MountDebugLogEnabler mounts an endpoint under "/debug" and returns a HTTP
-// middleware that manages the status of debug logs. The endpoint accepts a
-// single query parameter "debug-logs". If the parameter is set to "on" then
-// debug logs are enabled. If the parameter is set to "off" then debug logs are
-// disabled. In all other cases the endpoint returns the current debug logs
-// status. The path, query parameter name and values can be changed using the
-// WithPath, WithQuery, WithOnValue and WithOffValue options.
+// MountDebugLogEnabler mounts an endpoint under "/debug" that manages the
+// status of debug logs. The endpoint accepts a single query parameter
+// "debug-logs". If the parameter is set to "on" then debug logs are enabled. If
+// the parameter is set to "off" then debug logs are disabled. In all other
+// cases the endpoint returns the current debug logs status. The path, query
+// parameter name and values can be changed using the WithPath, WithQuery,
+// WithOnValue and WithOffValue options.
 //
 // Note: the endpoint merely controls the status of debug logs. It does not
 // actually configure the current logger. The logger is configured by the
 // middleware returned by the HTTP function or by the gRPC interceptors returned
-// by the UnaryServerInterceptor and StreamServerInterceptor functions.
+// by the UnaryServerInterceptor and StreamServerInterceptor functions which
+// should be used in conjunction with the MountDebugLogEnabler function.
 func MountDebugLogEnabler(mux Muxer, opts ...DebugLogEnablerOption) {
 	o := defaultDebugLogEnablerOptions()
 	for _, opt := range opts {

@@ -1,10 +1,9 @@
-package trace
+package clue
 
 import (
 	"fmt"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/trace"
 	"goa.design/goa/v3/middleware"
 )
 
@@ -15,15 +14,15 @@ type sampler struct {
 	sampleSize      int
 }
 
-// adaptiveSampler computes the interval for sampling for tracing middleware.
-// it can also be used by non-web go routines to trace internal API calls.
+// AdaptiveSampler returns a trace sampler that dynamically computes the
+// interval between samples to target a desired maximum sampling rate.
 //
 // maxSamplingRate is the desired maximum sampling rate in requests per second.
 //
 // sampleSize sets the number of requests between two adjustments of the
 // sampling rate when MaxSamplingRate is set. the sample rate cannot be adjusted
 // until the sample size is reached at least once.
-func adaptiveSampler(maxSamplingRate, sampleSize int) sdktrace.Sampler {
+func AdaptiveSampler(maxSamplingRate, sampleSize int) sdktrace.Sampler {
 	return sampler{
 		s:               middleware.NewAdaptiveSampler(maxSamplingRate, sampleSize),
 		maxSamplingRate: maxSamplingRate,
@@ -41,10 +40,5 @@ func (s sampler) ShouldSample(p sdktrace.SamplingParameters) sdktrace.SamplingRe
 	if !s.s.Sample() {
 		return sdktrace.SamplingResult{Decision: sdktrace.Drop}
 	}
-
-	psc := trace.SpanContextFromContext(p.ParentContext)
-	return sdktrace.SamplingResult{
-		Decision:   sdktrace.RecordAndSample,
-		Tracestate: psc.TraceState(),
-	}
+	return sdktrace.SamplingResult{Decision: sdktrace.RecordAndSample}
 }

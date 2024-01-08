@@ -7,6 +7,7 @@ import (
 var _ = API("IP Location API", func() {
 	Title("IP Location Service API")
 	Description("A fully instrumented IP location service API")
+	Version("1.0.0")
 })
 
 var _ = Service("locator", func() {

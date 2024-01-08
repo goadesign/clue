@@ -12,9 +12,10 @@ import (
 	"sync"
 	"time"
 
-	gentester "goa.design/clue/example/weather/services/tester/gen/tester"
 	"goa.design/clue/log"
 	"golang.org/x/exp/slices"
+
+	gentester "goa.design/clue/example/weather/services/tester/gen/tester"
 )
 
 // Ends a test by calculating duration and appending the results to the test collection
@@ -40,7 +41,7 @@ func getStackTrace(wg *sync.WaitGroup, m *sync.Mutex) string {
 	outC := make(chan string)
 	go func() {
 		var buf bytes.Buffer
-		io.Copy(&buf, f)
+		io.Copy(&buf, f) // nolint: errcheck
 		outC <- buf.String()
 	}()
 

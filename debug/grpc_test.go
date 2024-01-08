@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
 	"goa.design/clue/internal/testsvc"
@@ -18,7 +19,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 	ctx := log.Context(context.Background(), log.WithOutput(&buf), log.WithFormat(logKeyValsOnly))
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.ChainUnaryInterceptor(
-			log.UnaryServerInterceptor(ctx, log.WithDisableCallLogging()),
+			log.UnaryServerInterceptor(ctx, log.WithDisableCallLogging(), log.WithDisableCallID()),
 			UnaryServerInterceptor())),
 		testsvc.WithUnaryFunc(logUnaryMethod))
 	defer stop()
@@ -28,10 +29,10 @@ func TestUnaryServerInterceptor(t *testing.T) {
 	defer ts.Close()
 
 	steps := []struct {
-		name         string
-		on           bool
-		off          bool
-		expectedLogs string
+		name    string
+		on      bool
+		off     bool
+		wantLog string
 	}{
 		{"start", false, false, ""},
 		{"turn debug logs on", true, false, "debug=message "},
@@ -47,12 +48,8 @@ func TestUnaryServerInterceptor(t *testing.T) {
 			makeRequest(t, ts.URL+"/debug?debug-logs=off")
 		}
 		_, err := cli.GRPCMethod(context.Background(), nil)
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
-		}
-		if buf.String() != step.expectedLogs {
-			t.Errorf("expected log %q, got %q", step.expectedLogs, buf.String())
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, step.wantLog, buf.String())
 		buf.Reset()
 	}
 }
@@ -62,14 +59,14 @@ func TestStreamServerInterceptor(t *testing.T) {
 	ctx := log.Context(context.Background(), log.WithOutput(&buf), log.WithFormat(logKeyValsOnly))
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.ChainStreamInterceptor(
-			log.StreamServerInterceptor(ctx, log.WithDisableCallLogging()),
+			log.StreamServerInterceptor(ctx, log.WithDisableCallLogging(), log.WithDisableCallID()),
 			StreamServerInterceptor())),
 		testsvc.WithStreamFunc(echoMethod))
 	defer stop()
 	steps := []struct {
 		name            string
 		enableDebugLogs bool
-		expectedLogs    string
+		wantLog         string
 	}{
 		{"no debug logs", false, ""},
 		{"debug logs", true, "debug=message "},
@@ -78,19 +75,13 @@ func TestStreamServerInterceptor(t *testing.T) {
 	for _, step := range steps {
 		debugLogs = step.enableDebugLogs
 		stream, err := cli.GRPCStream(context.Background())
-		if err != nil {
-			t.Errorf("%s: unexpected error: %v", step.name, err)
-		}
+		assert.NoError(t, err)
 		defer stream.Close()
-		if err = stream.Send(&testsvc.Fields{}); err != nil {
-			t.Errorf("%s: unexpected send error: %v", step.name, err)
-		}
-		if _, err = stream.Recv(); err != nil {
-			t.Errorf("%s: unexpected recv error: %v", step.name, err)
-		}
-		if buf.String() != step.expectedLogs {
-			t.Errorf("%s: unexpected log %q", step.name, buf.String())
-		}
+		err = stream.Send(&testsvc.Fields{})
+		assert.NoError(t, err)
+		_, err = stream.Recv()
+		assert.NoError(t, err)
+		assert.Equal(t, step.wantLog, buf.String())
 		buf.Reset()
 	}
 }

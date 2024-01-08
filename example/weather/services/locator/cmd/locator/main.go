@@ -6,18 +6,22 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptrace"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"goa.design/clue/clue"
 	"goa.design/clue/debug"
 	"goa.design/clue/health"
 	"goa.design/clue/log"
-	"goa.design/clue/metrics"
-	"goa.design/clue/trace"
-	goagrpcmiddleware "goa.design/goa/v3/grpc/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -31,11 +35,10 @@ import (
 
 func main() {
 	var (
-		grpcaddr          = flag.String("grpc-addr", ":8082", "gRPC listen address")
-		httpaddr          = flag.String("http-addr", ":8083", "HTTP listen address (health checks and metrics)")
-		agentaddr         = flag.String("agent-addr", ":4317", "Grafana agent listen address")
-		debugf            = flag.Bool("debug", false, "Enable debug logs")
-		monitoringEnabled = flag.Bool("monitoring-enabled", true, "monitoring")
+		grpcaddr = flag.String("grpc-addr", ":8082", "gRPC listen address")
+		httpaddr = flag.String("http-addr", ":8083", "HTTP listen address (health checks and metrics)")
+		oteladdr = flag.String("otel-addr", ":4317", "OpenTelemetry collector listen address")
+		debugf   = flag.Bool("debug", false, "Enable debug logs")
 	)
 	flag.Parse()
 
@@ -44,60 +47,72 @@ func main() {
 	if log.IsTerminal() {
 		format = log.FormatTerminal
 	}
-	ctx := log.Context(context.Background(), log.WithFormat(format), log.WithFunc(trace.Log))
-	ctx = log.With(ctx, log.KV{K: "svc", V: genlocator.ServiceName})
+	ctx := log.Context(context.Background(), log.WithFormat(format), log.WithFunc(log.Span))
 	if *debugf {
 		ctx = log.Context(ctx, log.WithDebug())
 		log.Debugf(ctx, "debug logs enabled")
 	}
 
-	// 2. Setup tracing
-	if !*monitoringEnabled {
-		var err error
-		if ctx, err = trace.Context(ctx, genlocator.ServiceName, trace.WithDisabled()); err != nil {
-			log.Error(ctx, err, log.KV{K: "msg", V: "failed to initialize tracing"})
-		}
-	} else {
-		log.Debugf(ctx, "connecting to Grafana agent %s", *agentaddr)
-		conn, err := grpc.DialContext(ctx, *agentaddr,
-			grpc.WithTransportCredentials(insecure.NewCredentials()),
-			grpc.WithBlock())
-		if err != nil {
-			log.Errorf(ctx, err, "failed to connect to Grafana agent")
-			os.Exit(1)
-		}
-		log.Debugf(ctx, "connected to Grafana agent %s", *agentaddr)
-		ctx, err = trace.Context(ctx, genlocator.ServiceName, trace.WithGRPCExporter(conn))
-		if err != nil {
-			log.Errorf(ctx, err, "failed to initialize tracing")
-			os.Exit(1)
-		}
+	// 2. Setup instrumentation
+	spanExporter, err := otlptracegrpc.New(ctx,
+		otlptracegrpc.WithEndpoint(*oteladdr),
+		otlptracegrpc.WithTLSCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf(ctx, err, "failed to initialize tracing")
 	}
+	defer func() {
+		err := spanExporter.Shutdown(ctx)
+		if err != nil {
+			log.Errorf(ctx, err, "failed to shutdown tracing")
+		}
+	}()
+	metricExporter, err := otlpmetricgrpc.New(ctx,
+		otlpmetricgrpc.WithEndpoint(*oteladdr),
+		otlpmetricgrpc.WithTLSCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf(ctx, err, "failed to initialize metrics")
+	}
+	defer func() {
+		err := metricExporter.Shutdown(ctx)
+		if err != nil {
+			log.Errorf(ctx, err, "failed to shutdown metrics")
+		}
+	}()
+	cfg, err := clue.NewConfig(ctx,
+		genlocator.ServiceName,
+		genlocator.APIVersion,
+		metricExporter,
+		spanExporter,
+	)
+	if err != nil {
+		log.Fatalf(ctx, err, "failed to initialize instrumentation")
+	}
+	clue.ConfigureOpenTelemetry(ctx, cfg)
 
-	// 3. Setup metrics
-	ctx = metrics.Context(ctx, genlocator.ServiceName)
+	// 3. Create clients
+	httpc := &http.Client{
+		Transport: log.Client(
+			otelhttp.NewTransport(
+				http.DefaultTransport,
+				otelhttp.WithClientTrace(func(ctx context.Context) *httptrace.ClientTrace {
+					return otelhttptrace.NewClientTrace(ctx)
+				}),
+			))}
+	ipc := ipapi.New(httpc)
 
-	// 4. Create clients
-	c := &http.Client{Transport: log.Client(trace.Client(ctx, http.DefaultTransport))}
-	ipc := ipapi.New(c)
-
-	// 5. Create service & endpoints
+	// 4. Create service & endpoints
 	svc := locator.New(ipc)
 	endpoints := genlocator.NewEndpoints(svc)
 	endpoints.Use(debug.LogPayloads())
 	endpoints.Use(log.Endpoint)
 
-	// 6. Create transport
+	// 5. Create transport
 	server := gengrpc.New(endpoints, nil)
 	grpcsvr := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			goagrpcmiddleware.UnaryRequestID(),
-			log.UnaryServerInterceptor(ctx),
-			debug.UnaryServerInterceptor(),
-			goagrpcmiddleware.UnaryServerLogContext(log.AsGoaMiddlewareLogger),
-			trace.UnaryServerInterceptor(ctx),
-			metrics.UnaryServerInterceptor(ctx),
-		))
+			log.UnaryServerInterceptor(ctx), // Add logger to request context and log requests.
+			debug.UnaryServerInterceptor()), // Enable debug log level control
+		grpc.StatsHandler(otelgrpc.NewServerHandler())) // Instrument server.
 	genpb.RegisterLocatorServer(grpcsvr, server)
 	reflection.Register(grpcsvr)
 	for svc, info := range grpcsvr.GetServiceInfo() {
@@ -106,17 +121,17 @@ func main() {
 		}
 	}
 
-	// 7. Setup health check, metrics and debug endpoints
-	check := log.HTTP(ctx)(health.Handler(health.NewChecker(ipc)))
+	// 6. Setup health check and debug endpoints
 	mux := http.NewServeMux()
 	debug.MountDebugLogEnabler(mux)
 	debug.MountPprofHandlers(mux)
+	check := health.Handler(health.NewChecker(ipc))
+	check = log.HTTP(ctx)(check).(http.HandlerFunc) // Log health-check errors
 	mux.Handle("/healthz", check)
 	mux.Handle("/livez", check)
-	mux.Handle("/metrics", metrics.Handler(ctx))
 	httpsvr := &http.Server{Addr: *httpaddr, Handler: mux}
 
-	// 8. Start gRPC and HTTP servers
+	// 7. Start gRPC and HTTP servers
 	errc := make(chan error)
 	go func() {
 		c := make(chan os.Signal, 1)

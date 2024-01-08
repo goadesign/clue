@@ -9,6 +9,7 @@ import (
 var _ = API("Weather Service API", func() {
 	Title("The Weather Service API")
 	Description("A fully instrumented weather service API")
+	Version("1.0.0")
 })
 
 var _ = Service("Forecaster", func() {

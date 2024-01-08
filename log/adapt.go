@@ -3,8 +3,10 @@ package log
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/aws/smithy-go/logging"
+	"github.com/go-logr/logr"
 	"goa.design/goa/v3/middleware"
 )
 
@@ -19,16 +21,21 @@ type (
 		context.Context
 	}
 
+	// LogrSink returns a logr LogSink compatible logger.
+	LogrSink struct {
+		lock sync.Mutex
+		name string
+		context.Context
+	}
+
 	// goaLogger is a Goa middleware compatible logger.
 	goaLogger struct {
 		context.Context
 	}
 )
 
-// Make Goa use clue's request ID context key.
-func init() {
-	middleware.RequestIDKey = RequestIDKey
-}
+// NameKey is the key used to log the name of the logger.
+const NameKey = "log"
 
 // AsGoaMiddlewareLogger creates a Goa middleware compatible logger that can be used when
 // configuring Goa HTTP or gRPC servers.
@@ -74,6 +81,19 @@ func AsStdLogger(ctx context.Context) *StdLogger {
 //	    config.WithLogger(log.AsAWSLogger(ctx)))
 func AsAWSLogger(ctx context.Context) *AWSLogger {
 	return &AWSLogger{ctx}
+}
+
+// ToLogrSink returns a logr.LogSink.
+//
+// Usage:
+//
+//	import "goa.design/clue/log"
+//
+//	ctx := log.Context(context.Background())
+//	sink := log.ToLogrSink(ctx)
+//	logger := logr.New(sink)
+func ToLogrSink(ctx context.Context) *LogrSink {
+	return &LogrSink{Context: ctx}
 }
 
 // Fatal is equivalent to l.Print() followed by a call to os.Exit(1).
@@ -138,6 +158,53 @@ func (l *AWSLogger) Logf(classification logging.Classification, format string, v
 func (l *AWSLogger) WithContext(ctx context.Context) logging.Logger {
 	l.Context = WithContext(ctx, l)
 	return l
+}
+
+func (l *LogrSink) Init(info logr.RuntimeInfo) {}
+
+func (l *LogrSink) Enabled(level int) bool {
+	return true
+}
+
+func (l *LogrSink) Info(level int, msg string, keysAndValues ...interface{}) {
+	kvs := make([]KV, len(keysAndValues)/2+1)
+	kvs[0] = KV{K: "msg", V: msg}
+	for i := 0; i < len(keysAndValues); i += 2 {
+		kvs[i/2+1] = KV{K: fmt.Sprint(keysAndValues[i]), V: keysAndValues[i+1]}
+	}
+	if level == 0 {
+		Info(l, kvList(kvs))
+	} else {
+		Debug(l, kvList(kvs))
+	}
+}
+
+func (l *LogrSink) Error(err error, msg string, keysAndValues ...interface{}) {
+	kvs := make([]KV, len(keysAndValues)/2+1)
+	kvs[0] = KV{K: "msg", V: msg}
+	for i := 0; i < len(keysAndValues); i += 2 {
+		kvs[i/2+1] = KV{K: fmt.Sprint(keysAndValues[i]), V: keysAndValues[i+1]}
+	}
+	Error(l, err, kvList(kvs))
+}
+
+func (l *LogrSink) WithValues(keysAndValues ...any) logr.LogSink {
+	kvs := make([]KV, len(keysAndValues)/2)
+	for i := 0; i < len(keysAndValues); i += 2 {
+		kvs[i/2] = KV{K: fmt.Sprint(keysAndValues[i]), V: keysAndValues[i+1]}
+	}
+	return &LogrSink{Context: With(l, kvList(kvs))}
+}
+
+func (l *LogrSink) WithName(name string) logr.LogSink {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	cur := l.name
+	if cur != "" {
+		cur += "/"
+	}
+	l.name = cur + name
+	return &LogrSink{Context: With(l, KV{NameKey, l.name}), name: l.name}
 }
 
 // Log creates a log entry using a sequence of key/value pairs.

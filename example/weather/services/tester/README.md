@@ -18,20 +18,20 @@ The Tester service exposes a gRPC API that allows other services (such as the ex
 
 ### TestResults return object
 
-`TestResults`: This is the main return object for all test methods in the `tester` service and 
-it represents the results of the system integration tests. It has four fields: `Collections` 
-(an array of `TestCollection`), `Duration` (the total duration of all the tests in milliseconds), 
-`PassCount` (the total number of tests that passed), and `FailCount` (the total number of tests 
-that failed).
+`TestResults` serves as the key output for the `tester` service's test methods,
+encapsulating the system integration test outcomes. It details the collective
+test results with fields like `Collections`, an array encompassing various
+`TestCollection` instances, the `Duration` for total test time in milliseconds,
+and counts of both passed (`PassCount`) and failed tests (`FailCount`).
 
-`TestCollection`: This type represents a collection of test results, typically grouped by service. 
-It has five fields: `Name` (the name of the test collection), `Results` (an array of `TestResult`), 
-`Duration` (the total duration of the tests in the `Collection` in milliseconds), `PassCount` (the 
-number of tests that passed), and `FailCount` (the number of tests that failed).
+Each `TestCollection` within `TestResults` groups test outcomes, often by
+service. Its structure includes the collection's Name, an array of individual
+`TestResult` items, the total `Duration` for all tests in the collection, and
+counts of successful (`PassCount`) and unsuccessful (`FailCount`) tests.
 
-`TestResult`: This type represents the result of a single test. It has four fields: `Name` (the name 
-of the test), `Passed` (a boolean indicating whether the test passed), `Error` (an error message if 
-the test failed), and `Duration` (the duration of the test in milliseconds).
+In `TestResult`, the focus narrows down to individual test performance. This
+includes the specific `Name` of the test, a boolean `Passed` status, a potential
+`Error` message for failures, and the `Duration` each test takes.
 
 ### TestSmoke method
 

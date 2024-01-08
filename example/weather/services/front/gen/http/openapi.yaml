@@ -2,7 +2,7 @@ swagger: "2.0"
 info:
     title: Weather Forecast Service API
     description: The weather forecast service API produces weather forecasts from US-based IPs. It uses IP location to find the appropriate weather station.
-    version: ""
+    version: 1.0.0
 host: localhost:80
 consumes:
     - application/json

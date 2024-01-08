@@ -11,13 +11,15 @@ import (
 	"syscall"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"goa.design/clue/clue"
 	"goa.design/clue/debug"
 	"goa.design/clue/health"
 	"goa.design/clue/log"
-	"goa.design/clue/metrics"
-	"goa.design/clue/trace"
 	goahttp "goa.design/goa/v3/http"
-	goahttpmiddleware "goa.design/goa/v3/http/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -37,11 +39,9 @@ func main() {
 		forecasterHealthAddr = flag.String("forecaster-health-addr", ":8081", "Forecaster service health-check address")
 		locatorAddr          = flag.String("locator-addr", ":8082", "Locator service address")
 		locatorHealthAddr    = flag.String("locator-health-addr", ":8083", "Locator service health-check address")
+		coladdr              = flag.String("otel-addr", ":4317", "OpenTelemtry collector listen address")
+		debugf               = flag.Bool("debug", false, "Enable debug logs")
 		testerAddr           = flag.String("tester-addr", ":8090", "Tester service address")
-		// No testerHealthAddr because we don't want the whole system to die just because tester isn't healthy for some reason
-		agentaddr         = flag.String("agent-addr", ":4317", "Grafana agent listen address")
-		debugf            = flag.Bool("debug", false, "Enable debug logs")
-		monitoringEnabled = flag.Bool("monitoring-enabled", true, "monitoring")
 	)
 	flag.Parse()
 
@@ -50,70 +50,68 @@ func main() {
 	if log.IsTerminal() {
 		format = log.FormatTerminal
 	}
-	ctx := log.Context(context.Background(), log.WithFormat(format), log.WithFunc(trace.Log))
-	ctx = log.With(ctx, log.KV{K: "svc", V: genfront.ServiceName})
+	ctx := log.Context(context.Background(), log.WithFormat(format), log.WithFunc(log.Span))
 	if *debugf {
 		ctx = log.Context(ctx, log.WithDebug())
 		log.Debugf(ctx, "debug logs enabled")
 	}
 
-	// 2. Setup tracing
-	if !*monitoringEnabled {
-		var err error
-		if ctx, err = trace.Context(ctx, genfront.ServiceName, trace.WithDisabled()); err != nil {
-			log.Error(ctx, err, log.KV{K: "msg", V: "failed to initialize tracing"})
-		}
-	} else {
-		log.Debugf(ctx, "connecting to Grafana agent %s", *agentaddr)
-		conn, err := grpc.DialContext(ctx, *agentaddr,
-			grpc.WithTransportCredentials(insecure.NewCredentials()),
-			grpc.WithBlock())
-		if err != nil {
-			log.Errorf(ctx, err, "failed to connect to Grafana agent")
-			os.Exit(1)
-		}
-		log.Debugf(ctx, "connected to Grafana agent %s", *agentaddr)
-		ctx, err = trace.Context(ctx, genfront.ServiceName, trace.WithGRPCExporter(conn))
-		if err != nil {
-			log.Errorf(ctx, err, "failed to initialize tracing")
-			os.Exit(1)
-		}
+	// 2. Setup instrumentation
+	spanExporter, err := otlptracegrpc.New(ctx,
+		otlptracegrpc.WithEndpoint(*coladdr),
+		otlptracegrpc.WithTLSCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf(ctx, err, "failed to initialize tracing")
 	}
-
-	// 3. Setup metrics
-	mux := goahttp.NewMuxer()
-	ctx = metrics.Context(ctx, genfront.ServiceName,
-		metrics.WithRouteResolver(func(r *http.Request) string {
-			return mux.ResolvePattern(r)
-		}),
+	defer func() {
+		if err := spanExporter.Shutdown(ctx); err != nil {
+			log.Errorf(ctx, err, "failed to shutdown tracing")
+		}
+	}()
+	metricExporter, err := otlpmetricgrpc.New(ctx,
+		otlpmetricgrpc.WithEndpoint(*coladdr),
+		otlpmetricgrpc.WithTLSCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf(ctx, err, "failed to initialize metrics")
+	}
+	defer func() {
+		if err := metricExporter.Shutdown(ctx); err != nil {
+			log.Errorf(ctx, err, "failed to shutdown metrics")
+		}
+	}()
+	cfg, err := clue.NewConfig(ctx,
+		genfront.ServiceName,
+		genfront.APIVersion,
+		metricExporter,
+		spanExporter,
 	)
+	if err != nil {
+		log.Fatalf(ctx, err, "failed to initialize instrumentation")
+	}
+	clue.ConfigureOpenTelemetry(ctx, cfg)
 
 	// 3. Create clients
-	lcc, err := grpc.DialContext(ctx, *locatorAddr,
+	lcc, err := grpc.DialContext(ctx,
+		*locatorAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithChainUnaryInterceptor(
-			trace.UnaryClientInterceptor(ctx),
-			log.UnaryClientInterceptor()))
+		grpc.WithUnaryInterceptor(log.UnaryClientInterceptor()),
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
 	if err != nil {
-		log.Errorf(ctx, err, "failed to connect to locator")
-		os.Exit(1)
+		log.Fatalf(ctx, err, "failed to connect to locator")
 	}
 	lc := locator.New(lcc)
 	fcc, err := grpc.DialContext(ctx, *forecasterAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithChainUnaryInterceptor(
-			trace.UnaryClientInterceptor(ctx),
-			log.UnaryClientInterceptor()))
+		grpc.WithUnaryInterceptor(log.UnaryClientInterceptor()),
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
 	if err != nil {
-		log.Errorf(ctx, err, "failed to connect to forecast")
-		os.Exit(1)
+		log.Fatalf(ctx, err, "failed to connect to forecast")
 	}
 	fc := forecaster.New(fcc)
 	tcc, err := grpc.DialContext(ctx, *testerAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithChainUnaryInterceptor(
-			trace.UnaryClientInterceptor(ctx),
-			log.UnaryClientInterceptor()))
+		grpc.WithUnaryInterceptor(log.UnaryClientInterceptor()),
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
 	if err != nil {
 		log.Errorf(ctx, err, "failed to connect to tester")
 		os.Exit(1)
@@ -127,12 +125,12 @@ func main() {
 	endpoints.Use(log.Endpoint)
 
 	// 5. Create transport
-	mux.Use(metrics.HTTP(ctx))
+	mux := goahttp.NewMuxer()
 	debug.MountDebugLogEnabler(debug.Adapt(mux))
-	handler := trace.HTTP(ctx)(mux)                                            // 4. Trace request
-	handler = goahttpmiddleware.LogContext(log.AsGoaMiddlewareLogger)(handler) // 3. Log request and response
-	handler = log.HTTP(ctx)(handler)                                           // 2. Add logger to request context (with request ID key)
-	handler = goahttpmiddleware.RequestID()(handler)                           // 1. Add request ID to context
+	debug.MountPprofHandlers(debug.Adapt(mux))
+	handler := otelhttp.NewHandler(mux, genfront.ServiceName) // 3. Add OpenTelemetry instrumentation
+	handler = debug.HTTP()(handler)                           // 2. Add debug endpoints
+	handler = log.HTTP(ctx)(handler)                          // 1. Add logger to request context
 	server := genhttp.New(endpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)
 	genhttp.Mount(mux, server)
 	for _, m := range server.Mounts {
@@ -146,10 +144,9 @@ func main() {
 	check := health.Handler(health.NewChecker(
 		health.NewPinger("locator", *locatorHealthAddr),
 		health.NewPinger("forecaster", *forecasterHealthAddr)))
-	check = log.HTTP(ctx)(check).(http.HandlerFunc)
+	check = log.HTTP(ctx)(check).(http.HandlerFunc) // Log health-check errors
 	http.Handle("/healthz", check)
 	http.Handle("/livez", check)
-	http.Handle("/metrics", metrics.Handler(ctx).(http.HandlerFunc))
 	metricsServer := &http.Server{Addr: *metricsListenAddr}
 
 	// 7. Start HTTP server

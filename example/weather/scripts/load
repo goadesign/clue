@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Total duration for the script to run: 10 minutes (600 seconds)
+DURATION=600
+
+# Start time
+START_TIME=$(date +%s)
+
+# End time = Start time + Duration
+END_TIME=$((START_TIME + DURATION))
+
+# Loop to run until the current time is less than the end time
+while [ $(date +%s) -lt $END_TIME ]; do
+    # Run the command
+    http localhost:8084/forecast/142.250.68.14
+
+    # Wait for 1 second before the next iteration
+    sleep 1
+done
+

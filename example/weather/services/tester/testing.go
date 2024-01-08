@@ -3,9 +3,10 @@ package tester
 import (
 	"context"
 
+	"goa.design/clue/log"
+
 	"goa.design/clue/example/weather/services/tester/clients/forecaster"
 	"goa.design/clue/example/weather/services/tester/clients/locator"
-	"goa.design/clue/log"
 )
 
 type (
