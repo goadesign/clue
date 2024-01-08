@@ -9,9 +9,10 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.46.1
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v0.44.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.21.0
-	goa.design/clue v0.20.0
-	goa.design/goa/v3 v3.14.2
+	goa.design/clue v1.0.0
+	goa.design/goa/v3 v3.14.4
 	goa.design/model v1.9.1
+	goa.design/plugins/v3 v3.14.5-0.20240108065040-b05574e08115
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
 	google.golang.org/grpc v1.60.1
 	google.golang.org/protobuf v1.32.0
@@ -52,5 +53,3 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240102182953-50ed04b92917 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace goa.design/clue => ../../

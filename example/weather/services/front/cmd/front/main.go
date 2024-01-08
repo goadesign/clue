@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -64,6 +65,8 @@ func main() {
 		log.Fatalf(ctx, err, "failed to initialize tracing")
 	}
 	defer func() {
+		// Create new context in case the parent context has been canceled.
+		ctx := log.Context(context.Background(), log.WithFormat(format))
 		if err := spanExporter.Shutdown(ctx); err != nil {
 			log.Errorf(ctx, err, "failed to shutdown tracing")
 		}
@@ -75,6 +78,8 @@ func main() {
 		log.Fatalf(ctx, err, "failed to initialize metrics")
 	}
 	defer func() {
+		// Create new context in case the parent context has been canceled.
+		ctx := log.Context(context.Background(), log.WithFormat(format))
 		if err := metricExporter.Shutdown(ctx); err != nil {
 			log.Errorf(ctx, err, "failed to shutdown metrics")
 		}
@@ -154,7 +159,7 @@ func main() {
 	go func() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-		errc <- fmt.Errorf("%s", <-c)
+		errc <- fmt.Errorf("signal: %s", <-c)
 	}()
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -189,7 +194,7 @@ func main() {
 	}()
 
 	// Cleanup
-	if err := <-errc; err != nil {
+	if err := <-errc; err != nil && !strings.HasPrefix(err.Error(), "signal:") {
 		log.Errorf(ctx, err, "exiting")
 	}
 	cancel()

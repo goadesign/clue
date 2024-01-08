@@ -3,7 +3,9 @@ Package design contains shared design resources.
 */
 package design
 
-import . "goa.design/goa/v3/dsl"
+import (
+	. "goa.design/goa/v3/dsl"
+)
 
 var Forecast = Type("Forecast", func() {
 	Description("Weather forecast")
