@@ -19,19 +19,15 @@ import (
 )
 
 type (
-	// Config is used to initialize metrics and tracing.
+	// Config is used to configure OpenTelemetry.
 	Config struct {
-		// MeterProvider is the OpenTelemetry meter provider used by the clue
-		// metrics package.
+		// MeterProvider is the OpenTelemetry meter provider used by clue
 		MeterProvider metric.MeterProvider
-		// TracerProvider is the OpenTelemetry tracer provider used by the clue
-		// trace package.
+		// TracerProvider is the OpenTelemetry tracer provider used clue
 		TracerProvider trace.TracerProvider
-		// Propagators is the OpenTelemetry propagator used by the clue trace
-		// package.
+		// Propagators is the OpenTelemetry propagator used by clue
 		Propagators propagation.TextMapPropagator
-		// ErrorHandler is the error handler used by the OpenTelemetry
-		// package.
+		// ErrorHandler is the error handler used by OpenTelemetry
 		ErrorHandler otel.ErrorHandler
 	}
 )
@@ -47,9 +43,9 @@ func ConfigureOpenTelemetry(ctx context.Context, cfg *Config) {
 }
 
 // NewConfig creates a new Config object adequate for use by
-// ConfigureOpenTelemetry.  The metricsExporter and spanExporter are used to
+// ConfigureOpenTelemetry.  The metricExporter and spanExporter are used to
 // record telemetry. If either is nil then the corresponding package will not
-// record any telemetry. The OpenTelemetry metrics provider is configured with a
+// record any telemetry. The OpenTelemetry metric provider is configured with a
 // periodic reader. The OpenTelemetry tracer provider is configured to use a
 // batch span processor and an adaptive sampler that aims at a maximum sampling
 // rate of requests per second.  The resulting configuration can be modified
@@ -58,7 +54,7 @@ func ConfigureOpenTelemetry(ctx context.Context, cfg *Config) {
 //
 // Example:
 //
-//	metricsExporter, err := stdoutmetric.New()
+//	metricExporter, err := stdoutmetric.New()
 //	if err != nil {
 //		return err
 //	}
@@ -66,12 +62,12 @@ func ConfigureOpenTelemetry(ctx context.Context, cfg *Config) {
 //	if err != nil {
 //		return err
 //	}
-//	cfg := clue.NewConfig("mysvc", "1.0.0", metricsExporter, spanExporter)
+//	cfg := clue.NewConfig("mysvc", "1.0.0", metricExporter, spanExporter)
 func NewConfig(
 	ctx context.Context,
 	svcName string,
 	svcVersion string,
-	metricsExporter sdkmetric.Exporter,
+	metricExporter sdkmetric.Exporter,
 	spanExporter sdktrace.SpanExporter,
 	opts ...Option,
 ) (*Config, error) {
@@ -90,15 +86,15 @@ func NewConfig(
 		return nil, err
 	}
 	var meterProvider metric.MeterProvider
-	if metricsExporter == nil {
+	if metricExporter == nil {
 		meterProvider = metricnoop.NewMeterProvider()
 	} else {
 		var reader sdkmetric.Reader
 		if options.readerInterval == 0 {
-			reader = sdkmetric.NewPeriodicReader(metricsExporter)
+			reader = sdkmetric.NewPeriodicReader(metricExporter)
 		} else {
 			reader = sdkmetric.NewPeriodicReader(
-				metricsExporter,
+				metricExporter,
 				sdkmetric.WithInterval(options.readerInterval),
 			)
 		}
