@@ -86,11 +86,11 @@ func matchTestFilter(ctx context.Context, test string, testMap map[string]func(c
 	g, err := glob.Compile(test)
 	if err != nil {
 		_ = logError(ctx, err)
-		err = errors.New(fmt.Sprintf("wildcard glob [%s] did not compile: %v", test, err))
+		err = fmt.Errorf("wildcard glob [%s] did not compile: %v", test, err)
 		return testMatches, err
 	}
 	i := 0
-	for testName, _ := range testMap {
+	for testName := range testMap {
 		match = g.Match(testName)
 		if match {
 			testMatches = append(testMatches, testMap[testName])
@@ -143,7 +143,7 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 					g, err := glob.Compile(excludeTest)
 					if err != nil {
 						_ = logError(ctx, err)
-						err = errors.New(fmt.Sprintf("wildcard glob [%s] did not compile: %v", excludeTest, err))
+						err = fmt.Errorf("wildcard glob [%s] did not compile: %v", excludeTest, err)
 						return nil, gentester.MakeWildcardCompileError(err)
 					}
 					wildcardMatch = wildcardMatch || g.Match(testName)
