@@ -79,11 +79,16 @@ func recoverFromTestPanic(ctx context.Context, testName string, testCollection *
 
 // Filters a testMap based on a test name that is a glob string
 // using standard wildcards https://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm
-func matchTestFilter(ctx context.Context, test string, testMap map[string]func(context.Context, *TestCollection)) (bool, []func(context.Context, *TestCollection)) {
+func matchTestFilter(ctx context.Context, test string, testMap map[string]func(context.Context, *TestCollection)) ([]func(context.Context, *TestCollection), error) {
 	match := false
-	testMatches := []func(context.Context, *TestCollection){}
+	var testMatches []func(context.Context, *TestCollection)
 	var g glob.Glob
-	g = glob.MustCompile(test)
+	g, err := glob.Compile(test)
+	if err != nil {
+		_ = logError(ctx, err)
+		err = errors.New(fmt.Sprintf("wildcard glob [%s] did not compile: %v", test, err))
+		return testMatches, err
+	}
 	i := 0
 	for testName, _ := range testMap {
 		match = g.Match(testName)
@@ -92,7 +97,7 @@ func matchTestFilter(ctx context.Context, test string, testMap map[string]func(c
 		}
 		i++
 	}
-	return match, testMatches
+	return testMatches, nil
 }
 
 // Runs the tests from the testmap and handles filtering/exclusion of tests
@@ -116,8 +121,11 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 				if testFunc, ok := testMap[test]; ok {
 					testsToRun[test] = testFunc
 				} else { // Test didn't match exactly, so we're gonna try for a wildcard match
-					findByWildcard, testFuncs := matchTestFilter(ctx, test, testMap)
-					if findByWildcard {
+					testFuncs, err := matchTestFilter(ctx, test, testMap)
+					if err != nil {
+						return nil, gentester.MakeWildcardCompileError(err)
+					}
+					if len(testFuncs) > 0 {
 						for i, testFunc := range testFuncs {
 							testsToRun[fmt.Sprintf("%s_%d", test, i)] = testFunc
 						}
@@ -132,7 +140,12 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 				wildcardMatch := false
 				for _, excludeTest := range p.Exclude {
 					var g glob.Glob
-					g = glob.MustCompile(excludeTest)
+					g, err := glob.Compile(excludeTest)
+					if err != nil {
+						_ = logError(ctx, err)
+						err = errors.New(fmt.Sprintf("wildcard glob [%s] did not compile: %v", excludeTest, err))
+						return nil, gentester.MakeWildcardCompileError(err)
+					}
 					wildcardMatch = wildcardMatch || g.Match(testName)
 				}
 				if !wildcardMatch {

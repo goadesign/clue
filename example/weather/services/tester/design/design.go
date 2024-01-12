@@ -18,6 +18,7 @@ var _ = Service("tester", func() {
 	})
 	Description("The Weather System Tester Service is used to manage the integration testing of the weater system")
 	Error("include_exclude_both", ErrorResult, "Cannot specify both include and exclude")
+	Error("wildcard_compile_error", ErrorResult, "Wildcard glob did not compile")
 
 	Method("test_all", func() {
 		Description("Runs all tests in the iam system")
@@ -26,6 +27,7 @@ var _ = Service("tester", func() {
 		GRPC(func() {
 			Response(CodeOK)
 			Response("include_exclude_both", CodeInvalidArgument)
+			Response("wildcard_compile_error", CodeInvalidArgument)
 		})
 	})
 
