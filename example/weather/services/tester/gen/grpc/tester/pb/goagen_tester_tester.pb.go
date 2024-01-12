@@ -33,9 +33,9 @@ type TestAllRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Tests to run
+	// Tests to run. Allows wildcards.
 	Include []string `protobuf:"bytes,1,rep,name=include,proto3" json:"include,omitempty"`
-	// Tests to exclude
+	// Tests to exclude. Allows wildcards.
 	Exclude []string `protobuf:"bytes,2,rep,name=exclude,proto3" json:"exclude,omitempty"`
 }
 

@@ -26,9 +26,9 @@ service Tester {
 }
 
 message TestAllRequest {
-	// Tests to run
+	// Tests to run. Allows wildcards.
 	repeated string include = 1;
-	// Tests to exclude
+	// Tests to exclude. Allows wildcards.
 	repeated string exclude = 2;
 }
 

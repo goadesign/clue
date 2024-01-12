@@ -3,6 +3,7 @@ module goa.design/clue/example/weather
 go 1.21
 
 require (
+	github.com/gobwas/glob v0.2.3
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.46.1
@@ -13,7 +14,6 @@ require (
 	goa.design/goa/v3 v3.14.4
 	goa.design/model v1.9.1
 	goa.design/plugins/v3 v3.14.5-0.20240108065040-b05574e08115
-	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
 	google.golang.org/grpc v1.60.1
 	google.golang.org/protobuf v1.32.0
 )
