@@ -80,13 +80,18 @@ type TestResults struct {
 
 // TesterPayload is the payload type of the tester service test_all method.
 type TesterPayload struct {
-	// Tests to run
+	// Tests to run. Allows wildcards.
 	Include []string
-	// Tests to exclude
+	// Tests to exclude. Allows wildcards.
 	Exclude []string
 }
 
 // MakeIncludeExcludeBoth builds a goa.ServiceError from an error.
 func MakeIncludeExcludeBoth(err error) *goa.ServiceError {
 	return goa.NewServiceError(err, "include_exclude_both", false, false, false)
+}
+
+// MakeWildcardCompileError builds a goa.ServiceError from an error.
+func MakeWildcardCompileError(err error) *goa.ServiceError {
+	return goa.NewServiceError(err, "wildcard_compile_error", false, false, false)
 }

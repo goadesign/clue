@@ -35,6 +35,7 @@ func NewClient(testAll, testSmoke, testForecaster, testLocator goa.Endpoint) *Cl
 // TestAll calls the "test_all" endpoint of the "tester" service.
 // TestAll may return the following errors:
 //   - "include_exclude_both" (type *goa.ServiceError): Cannot specify both include and exclude
+//   - "wildcard_compile_error" (type *goa.ServiceError): Wildcard glob did not compile
 //   - error: internal error
 func (c *Client) TestAll(ctx context.Context, p *TesterPayload) (res *TestResults, err error) {
 	var ires any
@@ -48,6 +49,7 @@ func (c *Client) TestAll(ctx context.Context, p *TesterPayload) (res *TestResult
 // TestSmoke calls the "test_smoke" endpoint of the "tester" service.
 // TestSmoke may return the following errors:
 //   - "include_exclude_both" (type *goa.ServiceError): Cannot specify both include and exclude
+//   - "wildcard_compile_error" (type *goa.ServiceError): Wildcard glob did not compile
 //   - error: internal error
 func (c *Client) TestSmoke(ctx context.Context) (res *TestResults, err error) {
 	var ires any
@@ -61,6 +63,7 @@ func (c *Client) TestSmoke(ctx context.Context) (res *TestResults, err error) {
 // TestForecaster calls the "test_forecaster" endpoint of the "tester" service.
 // TestForecaster may return the following errors:
 //   - "include_exclude_both" (type *goa.ServiceError): Cannot specify both include and exclude
+//   - "wildcard_compile_error" (type *goa.ServiceError): Wildcard glob did not compile
 //   - error: internal error
 func (c *Client) TestForecaster(ctx context.Context) (res *TestResults, err error) {
 	var ires any
@@ -74,6 +77,7 @@ func (c *Client) TestForecaster(ctx context.Context) (res *TestResults, err erro
 // TestLocator calls the "test_locator" endpoint of the "tester" service.
 // TestLocator may return the following errors:
 //   - "include_exclude_both" (type *goa.ServiceError): Cannot specify both include and exclude
+//   - "wildcard_compile_error" (type *goa.ServiceError): Wildcard glob did not compile
 //   - error: internal error
 func (c *Client) TestLocator(ctx context.Context) (res *TestResults, err error) {
 	var ires any

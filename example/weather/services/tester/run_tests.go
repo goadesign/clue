@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gobwas/glob"
 	"goa.design/clue/log"
-	"golang.org/x/exp/slices"
 
 	gentester "goa.design/clue/example/weather/services/tester/gen/tester"
 )
@@ -77,6 +77,29 @@ func recoverFromTestPanic(ctx context.Context, testName string, testCollection *
 	}
 }
 
+// Filters a testMap based on a test name that is a glob string
+// using standard wildcards https://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm
+func matchTestFilter(ctx context.Context, test string, testMap map[string]func(context.Context, *TestCollection)) ([]func(context.Context, *TestCollection), error) {
+	match := false
+	var testMatches []func(context.Context, *TestCollection)
+	var g glob.Glob
+	g, err := glob.Compile(test)
+	if err != nil {
+		_ = logError(ctx, err)
+		err = fmt.Errorf("wildcard glob [%s] did not compile: %v", test, err)
+		return testMatches, err
+	}
+	i := 0
+	for testName := range testMap {
+		match = g.Match(testName)
+		if match {
+			testMatches = append(testMatches, testMap[testName])
+		}
+		i++
+	}
+	return testMatches, nil
+}
+
 // Runs the tests from the testmap and handles filtering/exclusion of tests
 // Pass in `true` for runSynchronously to run the tests synchronously instead
 // of in parallel.
@@ -97,16 +120,35 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 			for _, test := range p.Include {
 				if testFunc, ok := testMap[test]; ok {
 					testsToRun[test] = testFunc
-				} else {
-					err := fmt.Errorf("test [%v] not found in test map", test)
-					_ = logError(ctx, err)
+				} else { // Test didn't match exactly, so we're gonna try for a wildcard match
+					testFuncs, err := matchTestFilter(ctx, test, testMap)
+					if err != nil {
+						return nil, gentester.MakeWildcardCompileError(err)
+					}
+					if len(testFuncs) > 0 {
+						for i, testFunc := range testFuncs {
+							testsToRun[fmt.Sprintf("%s_%d", test, i)] = testFunc
+						}
+					} else { // No wildcard match either
+						err := fmt.Errorf("test [%v] not found in test map", test)
+						_ = logError(ctx, err)
+					}
 				}
 			}
 		} else if len(p.Exclude) > 0 { // If there is only an exclude list, we add tests not found in that exclude list to the tests to run
 			for testName, test := range testMap {
-				// This is from golang's experimental slices package
-				// (https://godoc.org/golang.org/x/exp/slices)
-				if !slices.Contains(p.Exclude, testName) {
+				wildcardMatch := false
+				for _, excludeTest := range p.Exclude {
+					var g glob.Glob
+					g, err := glob.Compile(excludeTest)
+					if err != nil {
+						_ = logError(ctx, err)
+						err = fmt.Errorf("wildcard glob [%s] did not compile: %v", excludeTest, err)
+						return nil, gentester.MakeWildcardCompileError(err)
+					}
+					wildcardMatch = wildcardMatch || g.Match(testName)
+				}
+				if !wildcardMatch {
 					testsToRun[testName] = test
 				} else {
 					log.Debugf(ctx, "Test [%v] excluded", testName)

@@ -58,6 +58,8 @@ func (s *Server) TestAll(ctx context.Context, message *testerpb.TestAllRequest) 
 			switch en.GoaErrorName() {
 			case "include_exclude_both":
 				return nil, goagrpc.NewStatusError(codes.InvalidArgument, err, goagrpc.NewErrorResponse(err))
+			case "wildcard_compile_error":
+				return nil, goagrpc.NewStatusError(codes.InvalidArgument, err, goagrpc.NewErrorResponse(err))
 			}
 		}
 		return nil, goagrpc.EncodeError(err)
