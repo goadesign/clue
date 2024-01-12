@@ -80,9 +80,9 @@ type TestResults struct {
 
 // TesterPayload is the payload type of the tester service test_all method.
 type TesterPayload struct {
-	// Tests to run
+	// Tests to run. Allows wildcards.
 	Include []string
-	// Tests to exclude
+	// Tests to exclude. Allows wildcards.
 	Exclude []string
 }
 

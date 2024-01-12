@@ -108,10 +108,10 @@ var TestResults = Type("TestResults", func() {
 
 var SystemTestPayload = Type("TesterPayload", func() {
 	Description("Payload for the tester service")
-	Field(1, "Include", ArrayOf(String), "Tests to run", func() {
+	Field(1, "Include", ArrayOf(String), "Tests to run. Allows wildcards.", func() {
 		Example([]string{"TestNameToInclude"})
 	})
-	Field(2, "Exclude", ArrayOf(String), "Tests to exclude", func() {
+	Field(2, "Exclude", ArrayOf(String), "Tests to exclude. Allows wildcards.", func() {
 		Example([]string{"TestNameToExclude"})
 	})
 })
