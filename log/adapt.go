@@ -72,12 +72,11 @@ func AsStdLogger(ctx context.Context) *StdLogger {
 //
 //	import "github.com/aws/aws-sdk-go-v2/config"
 //	import "goa.design/clue/log"
-//	import "goa.design/clue/trace"
 //
 //	ctx := log.Context(context.Background())
-//	tracedClient := &http.Client{Transport: trace.Client(ctx, http.DefaultTransport)}
+//	httpc := &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
 //	cfg, err := config.LoadDefaultConfig(ctx,
-//	    config.WithHTTPClient(tracedClient),
+//	    config.WithHTTPClient(httpc),
 //	    config.WithLogger(log.AsAWSLogger(ctx)))
 func AsAWSLogger(ctx context.Context) *AWSLogger {
 	return &AWSLogger{ctx}

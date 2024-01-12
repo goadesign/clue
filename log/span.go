@@ -6,13 +6,13 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// Log is a log key/value pair generator function that can be used to log trace
-// and span IDs. Example:
+// Span is a log key/value pair generator function that can be used to log trace
+// and span IDs. Usage:
 //
-//	ctx := log.Context(ctx, WithFunc(trace.Log))
+//	ctx := log.Context(ctx, WithFunc(log.Span))
 //	log.Printf(ctx, "message")
 //
-//	Output: traceID=<trace-id> spanID=<span-id> message
+//	Output: trace_id=<trace id> span_id=<span id> message
 func Span(ctx context.Context) (kvs []KV) {
 	spanContext := trace.SpanFromContext(ctx).SpanContext()
 	if spanContext.IsValid() {
