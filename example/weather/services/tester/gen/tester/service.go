@@ -90,3 +90,8 @@ type TesterPayload struct {
 func MakeIncludeExcludeBoth(err error) *goa.ServiceError {
 	return goa.NewServiceError(err, "include_exclude_both", false, false, false)
 }
+
+// MakeWildcardCompileError builds a goa.ServiceError from an error.
+func MakeWildcardCompileError(err error) *goa.ServiceError {
+	return goa.NewServiceError(err, "wildcard_compile_error", false, false, false)
+}
