@@ -27,11 +27,21 @@ func (svc *Service) TestAll(ctx context.Context, p *gentester.TesterPayload) (re
 	forecasterResults, err := svc.TestForecaster(ctx)
 	if err != nil {
 		_ = logError(ctx, err)
+		// filteringPayload needs reset as TestAll calls the OTHER test methods
+		// and we only want a filteringPayload if it came via TestAll.
+		// if the other test methods are called directly (e.g. TestForecaster)
+		// it doesn't accept a gentester.TesterPayload
+		filteringPayload = &gentester.TesterPayload{}
 		return nil, err
 	}
 	locatorResults, err := svc.TestLocator(ctx)
 	if err != nil {
 		_ = logError(ctx, err)
+		// filteringPayload needs reset as TestAll calls the OTHER test methods
+		// and we only want a filteringPayload if it came via TestAll.
+		// if the other test methods are called directly (e.g. TestForecaster)
+		// it doesn't accept a gentester.TesterPayload
+		filteringPayload = &gentester.TesterPayload{}
 		return nil, err
 	}
 
@@ -46,6 +56,11 @@ func (svc *Service) TestAll(ctx context.Context, p *gentester.TesterPayload) (re
 		retval.FailCount += r.FailCount
 	}
 
+	// filteringPayload needs reset as TestAll calls the OTHER test methods
+	// and we only want a filteringPayload if it came via TestAll.
+	// if the other test methods are called directly (e.g. TestForecaster)
+	// it doesn't accept a gentester.TesterPayload
+	filteringPayload = &gentester.TesterPayload{}
 	return &retval, nil
 }
 
@@ -58,20 +73,20 @@ func (svc *Service) TestSmoke(ctx context.Context) (res *gentester.TestResults, 
 	return svc.runTests(ctx, filteringPayload, &smokeCollection, svc.smokeTestMap, false)
 }
 
-// Runs the ACL Service tests as a collection in parallel
+// Runs the Forecaster Service tests as a collection in parallel
 func (svc *Service) TestForecaster(ctx context.Context) (res *gentester.TestResults, err error) {
-	// ACL tests
-	aclCollection := TestCollection{
+	// Forecaster tests
+	forecasterCollection := TestCollection{
 		Name: "Forecaster Tests",
 	}
-	return svc.runTests(ctx, filteringPayload, &aclCollection, svc.forecasterTestMap, false)
+	return svc.runTests(ctx, filteringPayload, &forecasterCollection, svc.forecasterTestMap, false)
 }
 
-// Runs the Login Service tests as a collection synchronously
+// Runs the Locator Service tests as a collection synchronously
 func (svc *Service) TestLocator(ctx context.Context) (res *gentester.TestResults, err error) {
-	// Login tests
-	loginCollection := TestCollection{
+	// Locator tests
+	locatorCollection := TestCollection{
 		Name: "Locator Tests",
 	}
-	return svc.runTests(ctx, filteringPayload, &loginCollection, svc.locatorTestMap, true)
+	return svc.runTests(ctx, filteringPayload, &locatorCollection, svc.locatorTestMap, true)
 }

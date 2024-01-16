@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
+	"runtime"
 	"runtime/debug"
 	"strings"
 	"sync"
@@ -26,7 +28,7 @@ func endTest(tr *gentester.TestResult, start time.Time, tc *TestCollection, resu
 	tc.AppendTestResult(results...)
 }
 
-func getStackTrace(wg *sync.WaitGroup, m *sync.Mutex) string {
+func getStackTrace(wg *sync.WaitGroup, m *sync.Mutex) (string, error) {
 	m.Lock()
 	defer wg.Done()
 	defer m.Unlock()
@@ -34,46 +36,68 @@ func getStackTrace(wg *sync.WaitGroup, m *sync.Mutex) string {
 	old := os.Stderr
 	f, w, _ := os.Pipe()
 	os.Stderr = w
-	defer w.Close()
 
 	debug.PrintStack()
+	w.Close()
 
-	outC := make(chan string)
+	outC := make(chan string, 1)
+	outErr := make(chan error, 1)
 	go func() {
 		var buf bytes.Buffer
-		io.Copy(&buf, f) // nolint: errcheck
-		outC <- buf.String()
+		_, err := io.Copy(&buf, f)
+		if err != nil {
+			outErr <- err
+			outC <- ""
+		} else {
+			outErr <- nil
+			outC <- buf.String()
+		}
 	}()
 
 	// restoring the real stderr
 	os.Stderr = old
-	out := <-outC
 
-	return out
+	if err := <-outErr; err != nil {
+		return "", err
+	} else {
+		out := <-outC
+		return out, nil
+	}
 }
 
 // recovers from a panicked test. This is used to ensure that the test
 // suite does not crash if a test panics.
-func recoverFromTestPanic(ctx context.Context, testName string, testCollection *TestCollection) {
+func recoverFromTestPanic(ctx context.Context, testNameFunc func() string, testCollection *TestCollection) {
 	if r := recover(); r != nil {
-		msg := fmt.Sprintf("[Panic Test]: %v", testName)
+		msg := fmt.Sprintf("[Panic Test]: %v", testNameFunc())
 		err := errors.New(msg)
 		log.Errorf(ctx, err, fmt.Sprintf("%v", r))
 		var m sync.Mutex
 		var wg sync.WaitGroup
 		wg.Add(1)
-		trace := getStackTrace(&wg, &m)
+		trace, err := getStackTrace(&wg, &m)
 		wg.Wait()
-		err = fmt.Errorf("%v : %v", r, trace)
-		// log the error and add the test result to the test collection
-		_ = logError(ctx, err)
-		resultMsg := fmt.Sprintf("%v | %v", msg, r)
-		testCollection.AppendTestResult(&gentester.TestResult{
-			Name:     testName,
-			Passed:   false,
-			Error:    &resultMsg,
-			Duration: -1,
-		})
+		if err != nil {
+			err = fmt.Errorf("error getting stack trace for panicked test: %v", err)
+			resultMsg := err.Error()
+			testCollection.AppendTestResult(&gentester.TestResult{
+				Name:     testNameFunc(),
+				Passed:   false,
+				Error:    &resultMsg,
+				Duration: -1,
+			})
+		} else {
+			err = fmt.Errorf("%v : %v", r, trace)
+			// log the error and add the test result to the test collection
+			_ = logError(ctx, err)
+			resultMsg := fmt.Sprintf("%v | %v", msg, r)
+			testCollection.AppendTestResult(&gentester.TestResult{
+				Name:     testNameFunc(),
+				Passed:   false,
+				Error:    &resultMsg,
+				Duration: -1,
+			})
+		}
 	}
 }
 
@@ -98,6 +122,21 @@ func matchTestFilter(ctx context.Context, test string, testMap map[string]func(c
 		i++
 	}
 	return testMatches, nil
+}
+
+// The test name is calculated by using reflection of the test funciton to get its
+// name. This is done because in the case of a panic, the test name is not accessible
+// from within the test function itself where it is set.
+func getTestName(test func(context.Context, *TestCollection)) string {
+	if test == nil {
+		return ""
+	}
+	testFuncPointer := runtime.FuncForPC(reflect.ValueOf(test).Pointer())
+	if testFuncPointer == nil {
+		return ""
+	}
+	testNameFull := testFuncPointer.Name()
+	return strings.Split(strings.Split(testNameFull, ".")[3], "-")[0]
 }
 
 // Runs the tests from the testmap and handles filtering/exclusion of tests
@@ -162,22 +201,50 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 
 	// Run the tests that need to be run and add the results to the testCollection.Results array
 	if runSynchronously {
+		// RunSynchronously is used for test collections that need to be run one after in order
+		// to avoid single resource contention between tests if they are run in parallel. An
+		// example of this is tests that rely on the same cloud resource, such as a spreadsheet,
+		// as part of their test functionality.
+		//
+		// testName is passed to recoverFromTestPanic as a function so that, via a closure, its
+		// name can be set before the test is run but after the defer of recoverFromTestPanic is
+		// declared. This is done because the test name is not accessible from within the test
+		// function itself where it is set.
 		log.Infof(ctx, "RUNNING TESTS SYNCHRONOUSLY")
-		for n, test := range testsToRun {
-			log.Infof(ctx, "RUNNING TEST [%v]", n)
-			test(ctx, testCollection)
-		}
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			testName := ""
+			testNameFunc := func() string {
+				return testName
+			}
+			defer recoverFromTestPanic(ctx, testNameFunc, testCollection)
+			for name, test := range testsToRun {
+				testName = getTestName(test)
+				log.Infof(ctx, "RUNNING TEST [%v]", name)
+				test(ctx, testCollection)
+			}
+		}()
+		wg.Wait()
 	} else {
+		// if not run synchronously, run the tests in parallel and assumed not to have resource
+		// contention
 		log.Infof(ctx, "RUNNING TESTS IN PARALLEL")
 		wg := sync.WaitGroup{}
-		for n, test := range testsToRun {
+		for name, test := range testsToRun {
 			wg.Add(1)
-			go func(f func(context.Context, *TestCollection), testName string) {
+			go func(f func(context.Context, *TestCollection), testNameRunning string) {
 				defer wg.Done()
-				defer recoverFromTestPanic(ctx, testName, testCollection)
-				log.Infof(ctx, "RUNNING TEST [%v]", testName)
+				testName := ""
+				testNameFunc := func() string {
+					return testName
+				}
+				defer recoverFromTestPanic(ctx, testNameFunc, testCollection)
+				testName = getTestName(f)
+				log.Infof(ctx, "RUNNING TEST [%v]", testNameRunning)
 				f(ctx, testCollection)
-			}(test, n)
+			}(test, name)
 		}
 		wg.Wait()
 	}
