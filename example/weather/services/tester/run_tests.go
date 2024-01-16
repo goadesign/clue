@@ -220,9 +220,9 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 				return testName
 			}
 			defer recoverFromTestPanic(ctx, testNameFunc, testCollection)
-			for name, test := range testsToRun {
+			for _, test := range testsToRun {
 				testName = getTestName(test)
-				log.Infof(ctx, "RUNNING TEST [%v]", name)
+				log.Infof(ctx, "RUNNING TEST [%v]", testName)
 				test(ctx, testCollection)
 			}
 		}()
@@ -232,9 +232,9 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 		// contention
 		log.Infof(ctx, "RUNNING TESTS IN PARALLEL")
 		wg := sync.WaitGroup{}
-		for name, test := range testsToRun {
+		for _, test := range testsToRun {
 			wg.Add(1)
-			go func(f func(context.Context, *TestCollection), testNameRunning string) {
+			go func(f func(context.Context, *TestCollection)) {
 				defer wg.Done()
 				testName := ""
 				testNameFunc := func() string {
@@ -242,9 +242,9 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 				}
 				defer recoverFromTestPanic(ctx, testNameFunc, testCollection)
 				testName = getTestName(f)
-				log.Infof(ctx, "RUNNING TEST [%v]", testNameRunning)
+				log.Infof(ctx, "RUNNING TEST [%v]", testName)
 				f(ctx, testCollection)
-			}(test, name)
+			}(test)
 		}
 		wg.Wait()
 	}
