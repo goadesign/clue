@@ -18,30 +18,27 @@ func (t *TestCollection) AppendTestResult(tr ...*gentester.TestResult) {
 	t.Results = append(t.Results, tr...)
 }
 
-var filteringPayload = &gentester.TesterPayload{}
-
 // Runs all test collections EXCEPT smoke tests (those are in their own collections as well)
 func (svc *Service) TestAll(ctx context.Context, p *gentester.TesterPayload) (res *gentester.TestResults, err error) {
 	retval := gentester.TestResults{}
-	filteringPayload = p
-	forecasterResults, err := svc.TestForecaster(ctx)
+
+	// Forecaster tests
+	forecasterCollection := TestCollection{
+		Name: "Forecaster Tests",
+	}
+	forecasterResults, err := svc.runTests(ctx, p, &forecasterCollection, svc.forecasterTestMap, false)
 	if err != nil {
 		_ = logError(ctx, err)
-		// filteringPayload needs reset as TestAll calls the OTHER test methods
-		// and we only want a filteringPayload if it came via TestAll.
-		// if the other test methods are called directly (e.g. TestForecaster)
-		// it doesn't accept a gentester.TesterPayload
-		filteringPayload = &gentester.TesterPayload{}
 		return nil, err
 	}
-	locatorResults, err := svc.TestLocator(ctx)
+
+	// Locator tests
+	locatorCollection := TestCollection{
+		Name: "Locator Tests",
+	}
+	locatorResults, err := svc.runTests(ctx, p, &locatorCollection, svc.locatorTestMap, true)
 	if err != nil {
 		_ = logError(ctx, err)
-		// filteringPayload needs reset as TestAll calls the OTHER test methods
-		// and we only want a filteringPayload if it came via TestAll.
-		// if the other test methods are called directly (e.g. TestForecaster)
-		// it doesn't accept a gentester.TesterPayload
-		filteringPayload = &gentester.TesterPayload{}
 		return nil, err
 	}
 
@@ -56,11 +53,6 @@ func (svc *Service) TestAll(ctx context.Context, p *gentester.TesterPayload) (re
 		retval.FailCount += r.FailCount
 	}
 
-	// filteringPayload needs reset as TestAll calls the OTHER test methods
-	// and we only want a filteringPayload if it came via TestAll.
-	// if the other test methods are called directly (e.g. TestForecaster)
-	// it doesn't accept a gentester.TesterPayload
-	filteringPayload = &gentester.TesterPayload{}
 	return &retval, nil
 }
 
@@ -70,7 +62,7 @@ func (svc *Service) TestSmoke(ctx context.Context) (res *gentester.TestResults, 
 	smokeCollection := TestCollection{
 		Name: "Smoke Tests",
 	}
-	return svc.runTests(ctx, filteringPayload, &smokeCollection, svc.smokeTestMap, false)
+	return svc.runTests(ctx, nil, &smokeCollection, svc.smokeTestMap, false)
 }
 
 // Runs the Forecaster Service tests as a collection in parallel
@@ -79,7 +71,7 @@ func (svc *Service) TestForecaster(ctx context.Context) (res *gentester.TestResu
 	forecasterCollection := TestCollection{
 		Name: "Forecaster Tests",
 	}
-	return svc.runTests(ctx, filteringPayload, &forecasterCollection, svc.forecasterTestMap, false)
+	return svc.runTests(ctx, nil, &forecasterCollection, svc.forecasterTestMap, false)
 }
 
 // Runs the Locator Service tests as a collection synchronously
@@ -88,5 +80,5 @@ func (svc *Service) TestLocator(ctx context.Context) (res *gentester.TestResults
 	locatorCollection := TestCollection{
 		Name: "Locator Tests",
 	}
-	return svc.runTests(ctx, filteringPayload, &locatorCollection, svc.locatorTestMap, true)
+	return svc.runTests(ctx, nil, &locatorCollection, svc.locatorTestMap, true)
 }
