@@ -12,7 +12,7 @@ import (
 func (svc *Service) TestForecasterValidLatLong(ctx context.Context, tc *TestCollection) {
 	results := []*gentester.TestResult{}
 	start := time.Now()
-	name := "Forecaster.TestValidLatLong"
+	name := "TestForecasterValidLatLong"
 	passed := true
 	testRes := gentester.TestResult{
 		Name:   name,
@@ -62,7 +62,7 @@ func (svc *Service) TestForecasterValidLatLong(ctx context.Context, tc *TestColl
 func (svc *Service) TestForecasterInvalidLat(ctx context.Context, tc *TestCollection) {
 	results := []*gentester.TestResult{}
 	start := time.Now()
-	name := "Forecaster.InvalidLat"
+	name := "TestForecasterInvalidLat"
 	passed := true
 	testRes := gentester.TestResult{
 		Name:   name,
@@ -98,7 +98,7 @@ func (svc *Service) TestForecasterInvalidLat(ctx context.Context, tc *TestCollec
 func (svc *Service) TestForecasterInvalidLong(ctx context.Context, tc *TestCollection) {
 	results := []*gentester.TestResult{}
 	start := time.Now()
-	name := "Forecaster.InvalidLong"
+	name := "TestForecasterInvalidLong"
 	passed := true
 	testRes := gentester.TestResult{
 		Name:   name,

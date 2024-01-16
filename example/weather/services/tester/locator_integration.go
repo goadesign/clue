@@ -11,7 +11,7 @@ import (
 func (svc *Service) TestLocatorValidIP(ctx context.Context, tc *TestCollection) {
 	results := []*gentester.TestResult{}
 	start := time.Now()
-	name := "Locator.TestValidIP"
+	name := "TestLocatorValidIP"
 	passed := true
 	testRes := gentester.TestResult{
 		Name:   name,
@@ -40,7 +40,7 @@ func (svc *Service) TestLocatorValidIP(ctx context.Context, tc *TestCollection) 
 func (svc *Service) TestLocatorInvalidIP(ctx context.Context, tc *TestCollection) {
 	results := []*gentester.TestResult{}
 	start := time.Now()
-	name := "Locator.TestInvalidIP"
+	name := "TestLocatorInvalidIP"
 	passed := true
 	testRes := gentester.TestResult{
 		Name:   name,
