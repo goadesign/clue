@@ -7,8 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"reflect"
-	"runtime"
+	"regexp"
 	"runtime/debug"
 	"strings"
 	"sync"
@@ -45,13 +44,8 @@ func getStackTrace(wg *sync.WaitGroup, m *sync.Mutex) (string, error) {
 	go func() {
 		var buf bytes.Buffer
 		_, err := io.Copy(&buf, f)
-		if err != nil {
-			outErr <- err
-			outC <- ""
-		} else {
-			outErr <- nil
-			outC <- buf.String()
-		}
+		outErr <- err
+		outC <- buf.String()
 	}()
 
 	// restoring the real stderr
@@ -59,10 +53,9 @@ func getStackTrace(wg *sync.WaitGroup, m *sync.Mutex) (string, error) {
 
 	if err := <-outErr; err != nil {
 		return "", err
-	} else {
-		out := <-outC
-		return out, nil
 	}
+	out := <-outC
+	return out, nil
 }
 
 // recovers from a panicked test. This is used to ensure that the test
@@ -77,66 +70,78 @@ func recoverFromTestPanic(ctx context.Context, testNameFunc func() string, testC
 		wg.Add(1)
 		trace, err := getStackTrace(&wg, &m)
 		wg.Wait()
+		var resultMsg string
 		if err != nil {
 			err = fmt.Errorf("error getting stack trace for panicked test: %v", err)
-			resultMsg := err.Error()
-			testCollection.AppendTestResult(&gentester.TestResult{
-				Name:     testNameFunc(),
-				Passed:   false,
-				Error:    &resultMsg,
-				Duration: -1,
-			})
+			resultMsg = err.Error()
 		} else {
 			err = fmt.Errorf("%v : %v", r, trace)
 			// log the error and add the test result to the test collection
 			_ = logError(ctx, err)
-			resultMsg := fmt.Sprintf("%v | %v", msg, r)
-			testCollection.AppendTestResult(&gentester.TestResult{
-				Name:     testNameFunc(),
-				Passed:   false,
-				Error:    &resultMsg,
-				Duration: -1,
-			})
+			resultMsg = fmt.Sprintf("%v | %v", msg, r)
 		}
+		testCollection.AppendTestResult(&gentester.TestResult{
+			Name:     testNameFunc(),
+			Passed:   false,
+			Error:    &resultMsg,
+			Duration: -1,
+		})
 	}
 }
 
-// Filters a testMap based on a test name that is a glob string
-// using standard wildcards https://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm
-func matchTestFilter(ctx context.Context, test string, testMap map[string]func(context.Context, *TestCollection)) ([]func(context.Context, *TestCollection), error) {
-	match := false
-	var testMatches []func(context.Context, *TestCollection)
-	var g glob.Glob
-	g, err := glob.Compile(test)
-	if err != nil {
-		_ = logError(ctx, err)
-		err = fmt.Errorf("wildcard glob [%s] did not compile: %v", test, err)
-		return testMatches, err
+// Converts a wildcard string using * to a regular expression string
+func wildCardToRegexp(pattern string) string {
+	components := strings.Split(pattern, "*")
+	if len(components) == 1 {
+		// if len is 1, there are no *'s, return exact match pattern
+		return "^" + pattern + "$"
 	}
+	var result strings.Builder
+	for i, literal := range components {
+
+		// Replace * with .*
+		if i > 0 {
+			result.WriteString(".*")
+		}
+
+		// Quote any regular expression meta characters in the
+		// literal text.
+		result.WriteString(regexp.QuoteMeta(literal))
+	}
+	return "^" + result.String() + "$"
+}
+
+// wraps wildCardToRegexp and returns a bool indicating whether the value
+// matches the pattern, the string matched, and an error if one occurred
+func match(pattern string, value string) (bool, string, error) {
+	r, err := regexp.Compile(wildCardToRegexp(pattern))
+	if err != nil {
+		return false, "", err
+	}
+	matches := r.FindStringSubmatch(value)
+	if len(matches) > 0 {
+		return true, matches[0], nil
+	} else {
+		return false, "", nil
+	}
+}
+
+// Filters a testMap based on a test name that is a glob string using only
+// * wildcards
+func matchTestFilterRegex(ctx context.Context, test string, testMap map[string]func(context.Context, *TestCollection)) (map[string]func(context.Context, *TestCollection), error) {
+	retval := make(map[string]func(context.Context, *TestCollection))
 	i := 0
 	for testName := range testMap {
-		match = g.Match(testName)
-		if match {
-			testMatches = append(testMatches, testMap[testName])
+		_, matchString, err := match(test, testName)
+		if err != nil {
+			return nil, err
+		}
+		if matchString != "" {
+			retval[matchString] = testMap[testName]
 		}
 		i++
 	}
-	return testMatches, nil
-}
-
-// The test name is calculated by using reflection of the test funciton to get its
-// name. This is done because in the case of a panic, the test name is not accessible
-// from within the test function itself where it is set.
-func getTestName(test func(context.Context, *TestCollection)) string {
-	if test == nil {
-		return ""
-	}
-	testFuncPointer := runtime.FuncForPC(reflect.ValueOf(test).Pointer())
-	if testFuncPointer == nil {
-		return ""
-	}
-	testNameFull := testFuncPointer.Name()
-	return strings.Split(strings.Split(testNameFull, ".")[3], "-")[0]
+	return retval, nil
 }
 
 // Runs the tests from the testmap and handles filtering/exclusion of tests
@@ -160,13 +165,13 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 				if testFunc, ok := testMap[test]; ok {
 					testsToRun[test] = testFunc
 				} else { // Test didn't match exactly, so we're gonna try for a wildcard match
-					testFuncs, err := matchTestFilter(ctx, test, testMap)
+					testFuncs, err := matchTestFilterRegex(ctx, test, testMap)
 					if err != nil {
 						return nil, gentester.MakeWildcardCompileError(err)
 					}
 					if len(testFuncs) > 0 {
-						for i, testFunc := range testFuncs {
-							testsToRun[fmt.Sprintf("%s_%d", test, i)] = testFunc
+						for testName, testFunc := range testFuncs {
+							testsToRun[testName] = testFunc
 						}
 					} else { // No wildcard match either
 						err := fmt.Errorf("test [%v] not found in test map", test)
@@ -220,8 +225,8 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 				return testName
 			}
 			defer recoverFromTestPanic(ctx, testNameFunc, testCollection)
-			for _, test := range testsToRun {
-				testName = getTestName(test)
+			for testNameRunning, test := range testsToRun {
+				testName = testNameRunning
 				log.Infof(ctx, "RUNNING TEST [%v]", testName)
 				test(ctx, testCollection)
 			}
@@ -232,19 +237,19 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 		// contention
 		log.Infof(ctx, "RUNNING TESTS IN PARALLEL")
 		wg := sync.WaitGroup{}
-		for _, test := range testsToRun {
+		for name, test := range testsToRun {
 			wg.Add(1)
-			go func(f func(context.Context, *TestCollection)) {
+			go func(f func(context.Context, *TestCollection), testNameRunning string) {
 				defer wg.Done()
 				testName := ""
 				testNameFunc := func() string {
 					return testName
 				}
 				defer recoverFromTestPanic(ctx, testNameFunc, testCollection)
-				testName = getTestName(f)
-				log.Infof(ctx, "RUNNING TEST [%v]", testName)
+				testName = testNameRunning
+				log.Infof(ctx, "RUNNING TEST [%v]", testNameRunning)
 				f(ctx, testCollection)
-			}(test)
+			}(test, name)
 		}
 		wg.Wait()
 	}
