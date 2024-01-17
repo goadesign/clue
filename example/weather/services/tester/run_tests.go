@@ -13,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gobwas/glob"
 	"goa.design/clue/log"
 
 	gentester "goa.design/clue/example/weather/services/tester/gen/tester"
@@ -183,14 +182,11 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 			for testName, test := range testMap {
 				wildcardMatch := false
 				for _, excludeTest := range p.Exclude {
-					var g glob.Glob
-					g, err := glob.Compile(excludeTest)
+					wildcardMatchThisTest, _, err := match(excludeTest, testName)
 					if err != nil {
-						_ = logError(ctx, err)
-						err = fmt.Errorf("wildcard glob [%s] did not compile: %v", excludeTest, err)
 						return nil, gentester.MakeWildcardCompileError(err)
 					}
-					wildcardMatch = wildcardMatch || g.Match(testName)
+					wildcardMatch = wildcardMatch || wildcardMatchThisTest
 				}
 				if !wildcardMatch {
 					testsToRun[testName] = test
