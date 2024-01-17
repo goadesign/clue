@@ -237,12 +237,10 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 			wg.Add(1)
 			go func(f func(context.Context, *TestCollection), testNameRunning string) {
 				defer wg.Done()
-				testName := ""
 				testNameFunc := func() string {
-					return testName
+					return testNameRunning
 				}
 				defer recoverFromTestPanic(ctx, testNameFunc, testCollection)
-				testName = testNameRunning
 				log.Infof(ctx, "RUNNING TEST [%v]", testNameRunning)
 				f(ctx, testCollection)
 			}(test, name)
