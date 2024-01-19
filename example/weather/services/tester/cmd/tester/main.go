@@ -34,9 +34,9 @@ import (
 
 func main() {
 	var (
-		grpcaddr             = flag.String("grpc-addr", ":8090", "gRPC listen address")
-		httpaddr             = flag.String("http-addr", ":8091", "HTTP listen address (health checks and metrics)")
-		oteladdr             = flag.String("otel-addr", ":4317", "OpenTelemetry collector listen address")
+		grpcAddr             = flag.String("grpc-addr", ":8090", "gRPC listen address")
+		httpAddr             = flag.String("http-addr", ":8091", "HTTP listen address (health checks and metrics)")
+		otelAddr             = flag.String("otel-addr", ":4317", "OpenTelemetry collector listen address")
 		forecasterAddr       = flag.String("forecaster-addr", ":8080", "Forecaster service address")
 		forecasterHealthAddr = flag.String("forecaster-health-addr", ":8081", "Forecaster service health-check address")
 		locatorAddr          = flag.String("locator-addr", ":8082", "Locator service address")
@@ -57,40 +57,18 @@ func main() {
 	}
 
 	// 2. Setup isntrumentation
-	spanExporter, err := otlptracegrpc.New(ctx,
-		otlptracegrpc.WithEndpoint(*oteladdr),
-		otlptracegrpc.WithTLSCredentials(insecure.NewCredentials()))
+	spanExporter, seShutdown, err := clue.NewGRPCSpanExporter(ctx, otlptracegrpc.WithEndpoint(*otelAddr), otlptracegrpc.WithTLSCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf(ctx, err, "failed to initialize tracing")
+		log.Fatalf(ctx, err, "failed to initialize span exporter")
 	}
-	defer func() {
-		// Create new context in case the parent context has been canceled.
-		ctx := log.Context(context.Background(), log.WithFormat(format))
-		err := spanExporter.Shutdown(ctx)
-		if err != nil {
-			log.Errorf(ctx, err, "failed to shutdown tracing")
-		}
-	}()
-	metricExporter, err := otlpmetricgrpc.New(ctx,
-		otlpmetricgrpc.WithEndpoint(*oteladdr),
-		otlpmetricgrpc.WithTLSCredentials(insecure.NewCredentials()))
+	defer seShutdown()
+	metricExporter, meShutdown, err := clue.NewGRPCMetricExporter(ctx, otlpmetricgrpc.WithEndpoint(*otelAddr), otlpmetricgrpc.WithTLSCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf(ctx, err, "failed to initialize metrics")
+		log.Fatalf(ctx, err, "failed to initialize metric exporter")
 	}
-	defer func() {
-		// Create new context in case the parent context has been canceled.
-		ctx := log.Context(context.Background(), log.WithFormat(format))
-		err := metricExporter.Shutdown(ctx)
-		if err != nil {
-			log.Errorf(ctx, err, "failed to shutdown metrics")
-		}
-	}()
-	cfg, err := clue.NewConfig(ctx,
-		gentester.ServiceName,
-		gentester.APIVersion,
-		metricExporter,
-		spanExporter,
-	)
+	defer meShutdown()
+	otelName := gentester.APIName + "/" + gentester.ServiceName
+	cfg, err := clue.NewConfig(ctx, otelName, gentester.APIVersion, metricExporter, spanExporter)
 	if err != nil {
 		log.Fatalf(ctx, err, "failed to initialize instrumentation")
 	}
@@ -145,7 +123,7 @@ func main() {
 		health.NewPinger("forecaster", *forecasterHealthAddr)))
 	mux.Handle("/healthz", check)
 	mux.Handle("/livez", check)
-	httpsvr := &http.Server{Addr: *httpaddr, Handler: mux}
+	httpsvr := &http.Server{Addr: *httpAddr, Handler: mux}
 
 	// 7. Start gRPC and HTTP servers
 	errc := make(chan error)
@@ -169,7 +147,7 @@ func main() {
 		var l net.Listener
 		go func() {
 			var err error
-			l, err = net.Listen("tcp", *grpcaddr)
+			l, err = net.Listen("tcp", *grpcAddr)
 			if err != nil {
 				errc <- err
 			}

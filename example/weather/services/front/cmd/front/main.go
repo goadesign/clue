@@ -40,7 +40,7 @@ func main() {
 		forecasterHealthAddr = flag.String("forecaster-health-addr", ":8081", "Forecaster service health-check address")
 		locatorAddr          = flag.String("locator-addr", ":8082", "Locator service address")
 		locatorHealthAddr    = flag.String("locator-health-addr", ":8083", "Locator service health-check address")
-		coladdr              = flag.String("otel-addr", ":4317", "OpenTelemtry collector listen address")
+		otelAddr             = flag.String("otel-addr", ":4317", "OpenTelemtry collector listen address")
 		debugf               = flag.Bool("debug", false, "Enable debug logs")
 		testerAddr           = flag.String("tester-addr", ":8090", "Tester service address")
 	)
@@ -58,38 +58,18 @@ func main() {
 	}
 
 	// 2. Setup instrumentation
-	spanExporter, err := otlptracegrpc.New(ctx,
-		otlptracegrpc.WithEndpoint(*coladdr),
-		otlptracegrpc.WithTLSCredentials(insecure.NewCredentials()))
+	spanExporter, seShutdown, err := clue.NewGRPCSpanExporter(ctx, otlptracegrpc.WithEndpoint(*otelAddr), otlptracegrpc.WithTLSCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf(ctx, err, "failed to initialize tracing")
+		log.Fatalf(ctx, err, "failed to initialize span exporter")
 	}
-	defer func() {
-		// Create new context in case the parent context has been canceled.
-		ctx := log.Context(context.Background(), log.WithFormat(format))
-		if err := spanExporter.Shutdown(ctx); err != nil {
-			log.Errorf(ctx, err, "failed to shutdown tracing")
-		}
-	}()
-	metricExporter, err := otlpmetricgrpc.New(ctx,
-		otlpmetricgrpc.WithEndpoint(*coladdr),
-		otlpmetricgrpc.WithTLSCredentials(insecure.NewCredentials()))
+	defer seShutdown()
+	metricExporter, meShutdown, err := clue.NewGRPCMetricExporter(ctx, otlpmetricgrpc.WithEndpoint(*otelAddr), otlpmetricgrpc.WithTLSCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf(ctx, err, "failed to initialize metrics")
+		log.Fatalf(ctx, err, "failed to initialize metric exporter")
 	}
-	defer func() {
-		// Create new context in case the parent context has been canceled.
-		ctx := log.Context(context.Background(), log.WithFormat(format))
-		if err := metricExporter.Shutdown(ctx); err != nil {
-			log.Errorf(ctx, err, "failed to shutdown metrics")
-		}
-	}()
-	cfg, err := clue.NewConfig(ctx,
-		genfront.ServiceName,
-		genfront.APIVersion,
-		metricExporter,
-		spanExporter,
-	)
+	defer meShutdown()
+	otelName := genfront.APIName + "/" + genfront.ServiceName
+	cfg, err := clue.NewConfig(ctx, otelName, genfront.APIVersion, metricExporter, spanExporter)
 	if err != nil {
 		log.Fatalf(ctx, err, "failed to initialize instrumentation")
 	}
@@ -149,7 +129,7 @@ func main() {
 	check := health.Handler(health.NewChecker(
 		health.NewPinger("locator", *locatorHealthAddr),
 		health.NewPinger("forecaster", *forecasterHealthAddr)))
-	check = log.HTTP(ctx)(check).(http.HandlerFunc) // Log health-check errors
+	check = log.HTTP(ctx, log.WithDisableRequestLogging())(check).(http.HandlerFunc) // Log health-check errors
 	http.Handle("/healthz", check)
 	http.Handle("/livez", check)
 	metricsServer := &http.Server{Addr: *metricsListenAddr}
