@@ -54,6 +54,10 @@ exclude).
 `Include` and `Exclude` are mutually exclusive and cannot be used together. If that is done then
 the `TestAll` method will return a `400 Bad Request` error.
 
+`Include` and `Exclude` can accept `*`` wildcards to match multiple tests. For example, if you
+wanted to run all tests that start with `TestForecaster` you could pass `TestForecaster*` to the
+`Include` field.
+
 ### TestForecaster & TestLocator methods
 
 These methods run all tests defined for those services as found in `services/tester/func_map.go`.
