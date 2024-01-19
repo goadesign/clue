@@ -59,9 +59,9 @@ func getStackTrace(wg *sync.WaitGroup, m *sync.Mutex) (string, error) {
 
 // recovers from a panicked test. This is used to ensure that the test
 // suite does not crash if a test panics.
-func recoverFromTestPanic(ctx context.Context, testNameFunc func() string, testCollection *TestCollection) {
+func recoverFromTestPanic(ctx context.Context, testName string, testCollection *TestCollection) {
 	if r := recover(); r != nil {
-		msg := fmt.Sprintf("[Panic Test]: %v", testNameFunc())
+		msg := fmt.Sprintf("[Panic Test]: %v", testName)
 		err := errors.New(msg)
 		log.Errorf(ctx, err, fmt.Sprintf("%v", r))
 		var m sync.Mutex
@@ -80,7 +80,7 @@ func recoverFromTestPanic(ctx context.Context, testNameFunc func() string, testC
 			resultMsg = fmt.Sprintf("%v | %v", msg, r)
 		}
 		testCollection.AppendTestResult(&gentester.TestResult{
-			Name:     testNameFunc(),
+			Name:     testName,
 			Passed:   false,
 			Error:    &resultMsg,
 			Duration: -1,
@@ -216,14 +216,9 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			testName := ""
-			testNameFunc := func() string {
-				return testName
-			}
-			defer recoverFromTestPanic(ctx, testNameFunc, testCollection)
 			for testNameRunning, test := range testsToRun {
-				testName = testNameRunning
-				log.Infof(ctx, "RUNNING TEST [%v]", testName)
+				defer recoverFromTestPanic(ctx, testNameRunning, testCollection)
+				log.Infof(ctx, "RUNNING TEST [%v]", testNameRunning)
 				test(ctx, testCollection)
 			}
 		}()
@@ -237,10 +232,7 @@ func (svc *Service) runTests(ctx context.Context, p *gentester.TesterPayload, te
 			wg.Add(1)
 			go func(f func(context.Context, *TestCollection), testNameRunning string) {
 				defer wg.Done()
-				testNameFunc := func() string {
-					return testNameRunning
-				}
-				defer recoverFromTestPanic(ctx, testNameFunc, testCollection)
+				defer recoverFromTestPanic(ctx, testNameRunning, testCollection)
 				log.Infof(ctx, "RUNNING TEST [%v]", testNameRunning)
 				f(ctx, testCollection)
 			}(test, name)
