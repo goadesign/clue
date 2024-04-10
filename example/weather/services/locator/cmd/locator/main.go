@@ -27,6 +27,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
+	"goa.design/clue/example/middleware"
 	"goa.design/clue/example/weather/services/locator"
 	"goa.design/clue/example/weather/services/locator/clients/ipapi"
 	genpb "goa.design/clue/example/weather/services/locator/gen/grpc/locator/pb"
@@ -110,6 +111,7 @@ func main() {
 	endpoints := genlocator.NewEndpoints(svc)
 	endpoints.Use(debug.LogPayloads())
 	endpoints.Use(log.Endpoint)
+	endpoints.Use(middleware.ErrorReporter())
 
 	// 5. Create transport
 	server := gengrpc.New(endpoints, nil)

@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"goa.design/clue/example/middleware"
 	"goa.design/clue/example/weather/services/front"
 	"goa.design/clue/example/weather/services/front/clients/forecaster"
 	"goa.design/clue/example/weather/services/front/clients/locator"
@@ -128,6 +129,7 @@ func main() {
 	endpoints := genfront.NewEndpoints(svc)
 	endpoints.Use(debug.LogPayloads())
 	endpoints.Use(log.Endpoint)
+	endpoints.Use(middleware.ErrorReporter())
 
 	// 5. Create transport
 	mux := goahttp.NewMuxer()
