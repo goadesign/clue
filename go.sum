@@ -75,8 +75,8 @@ go.opentelemetry.io/proto/otlp v1.1.0 h1:2Di21piLrCqJ3U3eXGCTPHE9R8Nh+0uglSnOyxi
 go.opentelemetry.io/proto/otlp v1.1.0/go.mod h1:GpBHCBWiqvVLDqmHZsoMM3C5ySeKTC7ej/RNTae6MdY=
 go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
 go.uber.org/goleak v1.3.0/go.mod h1:CoHD4mav9JJNrW/WLlf7HGZPjdw8EucARQHekz1X6bE=
-goa.design/goa/v3 v3.15.1 h1:pM1gT56iblux9RbZDPW0otJbwxbzmBo4JP1E64yk0Xg=
-goa.design/goa/v3 v3.15.1/go.mod h1:EcUOOD0VcSYM/DfhskGBwyE1C1oyHUxb39HvEP74/Fw=
+goa.design/goa/v3 v3.15.2 h1:ziyJuVR+GSBBmQ/Nkr7FDZx9qtEBpRA6wle3hYqJT9Q=
+goa.design/goa/v3 v3.15.2/go.mod h1:zZLxqfk8mZu0Q6fmnnflXYbIJ6BA3SVSB6LSz7Tzcv4=
 golang.org/x/mod v0.16.0 h1:QX4fJ0Rr5cPQCF7O9lh9Se4pmwfwskqZfq5moyldzic=
 golang.org/x/mod v0.16.0/go.mod h1:hTbmBsO62+eylJbnUtE2MGJUyE7QWk4xUqPFrRgJ+7c=
 golang.org/x/net v0.23.0 h1:7EYJ93RZ9vYSZAIb2x3lnuvqO5zneoD6IvWjuhfxjTs=
