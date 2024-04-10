@@ -5,7 +5,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+
 	"goa.design/clue/log"
 )
 
@@ -40,6 +43,11 @@ func TestOptions(t *testing.T) {
 			want:   func(o *options) { o.propagators = propagation.TraceContext{} },
 		},
 		{
+			name:   "with resource",
+			option: WithResource(resource.NewSchemaless(attribute.String("key", "value"))),
+			want:   func(o *options) { o.resource = resource.NewSchemaless(attribute.String("key", "value")) },
+		},
+		{
 			name:   "with error handler",
 			option: WithErrorHandler(dummyErrorHandler{}),
 			want:   func(o *options) { o.errorHandler = dummyErrorHandler{} },
@@ -59,6 +67,7 @@ func TestOptions(t *testing.T) {
 			assert.Equal(t, want.sampleSize, got.sampleSize)
 			assert.Equal(t, want.readerInterval, got.readerInterval)
 			assert.Equal(t, want.propagators, got.propagators)
+			assert.Equal(t, want.resource, got.resource)
 			assert.IsType(t, want.errorHandler, got.errorHandler)
 		})
 	}
