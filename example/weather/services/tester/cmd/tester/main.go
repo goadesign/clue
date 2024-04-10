@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
+	"goa.design/clue/example/middleware"
 	"goa.design/clue/example/weather/services/tester"
 	"goa.design/clue/example/weather/services/tester/clients/forecaster"
 	"goa.design/clue/example/weather/services/tester/clients/locator"
@@ -120,6 +121,7 @@ func main() {
 	endpoints := gentester.NewEndpoints(svc)
 	endpoints.Use(debug.LogPayloads())
 	endpoints.Use(log.Endpoint)
+	endpoints.Use(middleware.ErrorReporter())
 
 	// 5. Create transport
 	server := gengrpc.New(endpoints, nil)

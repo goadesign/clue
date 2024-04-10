@@ -27,6 +27,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
+	"goa.design/clue/example/middleware"
 	"goa.design/clue/example/weather/services/forecaster"
 	"goa.design/clue/example/weather/services/forecaster/clients/weathergov"
 	genforecaster "goa.design/clue/example/weather/services/forecaster/gen/forecaster"
@@ -108,6 +109,7 @@ func main() {
 	endpoints := genforecaster.NewEndpoints(svc)
 	endpoints.Use(debug.LogPayloads())
 	endpoints.Use(log.Endpoint)
+	endpoints.Use(middleware.ErrorReporter())
 
 	// 5. Create transport
 	server := gengrpc.New(endpoints, nil)
