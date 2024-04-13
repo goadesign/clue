@@ -1,2 +1,4 @@
+codecov: 
+ token: 227803c9-048f-4966-9e48-c06ee679480d
 ignore:
   - '**/testsvc/**'
