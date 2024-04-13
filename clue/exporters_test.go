@@ -41,7 +41,7 @@ func TestNewGRPCMetricExporter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			otlpmetricgrpcNew = func(ctx context.Context, options ...otlpmetricgrpc.Option) (*otlpmetricgrpc.Exporter, error) {
+			otlpmetricgrpcNew = func(ctx context.Context, _ ...otlpmetricgrpc.Option) (*otlpmetricgrpc.Exporter, error) {
 				if tt.newErr != nil {
 					return nil, tt.newErr
 				}
@@ -93,7 +93,7 @@ func TestNewHTTPMetricExporter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			otlpmetrichttpNew = func(ctx context.Context, options ...otlpmetrichttp.Option) (*otlpmetrichttp.Exporter, error) {
+			otlpmetrichttpNew = func(ctx context.Context, _ ...otlpmetrichttp.Option) (*otlpmetrichttp.Exporter, error) {
 				if tt.newErr != nil {
 					return nil, tt.newErr
 				}
@@ -145,7 +145,7 @@ func TestNewGRPCSpanExporter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			otlptracegrpcNew = func(ctx context.Context, options ...otlptracegrpc.Option) (*otlptrace.Exporter, error) {
+			otlptracegrpcNew = func(ctx context.Context, _ ...otlptracegrpc.Option) (*otlptrace.Exporter, error) {
 				if tt.newErr != nil {
 					return nil, tt.newErr
 				}
@@ -197,7 +197,7 @@ func TestNewHTTPSpanExporter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			otlptracehttpNew = func(ctx context.Context, options ...otlptracehttp.Option) (*otlptrace.Exporter, error) {
+			otlptracehttpNew = func(ctx context.Context, _ ...otlptracehttp.Option) (*otlptrace.Exporter, error) {
 				if tt.newErr != nil {
 					return nil, tt.newErr
 				}
