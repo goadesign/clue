@@ -85,11 +85,9 @@ func NewConfig(
 	if err != nil {
 		return nil, err
 	}
-	if options.resource != nil {
-		res, err = resource.Merge(res, options.resource)
-		if err != nil {
-			return nil, err
-		}
+	res, err = resource.Merge(res, options.resource)
+	if err != nil {
+		return nil, err
 	}
 	var meterProvider metric.MeterProvider
 	if metricExporter == nil {
