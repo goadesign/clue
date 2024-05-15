@@ -6,6 +6,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
 )
 
 type (
@@ -24,6 +25,8 @@ type (
 		sampleSize int
 		// propagators is the trace propagators.
 		propagators propagation.TextMapPropagator
+		// resource is the resource containing any additional attributes.
+		resource *resource.Resource
 		// errorHandler is the error handler used by the otel package.
 		errorHandler otel.ErrorHandler
 	}
@@ -68,6 +71,13 @@ func WithSampleSize(size int) Option {
 func WithPropagators(propagator propagation.TextMapPropagator) Option {
 	return func(opts *options) {
 		opts.propagators = propagator
+	}
+}
+
+// WithResource sets the resource containing any additional attributes.
+func WithResource(res *resource.Resource) Option {
+	return func(opts *options) {
+		opts.resource = res
 	}
 }
 
