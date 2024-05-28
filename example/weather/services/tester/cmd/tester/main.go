@@ -24,7 +24,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
-	"goa.design/clue/example/middleware"
+	"goa.design/clue/example/weather/middleware"
 	"goa.design/clue/example/weather/services/tester"
 	"goa.design/clue/example/weather/services/tester/clients/forecaster"
 	"goa.design/clue/example/weather/services/tester/clients/locator"
