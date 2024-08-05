@@ -21,7 +21,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.28.0
 	go.opentelemetry.io/otel/sdk/metric v1.28.0
 	go.opentelemetry.io/otel/trace v1.28.0
-	goa.design/goa/v3 v3.18.0
+	goa.design/goa/v3 v3.18.2
 	golang.org/x/term v0.22.0
 	golang.org/x/tools v0.23.0
 	google.golang.org/grpc v1.65.0
