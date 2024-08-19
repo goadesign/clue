@@ -95,6 +95,13 @@ func MountPprofHandlers(mux Muxer, opts ...PprofOption) {
 	mux.HandleFunc(o.prefix+"profile", pprof.Profile)
 	mux.HandleFunc(o.prefix+"symbol", pprof.Symbol)
 	mux.HandleFunc(o.prefix+"trace", pprof.Trace)
+
+	mux.Handle(o.prefix+"goroutine", pprof.Handler("goroutine"))
+	mux.Handle(o.prefix+"threadcreate", pprof.Handler("threadcreate"))
+	mux.Handle(o.prefix+"mutex", pprof.Handler("mutex"))
+	mux.Handle(o.prefix+"heap", pprof.Handler("heap"))
+	mux.Handle(o.prefix+"block", pprof.Handler("block"))
+	mux.Handle(o.prefix+"allocs", pprof.Handler("allocs"))
 }
 
 // LogPayloads returns a Goa endpoint middleware that logs request payloads and

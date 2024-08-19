@@ -12,6 +12,7 @@ import (
 	"goa.design/clue/internal/testsvc"
 	"goa.design/clue/internal/testsvc/gen/test"
 	"goa.design/clue/log"
+	goahttp "goa.design/goa/v3/http"
 )
 
 func TestMountDebugLogEnabler(t *testing.T) {
@@ -76,10 +77,10 @@ func TestMountDebugLogEnabler(t *testing.T) {
 }
 
 func TestMountPprofHandlers(t *testing.T) {
-	mux := http.NewServeMux()
-	MountPprofHandlers(mux)
-	MountPprofHandlers(mux, WithPrefix("test"))
-	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux := goahttp.NewMuxer()
+	MountPprofHandlers(Adapt(mux))
+	MountPprofHandlers(Adapt(mux), WithPrefix("test"))
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -87,7 +88,7 @@ func TestMountPprofHandlers(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK")) // nolint: errcheck
 	})
-	mux.Handle("/", handler)
+	mux.Handle(http.MethodGet, "/", handler)
 	ts := httptest.NewServer(mux)
 	defer ts.Close()
 
