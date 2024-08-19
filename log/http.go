@@ -186,9 +186,9 @@ func (c *client) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 				return resp, nil
 			}
 			resp.Body = io.NopCloser(bytes.NewBuffer(body))
-			Error(req.Context(), fmt.Errorf(resp.Status), msgKV, methKV, urlKV, statusKV, durKV, KV{K: HTTPBodyKey, V: string(body)})
+			Error(req.Context(), errors.New(resp.Status), msgKV, methKV, urlKV, statusKV, durKV, KV{K: HTTPBodyKey, V: string(body)})
 		} else {
-			Error(req.Context(), fmt.Errorf(resp.Status), msgKV, methKV, urlKV, statusKV, durKV)
+			Error(req.Context(), errors.New(resp.Status), msgKV, methKV, urlKV, statusKV, durKV)
 		}
 		return
 	}
