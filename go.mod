@@ -13,7 +13,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.29.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.29.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.29.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.28.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.29.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.29.0
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.28.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.29.0
