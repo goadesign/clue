@@ -24,7 +24,7 @@ require (
 	goa.design/goa/v3 v3.18.2
 	golang.org/x/term v0.23.0
 	golang.org/x/tools v0.24.0
-	google.golang.org/grpc v1.65.0
+	google.golang.org/grpc v1.66.2
 	google.golang.org/protobuf v1.34.2
 )
 
