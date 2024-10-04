@@ -82,7 +82,7 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 			methKV := KV{K: HTTPMethodKey, V: req.Method}
 			urlKV := KV{K: HTTPURLKey, V: req.URL.String()}
 			fromKV := KV{K: HTTPFromKey, V: from(req)}
-			Print(ctx, KV{K: MessageKey, V: "start"}, methKV, urlKV, fromKV)
+			Info(ctx, KV{K: MessageKey, V: "start"}, methKV, urlKV, fromKV)
 
 			rw := &responseCapture{ResponseWriter: w}
 			started := timeNow()
@@ -91,7 +91,7 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 			statusKV := KV{K: HTTPStatusKey, V: rw.StatusCode}
 			durKV := KV{K: HTTPDurationKey, V: timeSince(started).Milliseconds()}
 			bytesKV := KV{K: HTTPBytesKey, V: rw.ContentLength}
-			Print(ctx, KV{K: MessageKey, V: "end"}, methKV, urlKV, statusKV, durKV, bytesKV)
+			Info(ctx, KV{K: MessageKey, V: "end"}, methKV, urlKV, statusKV, durKV, bytesKV)
 		})
 	}
 }
