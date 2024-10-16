@@ -125,7 +125,7 @@ func With(ctx context.Context, keyvals ...Fielder) context.Context {
 	l := v.(*logger)
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	copy := logger{
+	newLogger := logger{
 		options: l.options,
 		entries: l.entries,
 		keyvals: l.keyvals.merge(keyvals),
@@ -133,14 +133,13 @@ func With(ctx context.Context, keyvals ...Fielder) context.Context {
 	}
 	if l.options.disableBuffering != nil && l.options.disableBuffering(ctx) {
 		l.flush()
-		copy.flushed = true
+		newLogger.flushed = true
 	} else {
-		// Make sure that if Go needs to grow the slice then each
-		// context gets its own memory.
-		copy.entries = copy.entries[:len(copy.entries):len(copy.entries)]
+		newLogger.entries = make([]*Entry, len(l.entries))
+		copy(newLogger.entries, l.entries)
 	}
 
-	return context.WithValue(ctx, ctxLogger, &copy)
+	return context.WithValue(ctx, ctxLogger, &newLogger)
 }
 
 // FlushAndDisableBuffering flushes the log entries to the writer and stops
@@ -156,13 +155,16 @@ func FlushAndDisableBuffering(ctx context.Context) {
 	l.flush()
 }
 
-// logger lock must be held when calling this function.
+func (l *logger) writeEntry(e *Entry) {
+	l.options.w.Write(l.options.format(e)) // nolint: errcheck
+}
+
 func (l *logger) flush() {
 	if l.flushed {
 		return
 	}
 	for _, e := range l.entries {
-		l.options.w.Write(l.options.format(e)) // nolint: errcheck
+		l.writeEntry(e)
 	}
 	l.entries = nil // free up memory
 	l.flushed = true
@@ -195,7 +197,7 @@ func log(ctx context.Context, sev Severity, buffer bool, fielders []Fielder) {
 
 	e := &Entry{timeNow().UTC(), sev, keyvals}
 	if l.flushed || !buffer {
-		l.options.w.Write(l.options.format(e)) // nolint: errcheck
+		l.writeEntry(e)
 		return
 	}
 	l.entries = append(l.entries, e)

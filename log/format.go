@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+	"unicode/utf8"
 
-	"github.com/go-logfmt/logfmt"
+	"google.golang.org/grpc/codes"
 )
 
 // reset escape sequence for color unset
@@ -36,23 +37,19 @@ var TimestampFormatLayout = time.RFC3339
 // Output can be customised with log.TimestampKey, log.TimestampFormatLayout,
 // and log.SeverityKey.
 func FormatText(e *Entry) []byte {
-	var b bytes.Buffer
-	enc := logfmt.NewEncoder(&b)
-	enc.EncodeKeyval(TimestampKey, e.Time.Format(TimestampFormatLayout)) // nolint: errcheck
-	enc.EncodeKeyval(SeverityKey, e.Severity)                            // nolint: errcheck
+	b := make([]byte, 0, 256)
+
+	b = appendKeyValue(b, TimestampKey, e.Time.Format(TimestampFormatLayout))
+	b = append(b, ' ')
+	b = appendKeyValue(b, SeverityKey, e.Severity)
+
 	for _, kv := range e.KeyVals {
-		// Make logfmt format slices
-		v := kv.V
-		switch kv.V.(type) {
-		case []int, []int32, []int64, []uint, []uint32, []uint64, []float32, []float64, []string, []bool, []interface{}:
-			var buf bytes.Buffer
-			writeJSON(kv.V, &buf)
-			v = buf.String()
-		}
-		enc.EncodeKeyval(kv.K, v) // nolint: errcheck
+		b = append(b, ' ')
+		b = appendKeyValue(b, kv.K, kv.V)
 	}
-	b.WriteByte('\n')
-	return b.Bytes()
+
+	b = append(b, '\n')
+	return b
 }
 
 // FormatJSON is a log formatter that prints entries using JSON. Entries are
@@ -72,30 +69,158 @@ func FormatText(e *Entry) []byte {
 // Output can be customised with log.TimestampKey, log.TimestampFormatLayout,
 // and log.SeverityKey.
 func FormatJSON(e *Entry) []byte {
-	var b bytes.Buffer
-	b.WriteString(`{"`)
-	b.WriteString(TimestampKey)
-	b.WriteString(`":"`)
-	b.WriteString(e.Time.Format(TimestampFormatLayout))
-	b.WriteString(`","`)
-	b.WriteString(SeverityKey)
-	b.WriteString(`":"`)
-	b.WriteString(e.Severity.String())
-	b.WriteByte('"')
-	if len(e.KeyVals) > 0 {
-		b.WriteByte(',')
-		for i, kv := range e.KeyVals {
-			b.WriteString(`"`)
-			b.WriteString(kv.K)
-			b.WriteString(`":`)
-			writeJSON(kv.V, &b)
-			if i < len(e.KeyVals)-1 {
-				b.WriteByte(',')
+	b := make([]byte, 0, 256)
+
+	b = append(b, '{')
+	b = appendJSONKeyValue(b, TimestampKey, e.Time.Format(TimestampFormatLayout))
+	b = append(b, ',')
+	b = appendJSONKeyValue(b, SeverityKey, e.Severity.String())
+
+	for _, kv := range e.KeyVals {
+		b = append(b, ',')
+		b = appendJSONKeyValue(b, kv.K, kv.V)
+	}
+
+	b = append(b, "}\n"...)
+	return b
+}
+
+func appendKeyValue(b []byte, key string, value any) []byte {
+	b = append(b, key...)
+	b = append(b, '=')
+	return appendTextValue(b, value)
+}
+
+func appendTextValue(b []byte, value any) []byte {
+	switch v := value.(type) {
+	case string:
+		return appendEscapedString(b, v)
+	case int, int32, int64, uint, uint32, uint64, float32, float64, bool:
+		return appendJSONValue(b, v)
+	case []any:
+		return appendTextArray(b, v)
+	default:
+		// Fallback to fmt.Sprintf for complex types
+		return append(b, fmt.Sprintf("%v", v)...)
+	}
+}
+
+func appendEscapedString(b []byte, s string) []byte {
+	if needsQuoting(s) {
+		b = append(b, '"')
+		for i := 0; i < len(s); i++ {
+			if s[i] == '"' || s[i] == '\\' {
+				b = append(b, '\\')
 			}
+			b = append(b, s[i])
+		}
+		b = append(b, '"')
+	} else {
+		b = append(b, s...)
+	}
+	return b
+}
+
+func needsQuoting(s string) bool {
+	if len(s) == 0 {
+		return true
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] <= ' ' || s[i] == '=' || s[i] == '"' || s[i] == '\\' {
+			return true
 		}
 	}
-	b.WriteString("}\n")
-	return b.Bytes()
+	return false
+}
+
+func appendTextArray(b []byte, arr []any) []byte {
+	b = append(b, '[')
+	for i, v := range arr {
+		if i > 0 {
+			b = append(b, ' ')
+		}
+		b = appendTextValue(b, v)
+	}
+	return append(b, ']')
+}
+
+func appendJSONKeyValue(b []byte, key string, value any) []byte {
+	b = append(b, '"')
+	b = append(b, key...)
+	b = append(b, `":`...)
+	return appendJSONValue(b, value)
+}
+
+func appendJSONValue(b []byte, value any) []byte {
+	switch v := value.(type) {
+	case string:
+		return appendJSONString(b, v)
+	case int:
+		return strconv.AppendInt(b, int64(v), 10)
+	case int32:
+		return strconv.AppendInt(b, int64(v), 10)
+	case int64:
+		return strconv.AppendInt(b, v, 10)
+	case uint:
+		return strconv.AppendUint(b, uint64(v), 10)
+	case uint32:
+		return strconv.AppendUint(b, uint64(v), 10)
+	case uint64:
+		return strconv.AppendUint(b, v, 10)
+	case float32:
+		return strconv.AppendFloat(b, float64(v), 'g', -1, 32)
+	case float64:
+		return strconv.AppendFloat(b, v, 'g', -1, 64)
+	case bool:
+		return strconv.AppendBool(b, v)
+	case []any:
+		return appendJSONArray(b, v)
+	case time.Duration:
+		return appendJSONString(b, v.String())
+	case codes.Code:
+		return appendJSONString(b, v.String())
+	default:
+		jsonValue, _ := json.Marshal(v)
+		return append(b, jsonValue...)
+	}
+}
+
+func appendJSONString(b []byte, s string) []byte {
+	b = append(b, '"')
+	for i := 0; i < len(s); i++ {
+		if s[i] < utf8.RuneSelf {
+			switch s[i] {
+			case '"', '\\':
+				b = append(b, '\\', s[i])
+			case '\b':
+				b = append(b, '\\', 'b')
+			case '\f':
+				b = append(b, '\\', 'f')
+			case '\n':
+				b = append(b, '\\', 'n')
+			case '\r':
+				b = append(b, '\\', 'r')
+			case '\t':
+				b = append(b, '\\', 't')
+			default:
+				b = append(b, s[i])
+			}
+		} else {
+			b = append(b, s[i])
+		}
+	}
+	return append(b, '"')
+}
+
+func appendJSONArray(b []byte, arr []interface{}) []byte {
+	b = append(b, '[')
+	for i, v := range arr {
+		if i > 0 {
+			b = append(b, ',')
+		}
+		b = appendJSONValue(b, v)
+	}
+	return append(b, ']')
 }
 
 // FormatTerminal is a log formatter that prints entries suitable for terminal
@@ -127,125 +252,4 @@ func FormatTerminal(e *Entry) []byte {
 	}
 	b.WriteByte('\n')
 	return b.Bytes()
-}
-
-func writeJSON(val interface{}, b *bytes.Buffer) {
-	switch v := val.(type) {
-	case nil:
-		b.WriteString("null")
-	case string:
-		res, _ := json.Marshal(v)
-		b.Write(res)
-	case int, int32, int64, uint, uint32, uint64:
-		b.WriteString(fmt.Sprintf("%d", v))
-	case float32:
-		b.WriteString(strconv.FormatFloat(float64(v), 'g', -1, 64))
-	case float64:
-		b.WriteString(strconv.FormatFloat(v, 'g', -1, 64))
-	case bool:
-		b.WriteString(fmt.Sprintf("%t", v))
-	case []string:
-		b.WriteByte('[')
-		for j := 0; j < len(v); j++ {
-			res, _ := json.Marshal(v[j])
-			b.Write(res)
-			if j < len(v)-1 {
-				b.WriteByte(',')
-			}
-		}
-		b.WriteByte(']')
-	case []int:
-		b.WriteByte('[')
-		for j := 0; j < len(v); j++ {
-			b.WriteString(fmt.Sprintf("%d", v[j]))
-			if j < len(v)-1 {
-				b.WriteByte(',')
-			}
-		}
-		b.WriteByte(']')
-	case []int32:
-		b.WriteByte('[')
-		for j := 0; j < len(v); j++ {
-			b.WriteString(fmt.Sprintf("%d", v[j]))
-			if j < len(v)-1 {
-				b.WriteByte(',')
-			}
-		}
-		b.WriteByte(']')
-	case []int64:
-		b.WriteByte('[')
-		for j := 0; j < len(v); j++ {
-			b.WriteString(fmt.Sprintf("%d", v[j]))
-			if j < len(v)-1 {
-				b.WriteByte(',')
-			}
-		}
-		b.WriteByte(']')
-	case []uint:
-		b.WriteByte('[')
-		for j := 0; j < len(v); j++ {
-			b.WriteString(fmt.Sprintf("%d", v[j]))
-			if j < len(v)-1 {
-				b.WriteByte(',')
-			}
-		}
-		b.WriteByte(']')
-	case []uint32:
-		b.WriteByte('[')
-		for j := 0; j < len(v); j++ {
-			b.WriteString(fmt.Sprintf("%d", v[j]))
-			if j < len(v)-1 {
-				b.WriteByte(',')
-			}
-		}
-		b.WriteByte(']')
-	case []uint64:
-		b.WriteByte('[')
-		for j := 0; j < len(v); j++ {
-			b.WriteString(fmt.Sprintf("%d", v[j]))
-			if j < len(v)-1 {
-				b.WriteByte(',')
-			}
-		}
-		b.WriteByte(']')
-	case []float32:
-		b.WriteByte('[')
-		for j := 0; j < len(v); j++ {
-			b.WriteString(strconv.FormatFloat(float64(v[j]), 'g', -1, 64))
-			if j < len(v)-1 {
-				b.WriteByte(',')
-			}
-		}
-		b.WriteByte(']')
-	case []float64:
-		b.WriteByte('[')
-		for j := 0; j < len(v); j++ {
-			b.WriteString(strconv.FormatFloat(v[j], 'g', -1, 64))
-			if j < len(v)-1 {
-				b.WriteByte(',')
-			}
-		}
-		b.WriteByte(']')
-	case []bool:
-		b.WriteByte('[')
-		for j := 0; j < len(v); j++ {
-			b.WriteString(fmt.Sprintf("%t", v[j]))
-			if j < len(v)-1 {
-				b.WriteByte(',')
-			}
-		}
-		b.WriteByte(']')
-	case []interface{}:
-		b.WriteByte('[')
-		for j := 0; j < len(v); j++ {
-			writeJSON(v[j], b)
-			if j < len(v)-1 {
-				b.WriteByte(',')
-			}
-		}
-		b.WriteByte(']')
-	default:
-		res, _ := json.Marshal(fmt.Sprintf("%v", v))
-		b.Write(res)
-	}
 }

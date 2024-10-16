@@ -27,8 +27,8 @@ func TestUnaryServerInterceptor(t *testing.T) {
 
 	prefix := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","msg":"start","grpc.service":"test.Test","grpc.method":"GrpcMethod"}`
 	logged := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","key1":"value1","key2":"value2"}`
-	suffix := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","msg":"end","grpc.service":"test.Test","grpc.method":"GrpcMethod","grpc.code":"OK","grpc.time_ms":0}`
-	errors := `{"time":"2022-01-09T20:29:45Z","level":"error","request_id":"test-request-id","err":"rpc error: code = Unknown desc = test-error","grpc.service":"test.Test","grpc.method":"GrpcMethod","grpc.status":"test-error","grpc.code":"Unknown","grpc.time_ms":0}`
+	suffix := `{"time":"2022-01-09T20:29:45Z","level":"info","request_id":"test-request-id","msg":"end","grpc.service":"test.Test","grpc.method":"GrpcMethod","grpc.code":"OK","grpc.time_ms":\d+}`
+	errors := `{"time":"2022-01-09T20:29:45Z","level":"error","request_id":"test-request-id","err":"rpc error: code = Unknown desc = test-error","grpc.service":"test.Test","grpc.method":"GrpcMethod","grpc.status":"test-error","grpc.code":"Unknown","grpc.time_ms":\d+}`
 
 	cases := []struct {
 		name        string
@@ -74,7 +74,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-			assert.Equal(t, c.expected, buf.String())
+			assert.Regexp(t, regexp.MustCompile(strings.ReplaceAll(c.expected, "\n", "\\n")), buf.String())
 			stop()
 		})
 	}

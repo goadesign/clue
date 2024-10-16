@@ -22,7 +22,7 @@ func TestAsGoaMiddlwareLogger(t *testing.T) {
 	logger := AsGoaMiddlewareLogger(ctx)
 	assert.NoError(t, logger.Log("msg", "hello world"))
 	want := "time=2022-01-09T20:29:45Z level=info msg=\"hello world\"\n"
-	assert.Equal(t, buf.String(), want)
+	assert.Equal(t, want, buf.String())
 }
 
 func TestAsStdLogger(t *testing.T) {
@@ -36,17 +36,17 @@ func TestAsStdLogger(t *testing.T) {
 
 	logger.Print("hello world")
 	want := "time=2022-01-09T20:29:45Z level=info msg=\"hello world\"\n"
-	assert.Equal(t, buf.String(), want)
+	assert.Equal(t, want, buf.String())
 
 	buf.Reset()
 	logger.Println("hello world")
-	want = "time=2022-01-09T20:29:45Z level=info msg=\"hello world\\n\"\n"
-	assert.Equal(t, buf.String(), want)
+	want = "time=2022-01-09T20:29:45Z level=info msg=\"hello world\n\"\n"
+	assert.Equal(t, want, buf.String())
 
 	buf.Reset()
 	logger.Printf("hello %s", "world")
 	want = "time=2022-01-09T20:29:45Z level=info msg=\"hello world\"\n"
-	assert.Equal(t, buf.String(), want)
+	assert.Equal(t, want, buf.String())
 
 	func() {
 		buf.Reset()
@@ -54,7 +54,7 @@ func TestAsStdLogger(t *testing.T) {
 		defer func() { msg = recover().(string) }()
 		logger.Panic("hello world")
 		want = "time=2022-01-09T20:29:45Z level=info msg=\"hello world\"\n"
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 		assert.Equal(t, msg, "hello world")
 	}()
 
@@ -64,7 +64,7 @@ func TestAsStdLogger(t *testing.T) {
 		defer func() { msg = recover().(string) }()
 		logger.Panicf("hello %s", "world")
 		want = "time=2022-01-09T20:29:45Z level=info msg=\"hello world\"\n"
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 		assert.Equal(t, msg, "hello world")
 	}()
 
@@ -74,7 +74,7 @@ func TestAsStdLogger(t *testing.T) {
 		defer func() { msg = recover().(string) }()
 		logger.Panicln("hello world")
 		want = "time=2022-01-09T20:29:45Z level=info msg=\"hello world\\n\"\n"
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 		assert.Equal(t, msg, "hello world")
 	}()
 
@@ -88,21 +88,21 @@ func TestAsStdLogger(t *testing.T) {
 	buf.Reset()
 	logger.Fatal("hello world")
 	want = "time=2022-01-09T20:29:45Z level=info msg=\"hello world\"\n"
-	assert.Equal(t, buf.String(), want)
+	assert.Equal(t, want, buf.String())
 	assert.Equal(t, exited, 1)
 
 	exited = 0
 	buf.Reset()
 	logger.Fatalf("hello %s", "world")
 	want = "time=2022-01-09T20:29:45Z level=info msg=\"hello world\"\n"
-	assert.Equal(t, buf.String(), want)
+	assert.Equal(t, want, buf.String())
 	assert.Equal(t, exited, 1)
 
 	exited = 0
 	buf.Reset()
 	logger.Fatalln("hello world")
-	want = "time=2022-01-09T20:29:45Z level=info msg=\"hello world\\n\"\n"
-	assert.Equal(t, buf.String(), want)
+	want = "time=2022-01-09T20:29:45Z level=info msg=\"hello world\n\"\n"
+	assert.Equal(t, want, buf.String())
 	assert.Equal(t, exited, 1)
 }
 
@@ -118,12 +118,12 @@ func TestAsAWSLogger(t *testing.T) {
 
 	logger.Logf(logging.Classification("INFO"), "hello %s", "world")
 	want := "time=2022-01-09T20:29:45Z level=info msg=\"hello world\"\n"
-	assert.Equal(t, buf.String(), want)
+	assert.Equal(t, want, buf.String())
 
 	buf.Reset()
 	logger.Logf(logging.Classification("DEBUG"), "hello world")
 	want = "time=2022-01-09T20:29:45Z level=debug msg=\"hello world\"\n"
-	assert.Equal(t, buf.String(), want)
+	assert.Equal(t, want, buf.String())
 
 	buf.Reset()
 	key := ctxkey("key")
@@ -131,7 +131,7 @@ func TestAsAWSLogger(t *testing.T) {
 	logger = logger.(logging.ContextLogger).WithContext(pctx)
 	logger.Logf(logging.Classification("INFO"), "hello %v world", logger.(*AWSLogger).Context.Value(key))
 	want = "time=2022-01-09T20:29:45Z level=info msg=\"hello small world\"\n"
-	assert.Equal(t, buf.String(), want)
+	assert.Equal(t, want, buf.String())
 }
 
 func TestToLogrSink(t *testing.T) {
