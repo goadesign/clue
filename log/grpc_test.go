@@ -62,7 +62,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 			var buf bytes.Buffer
 			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
 			logInterceptor := UnaryServerInterceptor(ctx, c.options...)
-			cli, _ := testsvc.SetupGRPC(t,
+			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithServerOptions(grpc.UnaryInterceptor(logInterceptor)),
 				testsvc.WithUnaryFunc(c.method))
 
@@ -75,6 +75,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 				require.NoError(t, err)
 			}
 			assert.Regexp(t, regexp.MustCompile(strings.ReplaceAll(c.expected, "\n", "\\n")), buf.String())
+			stop()
 		})
 	}
 }
