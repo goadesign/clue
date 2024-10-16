@@ -16,6 +16,11 @@ import (
 	tracenoop "go.opentelemetry.io/otel/trace/noop"
 
 	"goa.design/clue/log"
+
+	// Force dependency on main module to ensure it is unambiguous during
+	// module resolution.
+	// See: https://github.com/googleapis/google-api-go-client/issues/2559.
+	_ "google.golang.org/genproto/googleapis/type/datetime"
 )
 
 type (

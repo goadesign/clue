@@ -33,16 +33,27 @@ func (f Fields) LogFields() []KV {
 }
 
 func (kvs kvList) merge(fielders []Fielder) kvList {
-	for _, fielder := range fielders {
-		switch fielder := fielder.(type) {
-		case KV:
-			// Avoid unnecessary allocation the slice from KV.LogFields
-			kvs = append(kvs, fielder)
-		default:
-			kvs = append(kvs, fielder.LogFields()...)
+	totalLen := len(kvs)
+	cachedFields := make([][]KV, len(fielders))
+	for i, fielder := range fielders {
+		if _, ok := fielder.(KV); ok {
+			totalLen++
+		} else {
+			fields := fielder.LogFields()
+			cachedFields[i] = fields
+			totalLen += len(fields)
 		}
 	}
-	return kvs
+	result := make(kvList, len(kvs), totalLen)
+	copy(result, kvs)
+	for i, fielder := range fielders {
+		if kv, ok := fielder.(KV); ok {
+			result = append(result, kv)
+		} else {
+			result = append(result, cachedFields[i]...)
+		}
+	}
+	return result
 }
 
 func (kvs kvList) LogFields() []KV {

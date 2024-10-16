@@ -8,12 +8,19 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// Buffer is a goroutine safe bytes.Buffer
+type Buffer struct {
+	buffer bytes.Buffer
+	mutex  sync.Mutex
+}
 
 const (
 	buffered = "buffered"
@@ -28,6 +35,18 @@ func init() {
 	timeNow = func() time.Time {
 		return time.Date(2022, time.February, 22, 17, 0, 0, 0, time.UTC)
 	}
+}
+
+func (s *Buffer) Write(p []byte) (n int, err error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.buffer.Write(p)
+}
+
+func (s *Buffer) String() string {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.buffer.String()
 }
 
 func ExamplePrintf() {
@@ -65,7 +84,7 @@ func TestFileLocation(t *testing.T) {
 	e := (entries(ctx))[0]
 	require.Len(t, e.KeyVals, 2)
 	assert.Equal(t, KV{"msg", buffered}, e.KeyVals[0])
-	assert.Equal(t, KV{"file", "log/log_test.go:63"}, e.KeyVals[1])
+	assert.Equal(t, KV{"file", "log/log_test.go:82"}, e.KeyVals[1])
 }
 
 func TestSeverity(t *testing.T) {
@@ -256,7 +275,7 @@ func TestStructuredLogging(t *testing.T) {
 	if e.KeyVals[1].K != "key2" || e.KeyVals[1].V != "val2" {
 		t.Errorf("got keyval %q=%q, want key2=val2", e.KeyVals[1].K, e.KeyVals[1].V)
 	}
-	if e.KeyVals[2].K != "msg" || e.KeyVals[2].V != "buffered" {
+	if e.KeyVals[2].K != "msg" || e.KeyVals[2].V != buffered {
 		t.Errorf("got keyval %q=%q, want msg=buffered", e.KeyVals[2].K, e.KeyVals[2].V)
 	}
 
@@ -438,6 +457,53 @@ func TestMaxSize(t *testing.T) {
 			t.Errorf("got %q, want %q", got, want)
 		}
 	})
+}
+
+func TestWithMultipleDerivedLoggers(t *testing.T) {
+	var buf bytes.Buffer
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatText))
+	FlushAndDisableBuffering(ctx)
+
+	Info(ctx, KV{"msg", "root"})
+
+	ctx1 := With(ctx, KV{"key1", "value1"})
+	Info(ctx1, KV{"msg", "first"})
+
+	ctx2 := With(ctx, KV{"key2", "value2"})
+	Info(ctx2, KV{"msg", "second"})
+	Info(ctx1, KV{"msg", "third"})
+
+	ctx3 := With(ctx1, KV{"key3", "value3"})
+	Info(ctx3, KV{"msg", "fourth"})
+	Info(ctx2, KV{"msg", "fifth"})
+	Info(ctx1, KV{"msg", "sixth"})
+	Info(ctx, KV{"msg", "seventh"})
+
+	logs := strings.Split(strings.TrimSpace(buf.String()), "\n")
+	require.Len(t, logs, 8)
+	assert.Equal(t, "time=2022-02-22T17:00:00Z level=info msg=root", logs[0])
+	assert.Equal(t, "time=2022-02-22T17:00:00Z level=info key1=value1 msg=first", logs[1])
+	assert.Equal(t, "time=2022-02-22T17:00:00Z level=info key2=value2 msg=second", logs[2])
+	assert.Equal(t, "time=2022-02-22T17:00:00Z level=info key1=value1 msg=third", logs[3])
+	assert.Equal(t, "time=2022-02-22T17:00:00Z level=info key1=value1 key3=value3 msg=fourth", logs[4])
+	assert.Equal(t, "time=2022-02-22T17:00:00Z level=info key2=value2 msg=fifth", logs[5])
+	assert.Equal(t, "time=2022-02-22T17:00:00Z level=info key1=value1 msg=sixth", logs[6])
+	assert.Equal(t, "time=2022-02-22T17:00:00Z level=info msg=seventh", logs[7])
+}
+
+func TestConcurrentLog(t *testing.T) {
+	// run with -race to detect data races
+	var buf Buffer
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatText))
+	FlushAndDisableBuffering(ctx)
+
+	for i := 0; i < 10; i++ {
+		go func() {
+			Info(ctx, KV{"msg", "root"})
+			ctx1 := With(ctx, KV{"key1", "value1"})
+			Info(ctx1, KV{"msg", "first"})
+		}()
+	}
 }
 
 func testFormat(e *Entry) []byte {

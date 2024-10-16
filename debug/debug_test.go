@@ -9,6 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"goa.design/clue/internal/testsvc"
 	"goa.design/clue/internal/testsvc/gen/test"
 	"goa.design/clue/log"
@@ -66,12 +68,8 @@ func TestMountDebugLogEnabler(t *testing.T) {
 
 			status, resp := makeRequest(t, ts.URL+c.url)
 
-			if status != http.StatusOK {
-				t.Errorf("%s: got status %d, expected %d", c.name, status, http.StatusOK)
-			}
-			if resp != c.expectedResp {
-				t.Errorf("%s: got body %q, expected %q", c.name, resp, c.expectedResp)
-			}
+			assert.Equal(t, http.StatusOK, status)
+			assert.Equal(t, c.expectedResp, resp)
 		})
 	}
 }
@@ -93,12 +91,8 @@ func TestMountPprofHandlers(t *testing.T) {
 	defer ts.Close()
 
 	status, resp := makeRequest(t, ts.URL)
-	if status != http.StatusOK {
-		t.Errorf("got status %d, expected %d", status, http.StatusOK)
-	}
-	if resp != "OK" {
-		t.Errorf("got body %q, expected %q", resp, "OK")
-	}
+	assert.Equal(t, http.StatusOK, status)
+	assert.Equal(t, "OK", resp)
 
 	paths := []string{
 		"/debug/pprof/",
@@ -116,12 +110,8 @@ func TestMountPprofHandlers(t *testing.T) {
 	}
 	for _, path := range paths {
 		status, resp = makeRequest(t, ts.URL+path)
-		if status != http.StatusOK {
-			t.Errorf("got status %d, expected %d", status, http.StatusOK)
-		}
-		if resp == "" {
-			t.Errorf("got body %q, expected non-empty", resp)
-		}
+		assert.Equal(t, http.StatusOK, status)
+		assert.NotEmpty(t, resp)
 	}
 }
 
@@ -169,24 +159,14 @@ func TestDebugPayloads(t *testing.T) {
 			endpoint := test.NewHTTPMethodEndpoint(&svc)
 			endpoint = LogPayloads(c.option)(endpoint)
 			res, err := endpoint(c.ctx, payload)
-			if buf.String() != c.expectedLogs {
-				t.Errorf("got unexpected logs %q", buf.String())
-			}
+			assert.Equal(t, c.expectedLogs, buf.String())
 			if err != nil {
-				if err.Error() != c.expectedErr {
-					t.Errorf("got unexpected error %v", err)
-				}
+				assert.Equal(t, c.expectedErr, err.Error())
 				return
 			}
-			if c.expectedErr != "" {
-				t.Fatalf("expected error %q", c.expectedErr)
-			}
-			if res == nil {
-				t.Fatal("got nil response")
-			}
-			if *(res.(*test.Fields)) != *payload {
-				t.Errorf("got unexpected response %v", res)
-			}
+			require.Empty(t, c.expectedErr)
+			require.NotNil(t, res)
+			assert.Equal(t, payload, res)
 		})
 	}
 }
