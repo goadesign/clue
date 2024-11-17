@@ -95,8 +95,9 @@ func TestSeverity(t *testing.T) {
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(printSev), WithDebug())
 	Debugf(ctx, "")
 	Infof(ctx, "")
+	Warnf(ctx, "")
 	Errorf(ctx, nil, "")
-	want := "debug:DEBG:\033[37m info:INFO:\033[34m error:ERRO:\033[1;31m "
+	want := "debug:DEBG:\033[37m info:INFO:\033[34m warn:WARN:\033[33m error:ERRO:\033[1;31m "
 	assert.Equal(t, want, buf.String())
 	assert.Equal(t, "<INVALID>", Severity(0).String())
 	assert.Equal(t, "<INVALID>", Severity(0).Code())
