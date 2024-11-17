@@ -38,6 +38,7 @@ type (
 const (
 	SeverityDebug Severity = iota + 1
 	SeverityInfo
+	SeverityWarn
 	SeverityError
 )
 
@@ -81,6 +82,18 @@ func Info(ctx context.Context, keyvals ...Fielder) {
 // handled in the manner of fmt.Printf.
 func Infof(ctx context.Context, format string, v ...interface{}) {
 	Info(ctx, KV{MessageKey, fmt.Sprintf(format, v...)})
+}
+
+// Warn writes the key/value pairs to the log buffer or output if buffering is
+// disabled, with SeverityWarn.
+func Warn(ctx context.Context, keyvals ...Fielder) {
+	log(ctx, SeverityWarn, true, keyvals)
+}
+
+// Warnf sets the key MessageKey (default "msg") and calls Warn. Arguments are
+// handled in the manner of fmt.Printf.
+func Warnf(ctx context.Context, format string, v ...interface{}) {
+	Warn(ctx, KV{MessageKey, fmt.Sprintf(format, v...)})
 }
 
 // Error flushes the log buffer and disables buffering if not already disabled.
@@ -210,6 +223,8 @@ func (l Severity) String() string {
 		return "debug"
 	case SeverityInfo:
 		return "info"
+	case SeverityWarn:
+		return "warn"
 	case SeverityError:
 		return "error"
 	default:
@@ -224,6 +239,8 @@ func (l Severity) Code() string {
 		return "DEBG"
 	case SeverityInfo:
 		return "INFO"
+	case SeverityWarn:
+		return "WARN"
 	case SeverityError:
 		return "ERRO"
 	default:
@@ -239,6 +256,8 @@ func (l Severity) Color() string {
 		return "\033[37m"
 	case SeverityInfo:
 		return "\033[34m"
+	case SeverityWarn:
+		return "\033[33m"
 	case SeverityError:
 		return "\033[1;31m"
 	default:
