@@ -24,7 +24,7 @@ require (
 	golang.org/x/term v0.26.0
 	golang.org/x/tools v0.27.0
 	google.golang.org/genproto v0.0.0-20241015192408-796eee8c2d53
-	google.golang.org/grpc v1.67.1
+	google.golang.org/grpc v1.68.1
 	google.golang.org/protobuf v1.35.2
 )
 
