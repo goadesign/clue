@@ -5,7 +5,7 @@ go 1.22.0
 toolchain go1.23.2
 
 require (
-	github.com/aws/smithy-go v1.22.1
+	github.com/aws/smithy-go v1.22.2
 	github.com/go-logr/logr v1.4.2
 	github.com/stretchr/testify v1.10.0
 	go.opentelemetry.io/otel v1.34.0
