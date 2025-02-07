@@ -16,7 +16,7 @@ The following interceptor families are available:
 
 ## Trace Stream
 
-The Trace Stream family of interceptor functions is used to trace the individual messages of a Goa stream. This differs from the OpenTelemetry HTTP middleware and gRPC stats handler in that it traces the individual messages of a stream rather than the entire stream which could be long running.
+The Trace Stream family of interceptor functions can be used to trace the individual messages of a Goa stream. This differs from the OpenTelemetry HTTP middleware and gRPC stats handler in that it traces the individual messages of a stream rather than the entire stream which could be long running.
 
 The available Trace Stream interceptor functions are:
 
@@ -26,6 +26,25 @@ The available Trace Stream interceptor functions are:
 * `ServerTraceBidirectionalStream`: traces a bidirectional stream when used as a server interceptor.
 * `ServerTraceDownStream`: traces a server to client stream when used as a server interceptor.
 * `ServerTraceUpStream`: traces a client to server stream when used as a server interceptor.
+
+There are also a set of helper functions that should be used within Goa service method implementations
+in order to enable propagation of trace metadata received from streams to a context:
+
+* `SetupTraceStreamRecvContext`: returns a context to be used with the receive method of a stream.
+* `GetTraceStreamRecvContext`: returns a context with trace metadata after calling the receive method of a stream.
+
+As a convenience, there are also functions that wrap streams with an interface that handles the work of
+calling the `SetupTraceStreamRecvContext` and `GetTraceStreamRecvContext` helper functions:
+
+* `WrapTraceStreamClientBidirectionalStream`: wraps a client stream for a bidirectional stream.
+* `WrapTraceStreamClientDownStream`: wraps a client stream for a server to client stream.
+* `WrapTraceStreamClientUpStreamWithResult`: wraps a client stream for a client to server stream with a result.
+* `WrapTraceStreamServerBidirectionalStream`: wraps a server stream for a bidirectional stream.
+* `WrapTraceStreamServerDownStream`: wraps a server stream for a server to client stream.
+* `WrapTraceStreamServerUpStreamWithResult`: wraps a server stream for a client to server stream with a result.
+
+These interceptor functions will work best if you also set up OpenTelemetry instrumentation for your service
+using the [clue](../clue/) package.
 
 ### Usage
 
@@ -140,5 +159,31 @@ func (i *MyServerServiceInterceptors) TraceUpStream(ctx context.Context, info *g
 ```
 
 The interceptor functions take advantage of Go generics to work out of the box with the generated types of your
-service as long as you define your interceptors as above. These interceptor functions will work best if you
-also set up OpenTelemetry instrumentation for your service using the [clue](../clue/) package.
+service as long as you define your interceptors as above.
+
+Since generated Goa client and server interfaces do not return a context from their receive methods, you will
+need to use the helper functions to get the context with the extracted trace metadata after calling the receive
+method of the stream:
+
+```go
+    ctx = interceptors.SetupTraceStreamRecvContext(ctx, stream)
+    result, err := stream.RecvWithContext(ctx)
+    ctx = interceptors.GetTraceStreamRecvContext(ctx)
+```
+
+Alternatively, you can wrap the stream with an interface that handles the work of calling the
+`SetupTraceStreamRecvContext` and `GetTraceStreamRecvContext` helper functions:
+
+```go
+    ws := interceptors.WrapTraceStreamClientBidirectionalStream(stream)
+    err := ws.Send(ctx, &genmyservice.MyBidirectionalStreamPayload{
+        ...
+    })
+    ...
+    ctx, result, err := ws.RecvAndReturnContext(ctx)
+    ...
+    err = ws.Close()
+```
+
+The wrapper functions and interfaces take advantage of Go generics to work out of the box with the generated
+types of your service.

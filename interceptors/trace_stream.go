@@ -2,6 +2,7 @@ package interceptors
 
 import (
 	"context"
+	"fmt"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
@@ -9,56 +10,6 @@ import (
 )
 
 type (
-	// ClientTraceBidirectionalStreamInfo is an interface that matches the interceptor info for a
-	// bidirectional stream that can be traced using ClientTraceBidirectionalStream.
-	ClientTraceBidirectionalStreamInfo[Payload TraceStreamStreamingSendMessage, Result TraceStreamStreamingRecvMessage] interface {
-		goa.InterceptorInfo
-
-		ClientStreamingPayload() Payload
-		ClientStreamingResult(res any) Result
-	}
-
-	// ClientTraceStreamDownInfo is an interface that matches the interceptor info for a
-	// server to client stream that can be traced using ClientTraceDownStream.
-	ClientTraceStreamDownInfo[Result TraceStreamStreamingRecvMessage] interface {
-		goa.InterceptorInfo
-
-		ClientStreamingResult(res any) Result
-	}
-
-	// ClientTraceStreamUpInfo is an interface that matches the interceptor info for a
-	// client to server stream that can be traced using ClientTraceUpStream.
-	ClientTraceStreamUpInfo[Payload TraceStreamStreamingSendMessage] interface {
-		goa.InterceptorInfo
-
-		ClientStreamingPayload() Payload
-	}
-
-	// ServerTraceBidirectionalStreamInfo is an interface that matches the interceptor info for a
-	// bidirectional stream that can be traced using ServerTraceBidirectionalStream.
-	ServerTraceBidirectionalStreamInfo[Payload TraceStreamStreamingRecvMessage, Result TraceStreamStreamingSendMessage] interface {
-		goa.InterceptorInfo
-
-		ServerStreamingPayload(pay any) Payload
-		ServerStreamingResult() Result
-	}
-
-	// ServerTraceStreamDownInfo is an interface that matches the interceptor info for a
-	// server to client stream that can be traced using ServerTraceDownStream.
-	ServerTraceStreamDownInfo[Result TraceStreamStreamingSendMessage] interface {
-		goa.InterceptorInfo
-
-		ServerStreamingResult() Result
-	}
-
-	// ServerTraceStreamUpInfo is an interface that matches the interceptor info for a
-	// client to server stream that can be traced using ServerTraceUpStream.
-	ServerTraceStreamUpInfo[Payload TraceStreamStreamingRecvMessage] interface {
-		goa.InterceptorInfo
-
-		ServerStreamingPayload(pay any) Payload
-	}
-
 	// TraceStreamStreamingSendMessage is an interface that matches the streaming send payload or result
 	// for a stream that can be traced using ClientTraceBidirectionalStream, ClientTraceUpStream,
 	// ServerTraceBidirectionalStream, or ServerTraceDownStream.
@@ -72,98 +23,37 @@ type (
 	TraceStreamStreamingRecvMessage interface {
 		TraceMetadata() map[string]string
 	}
+
+	// traceStreamRecvContextKeyType is the type of the context key for the trace metadata extracted from the
+	// streaming payload.
+	traceStreamRecvContextKeyType struct{}
+
+	// traceStreamRecvContext is a struct that contains the context of the receive method of the stream.
+	traceStreamRecvContext struct {
+		ctx context.Context
+	}
 )
 
-// ClientTraceBidirectionalStream is a client-side interceptor that traces a bidirectional stream by
-// injecting the trace metadata into the streaming payload and extracting it from the streaming result.
-// The injected trace metadata comes from the context passed to the send method of the client stream.
-// The receive method of the client stream returns the extracted trace metadata in its context.
-func ClientTraceBidirectionalStream[Payload TraceStreamStreamingSendMessage, Result TraceStreamStreamingRecvMessage](
-	ctx context.Context,
-	info ClientTraceBidirectionalStreamInfo[Payload, Result],
-	next goa.InterceptorEndpoint,
-) (any, context.Context, error) {
-	switch info.CallType() {
-	case goa.InterceptorStreamingRecv:
-		return traceStreamRecv(ctx, info, next, info.ClientStreamingResult)
-	case goa.InterceptorStreamingSend:
-		return traceStreamSend(ctx, info, next, info.ClientStreamingPayload)
-	}
-	return next(ctx, info.RawPayload())
+// traceStreamRecvContextKey is the context key for the trace metadata extracted from the streaming payload.
+var traceStreamRecvContextKey = traceStreamRecvContextKeyType{}
+
+// SetupTraceStreamRecvContext returns a copy of the context that is set up for use with the receive
+// method of a stream so that the trace metadata can be extracted from the streaming payload or result.
+// After the receive method of the stream returns, the GetTraceStreamRecvContext function can be used to
+// retrieve the context with the extracted trace metadata.
+func SetupTraceStreamRecvContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, traceStreamRecvContextKey, &traceStreamRecvContext{})
 }
 
-// ClientTraceDownStream is a client-side interceptor that traces a server to client stream by
-// extracting the trace metadata from the streaming result. The extracted trace metadata is returned
-// in the context of the receive method of the client stream.
-func ClientTraceDownStream[Result TraceStreamStreamingRecvMessage](
-	ctx context.Context,
-	info ClientTraceStreamDownInfo[Result],
-	next goa.InterceptorEndpoint,
-) (any, context.Context, error) {
-	if info.CallType() == goa.InterceptorStreamingRecv {
-		return traceStreamRecv(ctx, info, next, info.ClientStreamingResult)
+// GetTraceStreamRecvContext returns the context with the extracted trace metadata after calling the
+// receive method of a stream. The context must have been set up using the SetupTraceStreamRecvContext
+// function.
+func GetTraceStreamRecvContext(ctx context.Context) context.Context {
+	rc, ok := ctx.Value(traceStreamRecvContextKey).(*traceStreamRecvContext)
+	if !ok {
+		panic(fmt.Errorf("clue interceptors get trace stream receive context method called without prior setup"))
 	}
-	return next(ctx, info.RawPayload())
-}
-
-// ClientTraceUpStream is a client-side interceptor that traces a client to server stream by
-// injecting the trace metadata into the streaming payload. The injected trace metadata is returned
-// in the context of the send method of the client stream.
-func ClientTraceUpStream[Payload TraceStreamStreamingSendMessage](
-	ctx context.Context,
-	info ClientTraceStreamUpInfo[Payload],
-	next goa.InterceptorEndpoint,
-) (any, context.Context, error) {
-	if info.CallType() == goa.InterceptorStreamingSend {
-		return traceStreamSend(ctx, info, next, info.ClientStreamingPayload)
-	}
-	return next(ctx, info.RawPayload())
-}
-
-// ServerTraceBidirectionalStream is a server-side interceptor that traces a bidirectional stream by
-// injecting the trace metadata into the streaming result and extracting it from the streaming payload.
-// The injected trace metadata comes from the context passed to the send method of the server stream.
-// The receive method of the server stream returns the extracted trace metadata in its context.
-func ServerTraceBidirectionalStream[Payload TraceStreamStreamingRecvMessage, Result TraceStreamStreamingSendMessage](
-	ctx context.Context,
-	info ServerTraceBidirectionalStreamInfo[Payload, Result],
-	next goa.InterceptorEndpoint,
-) (any, context.Context, error) {
-	switch info.CallType() {
-	case goa.InterceptorStreamingRecv:
-		return traceStreamRecv(ctx, info, next, info.ServerStreamingPayload)
-	case goa.InterceptorStreamingSend:
-		return traceStreamSend(ctx, info, next, info.ServerStreamingResult)
-	}
-	return next(ctx, info.RawPayload())
-}
-
-// ServerTraceDownStream is a server-side interceptor that traces a server to client stream by
-// injecting the trace metadata into the streaming result. The injected trace metadata is returned
-// in the context of the send method of the server stream.
-func ServerTraceDownStream[Result TraceStreamStreamingSendMessage](
-	ctx context.Context,
-	info ServerTraceStreamDownInfo[Result],
-	next goa.InterceptorEndpoint,
-) (any, context.Context, error) {
-	if info.CallType() == goa.InterceptorStreamingSend {
-		return traceStreamSend(ctx, info, next, info.ServerStreamingResult)
-	}
-	return next(ctx, info.RawPayload())
-}
-
-// ServerTraceUpStream is a server-side interceptor that traces a client to server stream by
-// extracting the trace metadata from the streaming payload. The extracted trace metadata is returned
-// in the context of the receive method of the server stream.
-func ServerTraceUpStream[Result TraceStreamStreamingRecvMessage](
-	ctx context.Context,
-	info ServerTraceStreamUpInfo[Result],
-	next goa.InterceptorEndpoint,
-) (any, context.Context, error) {
-	if info.CallType() == goa.InterceptorStreamingRecv {
-		return traceStreamRecv(ctx, info, next, info.ServerStreamingPayload)
-	}
-	return next(ctx, info.RawPayload())
+	return rc.ctx
 }
 
 // traceStreamSend is a helper function that traces a stream by injecting the trace metadata
@@ -172,9 +62,9 @@ func ServerTraceUpStream[Result TraceStreamStreamingRecvMessage](
 func traceStreamSend[Message TraceStreamStreamingSendMessage](
 	ctx context.Context,
 	info goa.InterceptorInfo,
-	next goa.InterceptorEndpoint,
+	next goa.Endpoint,
 	streamingMessage func() Message,
-) (any, context.Context, error) {
+) (any, error) {
 	propagator := otel.GetTextMapPropagator()
 	md := make(propagation.MapCarrier)
 	propagator.Inject(ctx, md)
@@ -189,12 +79,25 @@ func traceStreamSend[Message TraceStreamStreamingSendMessage](
 func traceStreamRecv[Message TraceStreamStreamingRecvMessage](
 	ctx context.Context,
 	info goa.InterceptorInfo,
-	next goa.InterceptorEndpoint,
+	next goa.Endpoint,
 	streamingMessage func(any) Message,
-) (any, context.Context, error) {
-	msg, ctx, err := next(ctx, info.RawPayload())
+) (any, error) {
+	msg, err := next(ctx, info.RawPayload())
 	propagator := otel.GetTextMapPropagator()
 	sm := streamingMessage(msg)
-	ctx = propagator.Extract(ctx, propagation.MapCarrier(sm.TraceMetadata()))
-	return msg, ctx, err
+	rc, ok := ctx.Value(traceStreamRecvContextKey).(*traceStreamRecvContext)
+	if !ok {
+		panic(fmt.Errorf("clue interceptors trace stream receive method called without prior setup (service: %v, method: %v)", info.Service(), info.Method()))
+	}
+	rc.ctx = propagator.Extract(ctx, propagation.MapCarrier(sm.TraceMetadata()))
+	return msg, err
+}
+
+// traceStreamWrapRecvAndReturnContext is a helper function for wrapped trace stream receive methods
+// that returns the context with the extracted trace metadata, payload or result, and error after
+// calling the receive method of the stream.
+func traceStreamWrapRecvAndReturnContext[Message any](ctx context.Context, recv func(context.Context) (Message, error)) (context.Context, Message, error) {
+	ctx = SetupTraceStreamRecvContext(ctx)
+	msg, err := recv(ctx)
+	return GetTraceStreamRecvContext(ctx), msg, err
 }
