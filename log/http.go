@@ -168,9 +168,9 @@ func WithDisableRequestID() HTTPLogOption {
 	}
 }
 
-// WithLogFunc returns a HTTP middleware option that configures the logger to use
+// WithRequestLogFunc returns a HTTP middleware option that configures the logger to use
 // the given log function instead of log.Print() as default.
-func WithLogFunc(logFunc func(ctx context.Context, keyvals ...Fielder)) HTTPLogOption {
+func WithRequestLogFunc(logFunc func(ctx context.Context, keyvals ...Fielder)) HTTPLogOption {
 	return func(o *httpLogOptions) {
 		o.logFunc = logFunc
 	}
