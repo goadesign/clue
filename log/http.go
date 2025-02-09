@@ -64,12 +64,14 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 			o(&options)
 		}
 	}
+
+	logFunc := Print
+	if options.logFunc != nil {
+		logFunc = options.logFunc
+	}
+
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			logFunc := Print
-			if options.logFunc != nil {
-				logFunc = options.logFunc
-			}
 			for _, opt := range options.pathFilters {
 				if opt.MatchString(req.URL.Path) {
 					h.ServeHTTP(w, req)
