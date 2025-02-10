@@ -10,13 +10,22 @@ writing microservices.
 
 The following interceptor families are available:
 
-* [Trace Stream](#trace-stream): these interceptor functions allow OpenTelemetry tracing of individual
+* [Trace Stream](#trace-stream): these interceptor structs and functions allow OpenTelemetry tracing of individual
   messages of a Goa stream whether it is bidirectional, client to server, or server to client. There are
-  interceptor functions for use both as client and server interceptors.
+  interceptor structs and functions for use both as client and server interceptors.
 
 ## Trace Stream
 
-The Trace Stream family of interceptor functions can be used to trace the individual messages of a Goa stream. This differs from the OpenTelemetry HTTP middleware and gRPC stats handler in that it traces the individual messages of a stream rather than the entire stream which could be long running.
+The Trace Stream family of interceptor structs and functions can be used to trace the individual messages of a Goa stream. This differs from the OpenTelemetry HTTP middleware and gRPC stats handler in that it traces the individual messages of a stream rather than the entire stream which could be long running.
+
+The available Trace Stream interceptor structs are:
+
+* `ClientBidirectionalStreamInterceptor`: intercepts a bidirectional stream when used as a client interceptor.
+* `ClientDownStreamInterceptor`: intercepts a server to client stream when used as a client interceptor.
+* `ClientUpStreamInterceptor`: intercepts a client to server stream when used as a client interceptor.
+* `ServerBidirectionalStreamInterceptor`: intercepts a bidirectional stream when used as a server interceptor.
+* `ServerDownStreamInterceptor`: intercepts a server to client stream when used as a server interceptor.
+* `ServerUpStreamInterceptor`: intercepts a client to server stream when used as a server interceptor.
 
 The available Trace Stream interceptor functions are:
 
@@ -160,6 +169,29 @@ func (i *MyServerServiceInterceptors) TraceUpStream(ctx context.Context, info *g
 
 The interceptor functions take advantage of Go generics to work out of the box with the generated types of your
 service as long as you define your interceptors as above.
+
+Alternatively, you can embed the interceptor structs in your interceptor implementations:
+
+```go
+import (
+    ...
+    "goa.design/clue/interceptors"
+)
+
+...
+
+type MyServiceClientInterceptors struct {
+    interceptors.ClientBidirectionalStreamInterceptor[*genmyservice.TraceBidirectionalStreamInfo, genmyservice.MyBidirectionalStreamPayload, genmyservice.MyBidirectionalStreamResult]
+    interceptors.ClientDownStreamInterceptor[*genmyservice.TraceDownStreamInfo, genmyservice.MyDownStreamResult]
+    interceptors.ClientUpStreamInterceptor[*genmyservice.TraceUpStreamInfo, genmyservice.MyUpStreamPayload]
+}
+
+type MyServerServiceInterceptors struct {
+    interceptors.ServerBidirectionalStreamInterceptor[*genmyservice.TraceBidirectionalStreamInfo, genmyservice.MyBidirectionalStreamPayload, genmyservice.MyBidirectionalStreamResult]
+    interceptors.ServerDownStreamInterceptor[*genmyservice.TraceDownStreamInfo, genmyservice.MyDownStreamResult]
+    interceptors.ServerUpStreamInterceptor[*genmyservice.TraceUpStreamInfo, genmyservice.MyUpStreamPayload]
+}
+```
 
 Since generated Goa client and server interfaces do not return a context from their receive methods, you will
 need to use the helper functions to get the context with the extracted trace metadata after calling the receive

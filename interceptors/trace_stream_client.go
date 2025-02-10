@@ -7,6 +7,22 @@ import (
 )
 
 type (
+	// ClientBidirectionalStreamInterceptor is a client-side interceptor that traces a bidirectional stream by
+	// injecting the trace metadata into the streaming payload and extracting it from the streaming result.
+	// The injected trace metadata comes from the context passed to the send method of the client stream.
+	// The receive method of the client stream returns the extracted trace metadata in its context.
+	ClientBidirectionalStreamInterceptor[Info ClientTraceBidirectionalStreamInfo[Payload, Result], Payload TraceStreamStreamingSendMessage, Result TraceStreamStreamingRecvMessage] struct{}
+
+	// ClientDownStreamInterceptor is a client-side interceptor that traces a server to client stream by
+	// extracting the trace metadata from the streaming result. The extracted trace metadata is returned
+	// in the context of the receive method of the client stream.
+	ClientDownStreamInterceptor[Info ClientTraceStreamDownInfo[Result], Result TraceStreamStreamingRecvMessage] struct{}
+
+	// ClientUpStreamInterceptor is a client-side interceptor that traces a client to server stream by
+	// injecting the trace metadata into the streaming payload. The injected trace metadata is returned
+	// in the context of the send method of the client stream.
+	ClientUpStreamInterceptor[Info ClientTraceStreamUpInfo[Payload], Payload TraceStreamStreamingSendMessage] struct{}
+
 	// ClientTraceBidirectionalStreamInfo is an interface that matches the interceptor info for a
 	// bidirectional stream that can be traced using ClientTraceBidirectionalStream.
 	ClientTraceBidirectionalStreamInfo[Payload TraceStreamStreamingSendMessage, Result TraceStreamStreamingRecvMessage] interface {
@@ -107,6 +123,29 @@ type (
 		stream ClientUpStreamWithResult[Payload, Result]
 	}
 )
+
+// TraceBidirectionalStream intercepts a bidirectional stream by injecting the trace metadata into the
+// streaming payload and extracting it from the streaming result. The injected trace metadata comes from
+// the context passed to the send method of the client stream. The receive method of the client stream
+// returns the extracted trace metadata in its context.
+func (i *ClientBidirectionalStreamInterceptor[Info, Payload, Result]) TraceBidirectionalStream(ctx context.Context, info Info, next goa.Endpoint) (any, error) {
+
+	return ClientTraceBidirectionalStream(ctx, info, next)
+}
+
+// TraceDownStream intercepts a server to client stream by extracting the trace metadata from the
+// streaming result. The extracted trace metadata is returned in the context of the receive method of
+// the client stream.
+func (i *ClientDownStreamInterceptor[Info, Result]) TraceDownStream(ctx context.Context, info Info, next goa.Endpoint) (any, error) {
+	return ClientTraceDownStream(ctx, info, next)
+}
+
+// TraceUpStream intercepts a client to server stream by injecting the trace metadata into the
+// streaming payload. The injected trace metadata is returned in the context of the send method of
+// the client stream.
+func (i *ClientUpStreamInterceptor[Info, Payload]) TraceUpStream(ctx context.Context, info Info, next goa.Endpoint) (any, error) {
+	return ClientTraceUpStream(ctx, info, next)
+}
 
 // ClientTraceBidirectionalStream is a client-side interceptor that traces a bidirectional stream by
 // injecting the trace metadata into the streaming payload and extracting it from the streaming result.
