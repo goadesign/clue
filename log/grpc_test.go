@@ -298,7 +298,8 @@ func TestWithCallLogFuncStream(t *testing.T) {
 
 	stream, err := cli.GRPCStream(context.Background())
 	require.NoError(t, err)
-	stream.Send(&testsvc.Fields{})
+	err = stream.Send(&testsvc.Fields{})
+	require.NoError(t, err)
 	err = stream.Close()
 	require.NoError(t, err)
 	stop()
