@@ -129,7 +129,6 @@ type (
 // the context passed to the send method of the client stream. The receive method of the client stream
 // returns the extracted trace metadata in its context.
 func (i *ClientBidirectionalStreamInterceptor[Info, Payload, Result]) TraceBidirectionalStream(ctx context.Context, info Info, next goa.Endpoint) (any, error) {
-
 	return ClientTraceBidirectionalStream(ctx, info, next)
 }
 

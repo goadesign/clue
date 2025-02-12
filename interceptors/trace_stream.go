@@ -6,6 +6,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
+
 	goa "goa.design/goa/v3/pkg"
 )
 
@@ -52,6 +53,8 @@ func GetTraceStreamRecvContext(ctx context.Context) context.Context {
 	rc, ok := ctx.Value(traceStreamRecvContextKey).(*traceStreamRecvContext)
 	if !ok {
 		panic(fmt.Errorf("clue interceptors get trace stream receive context method called without prior setup"))
+	} else if rc.ctx == nil {
+		panic(fmt.Errorf("clue interceptors get trace stream receive context method called without prior interceptor receive method call"))
 	}
 	return rc.ctx
 }
