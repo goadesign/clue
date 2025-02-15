@@ -20,21 +20,21 @@ The Trace Stream family of interceptor structs and functions can be used to trac
 
 The available Trace Stream interceptor structs are:
 
-* `ClientBidirectionalStreamInterceptor`: intercepts a bidirectional stream when used as a client interceptor.
-* `ClientDownStreamInterceptor`: intercepts a server to client stream when used as a client interceptor.
-* `ClientUpStreamInterceptor`: intercepts a client to server stream when used as a client interceptor.
-* `ServerBidirectionalStreamInterceptor`: intercepts a bidirectional stream when used as a server interceptor.
-* `ServerDownStreamInterceptor`: intercepts a server to client stream when used as a server interceptor.
-* `ServerUpStreamInterceptor`: intercepts a client to server stream when used as a server interceptor.
+* `TraceBidirectionalStreamClientInterceptor`: intercepts a bidirectional stream when used as a client interceptor.
+* `TraceServerToClientStreamClientInterceptor`: intercepts a server to client stream when used as a client interceptor.
+* `TraceClientToServerStreamClientInterceptor`: intercepts a client to server stream when used as a client interceptor.
+* `TraceBidirectionalStreamServerInterceptor`: intercepts a bidirectional stream when used as a server interceptor.
+* `TraceServerToClientStreamServerInterceptor`: intercepts a server to client stream when used as a server interceptor.
+* `TraceClientToServerStreamServerInterceptor`: intercepts a client to server stream when used as a server interceptor.
 
 The available Trace Stream interceptor functions are:
 
-* `ClientTraceBidirectionalStream`: traces a bidirectional stream when used as a client interceptor.
-* `ClientTraceDownStream`: traces a server to client stream when used as a client interceptor.
-* `ClientTraceUpStream`: traces a client to server stream when used as a client interceptor.
-* `ServerTraceBidirectionalStream`: traces a bidirectional stream when used as a server interceptor.
-* `ServerTraceDownStream`: traces a server to client stream when used as a server interceptor.
-* `ServerTraceUpStream`: traces a client to server stream when used as a server interceptor.
+* `TraceBidirectionalStreamClient`: traces a bidirectional stream when used as a client interceptor.
+* `TraceServerToClientStreamClient`: traces a server to client stream when used as a client interceptor.
+* `TraceClientToServerStreamClient`: traces a client to server stream when used as a client interceptor.
+* `TraceBidirectionalStreamServer`: traces a bidirectional stream when used as a server interceptor.
+* `TraceServerToClientStreamServer`: traces a server to client stream when used as a server interceptor.
+* `TraceClientToServerStreamServer`: traces a client to server stream when used as a server interceptor.
 
 There are also a set of helper functions that should be used within Goa service method implementations
 in order to enable propagation of trace metadata received from streams to a context:
@@ -45,12 +45,12 @@ in order to enable propagation of trace metadata received from streams to a cont
 As a convenience, there are also functions that wrap streams with an interface that handles the work of
 calling the `SetupTraceStreamRecvContext` and `GetTraceStreamRecvContext` helper functions:
 
-* `WrapTraceStreamClientBidirectionalStream`: wraps a client stream for a bidirectional stream.
-* `WrapTraceStreamClientDownStream`: wraps a client stream for a server to client stream.
-* `WrapTraceStreamClientUpStreamWithResult`: wraps a client stream for a client to server stream with a result.
-* `WrapTraceStreamServerBidirectionalStream`: wraps a server stream for a bidirectional stream.
-* `WrapTraceStreamServerDownStream`: wraps a server stream for a server to client stream.
-* `WrapTraceStreamServerUpStreamWithResult`: wraps a server stream for a client to server stream with a result.
+* `WrapTraceBidirectionalStreamClientStream`: wraps a client stream for a bidirectional stream.
+* `WrapTraceServerToClientStreamClientStream`: wraps a client stream for a server to client stream.
+* `WrapTraceClientToServerStreamWithResultClientStream`: wraps a client stream for a client to server stream with a result.
+* `WrapTraceBidirectionalStreamServerStream`: wraps a server stream for a bidirectional stream.
+* `WrapTraceServerToClientStreamServerStream`: wraps a server stream for a server to client stream.
+* `WrapTraceClientToServerStreamWithResultServerStream`: wraps a server stream for a client to server stream with a result.
 
 These interceptor functions will work best if you also set up OpenTelemetry instrumentation for your service
 using the [clue](../clue/) package.
@@ -76,7 +76,7 @@ var TraceBidirectionalStream = Interceptor("TraceBidirectionalStream", func() {
     })
 })
 
-var TraceDownStream = Interceptor("TraceDownStream", func() {
+var TraceServerToClientStream = Interceptor("TraceServerToClientStream", func() {
     WriteStreamingResult(func() {
         Attribute("TraceMetadata", MapOf(String, String))
     })
@@ -85,7 +85,7 @@ var TraceDownStream = Interceptor("TraceDownStream", func() {
     })
 })
 
-var TraceUpStream = Interceptor("TraceUpStream", func() {
+var TraceClientToServerStream = Interceptor("TraceClientToServerStream", func() {
     WriteStreamingPayload(func() {
         Attribute("TraceMetadata", MapOf(String, String))
     })
@@ -106,16 +106,16 @@ a client and server interceptor:
         ...
     })
 
-    Method("MyDownStreamMethod", func() {
-        ClientInterceptor(TraceDownStream)
-        ServerInterceptor(TraceDownStream)
+    Method("MyServerToClientStreamMethod", func() {
+        ClientInterceptor(TraceServerToClientStream)
+        ServerInterceptor(TraceServerToClientStream)
 
         ...
     })
 
-    Method("MyUpStreamMethod", func() {
-        ClientInterceptor(TraceUpStream)
-        ServerInterceptor(TraceUpStream)
+    Method("MyClientToServerStreamMethod", func() {
+        ClientInterceptor(TraceClientToServerStream)
+        ServerInterceptor(TraceClientToServerStream)
 
         ...
     })
@@ -143,27 +143,27 @@ import (
 ...
 
 func (i *MyServiceClientInterceptors) TraceBidirectionalStream(ctx context.Context, info *genmyservice.TraceBidirectionalStream, next goa.InterceptorEndpoint) (any, context.Context, error) {
-    return interceptors.ClientTraceBidirectionalStream(ctx, info, next)
+    return interceptors.TraceBidirectionalStreamClient(ctx, info, next)
 }
 
-func (i *MyServiceClientInterceptors) TraceDownStream(ctx context.Context, info *genmyservice.TraceDownStream, next goa.InterceptorEndpoint) (any, context.Context, error) {
-    return interceptors.ClientTraceDownStream(ctx, info, next)
+func (i *MyServiceClientInterceptors) TraceServerToClientStream(ctx context.Context, info *genmyservice.TraceServerToClientStream, next goa.InterceptorEndpoint) (any, context.Context, error) {
+    return interceptors.TraceServerToClientStreamClient(ctx, info, next)
 }
 
-func (i *MyServiceClientInterceptors) TraceUpStream(ctx context.Context, info *genmyservice.TraceUpStream, next goa.InterceptorEndpoint) (any, context.Context, error) {
-    return interceptors.ClientTraceUpStream(ctx, info, next)
+func (i *MyServiceClientInterceptors) TraceClientToServerStream(ctx context.Context, info *genmyservice.TraceClientToServerStream, next goa.InterceptorEndpoint) (any, context.Context, error) {
+    return interceptors.TraceClientToServerStreamClient(ctx, info, next)
 }
 
 func (i *MyServerServiceInterceptors) TraceBidirectionalStream(ctx context.Context, info *genmyservice.TraceBidirectionalStreamInfo, next goa.InterceptorEndpoint) (any, context.Context, error) {
-    return interceptors.ServerTraceBidirectionalStream(ctx, info, next)
+    return interceptors.TraceBidirectionalStreamServer(ctx, info, next)
 }
 
-func (i *MyServerServiceInterceptors) TraceDownStream(ctx context.Context, info *genmyservice.TraceDownStreamInfo, next goa.InterceptorEndpoint) (any, context.Context, error) {
-    return interceptors.ServerTraceDownStream(ctx, info, next)
+func (i *MyServerServiceInterceptors) TraceServerToClientStream(ctx context.Context, info *genmyservice.TraceServerToClientStreamInfo, next goa.InterceptorEndpoint) (any, context.Context, error) {
+    return interceptors.TraceServerToClientStreamServer(ctx, info, next)
 }
 
-func (i *MyServerServiceInterceptors) TraceUpStream(ctx context.Context, info *genmyservice.TraceUpStreamInfo, next goa.InterceptorEndpoint) (any, context.Context, error) {
-    return interceptors.ServerTraceUpStream(ctx, info, next)
+func (i *MyServerServiceInterceptors) TraceClientToServerStream(ctx context.Context, info *genmyservice.TraceClientToServerStreamInfo, next goa.InterceptorEndpoint) (any, context.Context, error) {
+    return interceptors.TraceClientToServerStreamServer(ctx, info, next)
 }
 ```
 
@@ -181,15 +181,15 @@ import (
 ...
 
 type MyServiceClientInterceptors struct {
-    interceptors.ClientBidirectionalStreamInterceptor[*genmyservice.TraceBidirectionalStreamInfo, genmyservice.MyBidirectionalStreamPayload, genmyservice.MyBidirectionalStreamResult]
-    interceptors.ClientDownStreamInterceptor[*genmyservice.TraceDownStreamInfo, genmyservice.MyDownStreamResult]
-    interceptors.ClientUpStreamInterceptor[*genmyservice.TraceUpStreamInfo, genmyservice.MyUpStreamPayload]
+    interceptors.TraceBidirectionalStreamClientInterceptor[*genmyservice.TraceBidirectionalStreamInfo, genmyservice.MyBidirectionalStreamPayload, genmyservice.MyBidirectionalStreamResult]
+    interceptors.TraceServerToClientStreamClientInterceptor[*genmyservice.TraceServerToClientStreamInfo, genmyservice.MyServerToClientStreamResult]
+    interceptors.TraceClientToServerStreamClientInterceptor[*genmyservice.TraceClientToServerStreamInfo, genmyservice.MyClientToServerStreamPayload]
 }
 
 type MyServerServiceInterceptors struct {
-    interceptors.ServerBidirectionalStreamInterceptor[*genmyservice.TraceBidirectionalStreamInfo, genmyservice.MyBidirectionalStreamPayload, genmyservice.MyBidirectionalStreamResult]
-    interceptors.ServerDownStreamInterceptor[*genmyservice.TraceDownStreamInfo, genmyservice.MyDownStreamResult]
-    interceptors.ServerUpStreamInterceptor[*genmyservice.TraceUpStreamInfo, genmyservice.MyUpStreamPayload]
+    interceptors.TraceBidirectionalStreamServerInterceptor[*genmyservice.TraceBidirectionalStreamInfo, genmyservice.MyBidirectionalStreamPayload, genmyservice.MyBidirectionalStreamResult]
+    interceptors.TraceServerToClientStreamServerInterceptor[*genmyservice.TraceServerToClientStreamInfo, genmyservice.MyServerToClientStreamResult]
+    interceptors.TraceClientToServerStreamServerInterceptor[*genmyservice.TraceClientToServerStreamInfo, genmyservice.MyClientToServerStreamPayload]
 }
 ```
 
@@ -207,7 +207,7 @@ Alternatively, you can wrap the stream with an interface that handles the work o
 `SetupTraceStreamRecvContext` and `GetTraceStreamRecvContext` helper functions:
 
 ```go
-    ws := interceptors.WrapTraceStreamClientBidirectionalStream(stream)
+    ws := interceptors.WrapTraceBidirectionalStreamClientStream(stream)
     err := ws.Send(ctx, &genmyservice.MyBidirectionalStreamPayload{
         ...
     })

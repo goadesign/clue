@@ -12,15 +12,15 @@ import (
 
 type (
 	// TraceStreamStreamingSendMessage is an interface that matches the streaming send payload or result
-	// for a stream that can be traced using ClientTraceBidirectionalStream, ClientTraceUpStream,
-	// ServerTraceBidirectionalStream, or ServerTraceDownStream.
+	// for a stream that can be traced using TraceBidirectionalStreamClient, TraceClientToServerStreamClient,
+	// TraceBidirectionalStreamServer, or TraceServerToClientStreamServer.
 	TraceStreamStreamingSendMessage interface {
 		SetTraceMetadata(map[string]string)
 	}
 
 	// TraceStreamStreamingRecvMessage is an interface that matches the streaming receive payload or result
-	// for a stream that can be traced using ClientTraceBidirectionalStream, ClientTraceDownStream,
-	// ServerTraceBidirectionalStream, or ServerTraceUpStream.
+	// for a stream that can be traced using TraceBidirectionalStreamClient, TraceServerToClientStreamClient,
+	// TraceBidirectionalStreamServer, or TraceClientToServerStreamServer.
 	TraceStreamStreamingRecvMessage interface {
 		TraceMetadata() map[string]string
 	}

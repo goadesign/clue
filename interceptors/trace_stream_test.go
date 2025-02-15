@@ -110,12 +110,12 @@ func TestGetTraceStreamRecvContext(t *testing.T) {
 func newMockTraceStreamInfo(assert *assert.Assertions) *mockTraceStreamInfo {
 	var (
 		m                                                                                                    = &mockTraceStreamInfo{mock.New(), assert}
-		_ ClientTraceBidirectionalStreamInfo[*mockTraceStreamingSendMessage, *mockTraceStreamingRecvMessage] = m
-		_ ClientTraceStreamDownInfo[*mockTraceStreamingRecvMessage]                                          = m
-		_ ClientTraceStreamUpInfo[*mockTraceStreamingSendMessage]                                            = m
-		_ ServerTraceBidirectionalStreamInfo[*mockTraceStreamingRecvMessage, *mockTraceStreamingSendMessage] = m
-		_ ServerTraceStreamDownInfo[*mockTraceStreamingSendMessage]                                          = m
-		_ ServerTraceStreamUpInfo[*mockTraceStreamingRecvMessage]                                            = m
+		_ TraceBidirectionalStreamClientInfo[*mockTraceStreamingSendMessage, *mockTraceStreamingRecvMessage] = m
+		_ ClientTraceStreamServerToClientInfo[*mockTraceStreamingRecvMessage]                                = m
+		_ ClientTraceStreamClientToServerInfo[*mockTraceStreamingSendMessage]                                = m
+		_ TraceBidirectionalStreamServerInfo[*mockTraceStreamingRecvMessage, *mockTraceStreamingSendMessage] = m
+		_ ServerTraceStreamServerToClientInfo[*mockTraceStreamingSendMessage]                                = m
+		_ ServerTraceStreamClientToServerInfo[*mockTraceStreamingRecvMessage]                                = m
 	)
 	return m
 }
@@ -270,13 +270,13 @@ func (m *mockTraceStreamingRecvMessage) hasMore() bool {
 
 func newMockTraceStream(assert *assert.Assertions) *mockTraceStream {
 	var (
-		m                                                                     = &mockTraceStream{mock.New(), assert}
-		_ ClientBidirectionalStream[*traceStreamMessage, *traceStreamMessage] = m
-		_ ClientDownStream[*traceStreamMessage]                               = m
-		_ ClientUpStreamWithResult[*traceStreamMessage, *traceStreamMessage]  = m
-		_ ServerBidirectionalStream[*traceStreamMessage, *traceStreamMessage] = m
-		_ ServerUpStream[*traceStreamMessage]                                 = m
-		_ ServerUpStreamWithResult[*traceStreamMessage, *traceStreamMessage]  = m
+		m                                                                                = &mockTraceStream{mock.New(), assert}
+		_ ClientBidirectionalStream[*traceStreamMessage, *traceStreamMessage]            = m
+		_ ClientServerToClientStream[*traceStreamMessage]                                = m
+		_ ClientClientToServerStreamWithResult[*traceStreamMessage, *traceStreamMessage] = m
+		_ ServerBidirectionalStream[*traceStreamMessage, *traceStreamMessage]            = m
+		_ ServerClientToServerStream[*traceStreamMessage]                                = m
+		_ ServerClientToServerStreamWithResult[*traceStreamMessage, *traceStreamMessage] = m
 	)
 	return m
 }
