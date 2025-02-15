@@ -27,6 +27,7 @@ type (
 		pathFilters           []*regexp.Regexp
 		disableRequestLogging bool
 		disableRequestID      bool
+		logFunc               func(ctx context.Context, keyvals ...Fielder)
 	}
 
 	httpClientOptions struct {
@@ -63,6 +64,12 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 			o(&options)
 		}
 	}
+
+	logFunc := Print
+	if options.logFunc != nil {
+		logFunc = options.logFunc
+	}
+
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			for _, opt := range options.pathFilters {
@@ -82,7 +89,7 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 			methKV := KV{K: HTTPMethodKey, V: req.Method}
 			urlKV := KV{K: HTTPURLKey, V: req.URL.String()}
 			fromKV := KV{K: HTTPFromKey, V: from(req)}
-			Print(ctx, KV{K: MessageKey, V: "start"}, methKV, urlKV, fromKV)
+			logFunc(ctx, KV{K: MessageKey, V: "start"}, methKV, urlKV, fromKV)
 
 			rw := &responseCapture{ResponseWriter: w}
 			started := timeNow()
@@ -91,7 +98,7 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 			statusKV := KV{K: HTTPStatusKey, V: rw.StatusCode}
 			durKV := KV{K: HTTPDurationKey, V: timeSince(started).Milliseconds()}
 			bytesKV := KV{K: HTTPBytesKey, V: rw.ContentLength}
-			Print(ctx, KV{K: MessageKey, V: "end"}, methKV, urlKV, statusKV, durKV, bytesKV)
+			logFunc(ctx, KV{K: MessageKey, V: "end"}, methKV, urlKV, statusKV, durKV, bytesKV)
 		})
 	}
 }
@@ -160,6 +167,14 @@ func WithDisableRequestLogging() HTTPLogOption {
 func WithDisableRequestID() HTTPLogOption {
 	return func(o *httpLogOptions) {
 		o.disableRequestID = true
+	}
+}
+
+// WithRequestLogFunc returns a HTTP middleware option that configures the logger to use
+// the given log function instead of log.Print() as default.
+func WithRequestLogFunc(logFunc func(ctx context.Context, keyvals ...Fielder)) HTTPLogOption {
+	return func(o *httpLogOptions) {
+		o.logFunc = logFunc
 	}
 }
 

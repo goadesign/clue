@@ -257,8 +257,94 @@ func TestStreamClientInterceptor(t *testing.T) {
 	}
 }
 
-func logUnaryMethod(ctx context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
+func TestWithCallLogFunc(t *testing.T) {
+	var loggedKeyvals []Fielder
+	customLogFunc := func(ctx context.Context, keyvals ...Fielder) {
+		loggedKeyvals = append(loggedKeyvals, keyvals...)
+	}
+
+	var buf bytes.Buffer
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+	handler := UnaryServerInterceptor(ctx, WithCallLogFunc(customLogFunc))
+	cli, stop := testsvc.SetupGRPC(t,
+		testsvc.WithServerOptions(grpc.UnaryInterceptor(handler)),
+		testsvc.WithUnaryFunc(silentUnaryMethod))
+
+	_, err := cli.GRPCMethod(context.Background(), &testsvc.Fields{})
+	require.NoError(t, err)
+
+	// Verify matching start/end messages were logged
+	assert.Contains(t, loggedKeyvals, KV{K: MessageKey, V: "start"})
+	assert.Contains(t, loggedKeyvals, KV{K: MessageKey, V: "end"})
+
+	// Verify that nothing was written to the buffer since we're using custom log func
+	assert.Empty(t, buf.String())
+
+	stop()
+}
+
+func TestWithCallLogFuncStream(t *testing.T) {
+	var loggedKeyvals []Fielder
+	customLogFunc := func(ctx context.Context, keyvals ...Fielder) {
+		loggedKeyvals = append(loggedKeyvals, keyvals...)
+	}
+
+	var buf bytes.Buffer
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+	handler := StreamServerInterceptor(ctx, WithCallLogFunc(customLogFunc))
+	cli, stop := testsvc.SetupGRPC(t,
+		testsvc.WithServerOptions(grpc.StreamInterceptor(handler)),
+		testsvc.WithStreamFunc(dummyStreamMethod()))
+
+	stream, err := cli.GRPCStream(context.Background())
+	require.NoError(t, err)
+	err = stream.Send(&testsvc.Fields{})
+	require.NoError(t, err)
+	err = stream.Close()
+	require.NoError(t, err)
+	stop()
+
+	// Verify matching start/end messages were logged
+	assert.Contains(t, loggedKeyvals, KV{K: MessageKey, V: "start"})
+	assert.Contains(t, loggedKeyvals, KV{K: MessageKey, V: "end"})
+
+	// Verify that nothing was written to the buffer since we're using custom log func
+	assert.Empty(t, buf.String())
+}
+
+func TestWithCallLogFuncClient(t *testing.T) {
+	var loggedKeyvals []Fielder
+	customLogFunc := func(ctx context.Context, keyvals ...Fielder) {
+		loggedKeyvals = append(loggedKeyvals, keyvals...)
+	}
+
+	var buf bytes.Buffer
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+
+	// Test unary client interceptor
+	cli, stop := testsvc.SetupGRPC(t,
+		testsvc.WithDialOptions(grpc.WithUnaryInterceptor(UnaryClientInterceptor(WithCallLogFunc(customLogFunc)))),
+		testsvc.WithUnaryFunc(silentUnaryMethod))
+
+	_, err := cli.GRPCMethod(ctx, &testsvc.Fields{})
+	require.NoError(t, err)
+
+	// Verify matching start/end messages were logged
+	assert.Contains(t, loggedKeyvals, KV{K: MessageKey, V: "start"})
+	assert.Contains(t, loggedKeyvals, KV{K: MessageKey, V: "end"})
+
+	// Verify that nothing was written to the buffer since we're using custom log func
+	assert.Empty(t, buf.String())
+
+	stop()
+}
+
+func logUnaryMethod(ctx context.Context, fields *testsvc.Fields) (*testsvc.Fields, error) {
 	Print(ctx, KV{"key1", "value1"}, KV{"key2", "value2"})
+	return silentUnaryMethod(ctx, fields)
+}
+
+func silentUnaryMethod(_ context.Context, _ *testsvc.Fields) (*testsvc.Fields, error) {
 	return &testsvc.Fields{}, nil
 }
 
