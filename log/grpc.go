@@ -27,6 +27,7 @@ type (
 		iserr              func(codes.Code) bool
 		disableCallLogging bool
 		disableCallID      bool
+		logFunc            func(ctx context.Context, keyvals ...Fielder)
 	}
 )
 
@@ -43,6 +44,12 @@ func UnaryServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc.
 	for _, opt := range opts {
 		opt(o)
 	}
+
+	logFunc := Print
+	if o.logFunc != nil {
+		logFunc = o.logFunc
+	}
+
 	return func(
 		ctx context.Context,
 		req interface{},
@@ -59,7 +66,7 @@ func UnaryServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc.
 		then := time.Now()
 		svcKV := KV{K: GRPCServiceKey, V: path.Dir(info.FullMethod)[1:]}
 		methKV := KV{K: GRPCMethodKey, V: path.Base(info.FullMethod)}
-		Print(ctx, KV{MessageKey, "start"}, svcKV, methKV)
+		logFunc(ctx, KV{MessageKey, "start"}, svcKV, methKV)
 
 		res, err := handler(ctx, req)
 
@@ -72,7 +79,7 @@ func UnaryServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc.
 			Error(ctx, err, svcKV, methKV, statKV, codeKV, durKV)
 			return res, err
 		}
-		Print(ctx, KV{MessageKey, "end"}, svcKV, methKV, codeKV, durKV)
+		logFunc(ctx, KV{MessageKey, "end"}, svcKV, methKV, codeKV, durKV)
 		return res, err
 	}
 }
@@ -87,6 +94,12 @@ func StreamServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc
 	for _, opt := range opts {
 		opt(o)
 	}
+
+	logFunc := Print
+	if o.logFunc != nil {
+		logFunc = o.logFunc
+	}
+
 	return func(
 		srv interface{},
 		stream grpc.ServerStream,
@@ -104,7 +117,7 @@ func StreamServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc
 		then := time.Now()
 		svcKV := KV{K: GRPCServiceKey, V: path.Dir(info.FullMethod)[1:]}
 		methKV := KV{K: GRPCMethodKey, V: path.Base(info.FullMethod)}
-		Print(ctx, KV{MessageKey, "start"}, svcKV, methKV)
+		logFunc(ctx, KV{MessageKey, "start"}, svcKV, methKV)
 
 		err := handler(srv, stream)
 
@@ -117,7 +130,7 @@ func StreamServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc
 			Error(ctx, err, svcKV, methKV, statKV, codeKV, durKV)
 			return err
 		}
-		Print(ctx, KV{MessageKey, "end"}, svcKV, methKV, codeKV, durKV)
+		logFunc(ctx, KV{MessageKey, "end"}, svcKV, methKV, codeKV, durKV)
 		return err
 	}
 }
@@ -129,6 +142,12 @@ func UnaryClientInterceptor(opts ...GRPCLogOption) grpc.UnaryClientInterceptor {
 	for _, opt := range opts {
 		opt(o)
 	}
+
+	logFunc := Print
+	if o.logFunc != nil {
+		logFunc = o.logFunc
+	}
+
 	return func(
 		ctx context.Context,
 		fullmethod string,
@@ -140,7 +159,7 @@ func UnaryClientInterceptor(opts ...GRPCLogOption) grpc.UnaryClientInterceptor {
 		then := time.Now()
 		svcKV := KV{K: GRPCServiceKey, V: path.Dir(fullmethod)[1:]}
 		methKV := KV{K: GRPCMethodKey, V: path.Base(fullmethod)}
-		Print(ctx, KV{K: MessageKey, V: "start"}, svcKV, methKV)
+		logFunc(ctx, KV{K: MessageKey, V: "start"}, svcKV, methKV)
 
 		err := invoker(ctx, fullmethod, req, reply, cc, opts...)
 
@@ -153,7 +172,7 @@ func UnaryClientInterceptor(opts ...GRPCLogOption) grpc.UnaryClientInterceptor {
 			Error(ctx, err, svcKV, methKV, statKV, codeKV, durKV)
 			return err
 		}
-		Print(ctx, KV{K: MessageKey, V: "end"}, svcKV, methKV, codeKV, durKV)
+		logFunc(ctx, KV{K: MessageKey, V: "end"}, svcKV, methKV, codeKV, durKV)
 		return err
 	}
 }
@@ -165,6 +184,12 @@ func StreamClientInterceptor(opts ...GRPCLogOption) grpc.StreamClientInterceptor
 	for _, opt := range opts {
 		opt(o)
 	}
+
+	logFunc := Print
+	if o.logFunc != nil {
+		logFunc = o.logFunc
+	}
+
 	return func(
 		ctx context.Context,
 		desc *grpc.StreamDesc,
@@ -176,7 +201,7 @@ func StreamClientInterceptor(opts ...GRPCLogOption) grpc.StreamClientInterceptor
 		then := time.Now()
 		svcKV := KV{K: GRPCServiceKey, V: path.Dir(fullmethod)[1:]}
 		methKV := KV{K: GRPCMethodKey, V: path.Base(fullmethod)}
-		Print(ctx, KV{K: MessageKey, V: "start"}, svcKV, methKV)
+		logFunc(ctx, KV{K: MessageKey, V: "start"}, svcKV, methKV)
 
 		stream, err := streamer(ctx, desc, cc, fullmethod, opts...)
 
@@ -189,7 +214,7 @@ func StreamClientInterceptor(opts ...GRPCLogOption) grpc.StreamClientInterceptor
 			Error(ctx, err, svcKV, methKV, statKV, codeKV, durKV)
 			return stream, err
 		}
-		Print(ctx, KV{K: MessageKey, V: "end"}, svcKV, methKV, codeKV, durKV)
+		logFunc(ctx, KV{K: MessageKey, V: "end"}, svcKV, methKV, codeKV, durKV)
 		return stream, err
 	}
 }
@@ -215,6 +240,14 @@ func WithDisableCallLogging() GRPCLogOption {
 func WithDisableCallID() GRPCLogOption {
 	return func(o *grpcOptions) {
 		o.disableCallID = true
+	}
+}
+
+// WithCallLogFunc returns a HTTP middleware option that configures the logger to use
+// the given log function instead of log.Print() as default.
+func WithCallLogFunc(logFunc func(ctx context.Context, keyvals ...Fielder)) GRPCLogOption {
+	return func(o *grpcOptions) {
+		o.logFunc = logFunc
 	}
 }
 

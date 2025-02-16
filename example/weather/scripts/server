@@ -21,7 +21,7 @@ else
     export HOST_GATEWAY='host-gateway'
 fi
 
-docker-compose -f signoz/deploy/docker/clickhouse-setup/docker-compose.yaml up -d 
+docker-compose -f signoz/deploy/docker/docker-compose.yaml up -d 
 
 overmind start
 

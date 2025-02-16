@@ -173,6 +173,38 @@ func TestWithPathFilter(t *testing.T) {
 	assert.Empty(t, buf.String())
 }
 
+func TestWithRequestLogFunc(t *testing.T) {
+	now := timeNow
+	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
+	defer func() { timeNow = now }()
+	timeSince = func(_ time.Time) time.Duration { return 42 * time.Millisecond }
+	defer func() { timeSince = time.Since }()
+	shortID = func() string { return "test-request-id" }
+	defer func() { shortID = randShortID }()
+
+	var loggedKeyvals []Fielder
+	customLogFunc := func(ctx context.Context, keyvals ...Fielder) {
+		loggedKeyvals = append(loggedKeyvals, keyvals...)
+	}
+
+	var handler http.Handler = http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
+	})
+	var buf bytes.Buffer
+	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+
+	handler = HTTP(ctx, WithRequestLogFunc(customLogFunc))(handler)
+
+	req, _ := http.NewRequest("GET", "http://example.com", nil)
+	handler.ServeHTTP(nil, req)
+
+	// Verify matching start/end
+	assert.Contains(t, loggedKeyvals, KV{K: MessageKey, V: "start"})
+	assert.Contains(t, loggedKeyvals, KV{K: MessageKey, V: "end"})
+
+	// Verify that nothing was written to the buffer since we're using custom log func
+	assert.Empty(t, buf.String())
+}
+
 type errorClient struct {
 	err error
 }
