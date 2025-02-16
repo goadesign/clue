@@ -41,8 +41,6 @@ go install github.com/DarthSim/overmind/v2@latest
 # clone SigNoz for docker compose files
 if [[ ! -d "signoz" ]]; then
   git clone --depth 1 -b main https://github.com/SigNoz/signoz.git
-  # remove the hotrod example
-  sed -i.bak '/hotrod:/,$d' signoz/deploy/docker/clickhouse-setup/docker-compose.yaml
 fi
 
 ./scripts/build
