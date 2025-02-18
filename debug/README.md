@@ -22,7 +22,7 @@ query parameter.  The path, query parameter name and value can be customized by
 passing options to the `MountDebugLogEnabler` function.
 
 Note that for the debug log state to take effect, HTTP servers must use handlers
-returned by the HTTP function and gRPC servers must make use of the 
+returned by the HTTP function and gRPC servers must make use of the
 UnaryInterceptor or StreamInterceptor interceptors.  Also note that gRPC
 services must expose an HTTP endpoint to control the debug log state.
 

@@ -59,7 +59,7 @@ log entries for the service will have the `svc` key set to the service name.
 ## Buffering
 
 One of the key features of the `log` package is that it can buffer log messages
-until an error occurs (and is logged) or the buffer is explicitely flushed. This
+until an error occurs (and is logged) or the buffer is explicitly flushed. This
 allows the application to write informative log messages without having to worry
 about the volume of logs being written.
 

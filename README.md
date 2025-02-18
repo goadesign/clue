@@ -30,8 +30,10 @@ Clue covers the following topics:
   downstream dependencies for testing.
 * Debugging: the [debug](debug/) package makes it possible to troubleshoot
   and profile services at runtime.
+* Interceptors: the [interceptors](interceptors/) package provides a set of
+  helpful Goa interceptors.
 
-Clue's goal is to provide all the anciallary functionality required to efficiently
+Clue's goal is to provide all the ancillary functionality required to efficiently
 operate a microservice style architecture including instrumentation, logging,
 debugging and health checks. Clue is not a framework and does not provide
 functionality that is already available in the standard library or in other
@@ -175,7 +177,7 @@ metricExporter, err := otlpmetricgrpc.New(
 ```
 
 These exporters can then be used to configure Clue:
-        
+
 ```go
 // Configure OpenTelemetry.
 cfg := clue.NewConfig(ctx, "service", "1.0.0", metricExporter, spanExporter)
@@ -190,9 +192,9 @@ HTTP clients can be instrumented using the Clue `log` and OpenTelemetry `otelhtt
 import (
     "context"
     "net/http"
-	"net/http/httptrace"
+    "net/http/httptrace"
 
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+    "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
     "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttptrace"
     "goa.design/clue/log"
 )
@@ -200,17 +202,17 @@ import (
 // ...
 httpc := &http.Client{
     Transport: log.Client(
-    	otelhttp.NewTransport(
-    		http.DefaultTransport,
-		    otelhttp.WithClientTrace(func(ctx context.Context) *httptrace.ClientTrace {
-			    return otelhttptrace.NewClientTrace(ctx)
-		    }),
-	    ),
+        otelhttp.NewTransport(
+            http.DefaultTransport,
+            otelhttp.WithClientTrace(func(ctx context.Context) *httptrace.ClientTrace {
+                return otelhttptrace.NewClientTrace(ctx)
+            }),
+        ),
     ),
 }
 ```
 
-Similarly, gRPC clients can be instrumented using the Clue `log` and OpenTelemtry `otelgrpc` packages.
+Similarly, gRPC clients can be instrumented using the Clue `log` and OpenTelemetry `otelgrpc` packages.
 
 ```go
 import (
@@ -265,7 +267,7 @@ handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     if _, err := w.Write([]byte("Hello, World!")); err != nil {
         log.Errorf(ctx, err, "failed to write response")
     }
- })
+})
 ```
 
 ## Goa
