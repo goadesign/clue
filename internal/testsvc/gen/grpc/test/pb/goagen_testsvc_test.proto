@@ -1,4 +1,4 @@
-// Code generated with goa v3.9.1, DO NOT EDIT.
+// Code generated with goa v3.20.0, DO NOT EDIT.
 //
 // test protocol buffer definition
 //
@@ -21,28 +21,28 @@ service Test {
 
 message GrpcMethodRequest {
 	// String operand
-	string s = 1;
+	optional string s = 1;
 	// Int operand
-	sint32 i = 2;
+	optional sint32 i = 2;
 }
 
 message GrpcMethodResponse {
 	// String operand
-	string s = 1;
+	optional string s = 1;
 	// Int operand
-	sint32 i = 2;
+	optional sint32 i = 2;
 }
 
 message GrpcStreamStreamingRequest {
 	// String operand
-	string s = 1;
+	optional string s = 1;
 	// Int operand
-	sint32 i = 2;
+	optional sint32 i = 2;
 }
 
 message GrpcStreamResponse {
 	// String operand
-	string s = 1;
+	optional string s = 1;
 	// Int operand
-	sint32 i = 2;
+	optional sint32 i = 2;
 }
