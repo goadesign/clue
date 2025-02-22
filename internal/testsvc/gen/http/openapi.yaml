@@ -2,7 +2,7 @@ swagger: "2.0"
 info:
     title: ""
     description: metrics test service
-    version: ""
+    version: 0.0.1
 host: localhost:80
 consumes:
     - application/json
@@ -29,27 +29,17 @@ paths:
                   in: body
                   required: true
                   schema:
-                    $ref: '#/definitions/TestHTTPMethodRequestBody'
+                    $ref: '#/definitions/Fields'
             responses:
                 "200":
                     description: OK response.
                     schema:
-                        $ref: '#/definitions/TestHTTPMethodResponseBody'
+                        $ref: '#/definitions/Fields'
             schemes:
                 - http
 definitions:
-    TestHTTPMethodRequestBody:
-        title: TestHTTPMethodRequestBody
-        type: object
-        properties:
-            s:
-                type: string
-                description: String operand
-                example: Eos nulla ut doloremque.
-        example:
-            s: Placeat quam dolores est corporis nulla ipsam.
-    TestHTTPMethodResponseBody:
-        title: TestHTTPMethodResponseBody
+    Fields:
+        title: Fields
         type: object
         properties:
             i:

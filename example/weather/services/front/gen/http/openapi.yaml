@@ -30,7 +30,7 @@ paths:
                 "200":
                     description: OK response.
                     schema:
-                        $ref: '#/definitions/FrontForecastResponseBody'
+                        $ref: '#/definitions/Forecast'
                         required:
                             - location
                             - periods
@@ -57,7 +57,7 @@ paths:
                 "200":
                     description: OK response.
                     schema:
-                        $ref: '#/definitions/FrontTestAllResponseBody'
+                        $ref: '#/definitions/TestResults'
                         required:
                             - collections
                             - duration
@@ -76,7 +76,7 @@ paths:
                 "200":
                     description: OK response.
                     schema:
-                        $ref: '#/definitions/FrontTestSmokeResponseBody'
+                        $ref: '#/definitions/TestResults'
                         required:
                             - collections
                             - duration
@@ -85,67 +85,18 @@ paths:
             schemes:
                 - http
 definitions:
-    FrontForecastNotUsaResponseBody:
-        title: 'Mediatype identifier: application/vnd.goa.error; view=default'
-        type: object
-        properties:
-            fault:
-                type: boolean
-                description: Is the error a server-side fault?
-                example: true
-            id:
-                type: string
-                description: ID is a unique identifier for this particular occurrence of the problem.
-                example: 123abc
-            message:
-                type: string
-                description: Message is a human-readable explanation specific to this occurrence of the problem.
-                example: parameter 'p' must be an integer
-            name:
-                type: string
-                description: Name is the name of this class of errors.
-                example: bad_request
-            temporary:
-                type: boolean
-                description: Is the error temporary?
-                example: true
-            timeout:
-                type: boolean
-                description: Is the error a timeout?
-                example: true
-        description: IP address is not in the US (default view)
-        example:
-            fault: false
-            id: 123abc
-            message: parameter 'p' must be an integer
-            name: bad_request
-            temporary: true
-            timeout: true
-        required:
-            - name
-            - id
-            - message
-            - temporary
-            - timeout
-            - fault
-    FrontForecastResponseBody:
-        title: FrontForecastResponseBody
+    Forecast:
+        title: Forecast
         type: object
         properties:
             location:
-                $ref: '#/definitions/LocationResponseBody'
+                $ref: '#/definitions/Location'
             periods:
                 type: array
                 items:
-                    $ref: '#/definitions/PeriodResponseBody'
+                    $ref: '#/definitions/Period'
                 description: Weather forecast periods
                 example:
-                    - endTime: "2020-01-01T00:00:00Z"
-                      name: Morning
-                      startTime: "2020-01-01T00:00:00Z"
-                      summary: Clear
-                      temperature: 70
-                      temperatureUnit: F
                     - endTime: "2020-01-01T00:00:00Z"
                       name: Morning
                       startTime: "2020-01-01T00:00:00Z"
@@ -183,21 +134,52 @@ definitions:
                   summary: Clear
                   temperature: 70
                   temperatureUnit: F
-                - endTime: "2020-01-01T00:00:00Z"
-                  name: Morning
-                  startTime: "2020-01-01T00:00:00Z"
-                  summary: Clear
-                  temperature: 70
-                  temperatureUnit: F
-                - endTime: "2020-01-01T00:00:00Z"
-                  name: Morning
-                  startTime: "2020-01-01T00:00:00Z"
-                  summary: Clear
-                  temperature: 70
-                  temperatureUnit: F
         required:
             - location
             - periods
+    FrontForecastNotUsaResponseBody:
+        title: 'Mediatype identifier: application/vnd.goa.error; view=default'
+        type: object
+        properties:
+            fault:
+                type: boolean
+                description: Is the error a server-side fault?
+                example: false
+            id:
+                type: string
+                description: ID is a unique identifier for this particular occurrence of the problem.
+                example: 123abc
+            message:
+                type: string
+                description: Message is a human-readable explanation specific to this occurrence of the problem.
+                example: parameter 'p' must be an integer
+            name:
+                type: string
+                description: Name is the name of this class of errors.
+                example: bad_request
+            temporary:
+                type: boolean
+                description: Is the error temporary?
+                example: true
+            timeout:
+                type: boolean
+                description: Is the error a timeout?
+                example: false
+        description: IP address is not in the US (default view)
+        example:
+            fault: true
+            id: 123abc
+            message: parameter 'p' must be an integer
+            name: bad_request
+            temporary: true
+            timeout: false
+        required:
+            - name
+            - id
+            - message
+            - temporary
+            - timeout
+            - fault
     FrontTestAllRequestBody:
         title: FrontTestAllRequestBody
         type: object
@@ -206,246 +188,33 @@ definitions:
                 type: array
                 items:
                     type: string
-                    example: Eos nihil accusamus reiciendis eligendi amet aut.
+                    example: Sequi ipsum vitae ut impedit.
                 description: Tests to exclude
                 example:
-                    - Hic aperiam.
-                    - Assumenda commodi aut facilis.
+                    - Asperiores rem consequatur porro architecto aperiam.
+                    - Aut iste eveniet accusantium.
+                    - Architecto minima molestiae ad unde.
             include:
                 type: array
                 items:
                     type: string
-                    example: Corrupti dignissimos id necessitatibus consequatur a laudantium.
+                    example: Sint libero natus.
                 description: Tests to run
                 example:
-                    - Nihil voluptatum dolorem nam quisquam.
-                    - Incidunt ipsa natus.
+                    - Cum ducimus nostrum temporibus ex quo nihil.
+                    - Ex et.
+                    - Itaque itaque cupiditate voluptas quod.
         example:
             exclude:
-                - Asperiores est.
-                - Omnis vel quia ab dolorem qui.
-                - Dicta fuga praesentium.
-                - Est sit quis.
+                - Pariatur nam saepe autem dolorem inventore.
+                - Velit eius iste.
+                - Maxime quibusdam in dolor error amet ut.
             include:
-                - Aspernatur voluptatem et placeat deserunt.
-                - Temporibus veritatis vel.
-                - Voluptatem ab nulla ad in optio sed.
-                - Tempora tenetur.
-    FrontTestAllResponseBody:
-        title: FrontTestAllResponseBody
-        type: object
-        properties:
-            collections:
-                type: array
-                items:
-                    $ref: '#/definitions/TestCollectionResponseBody'
-                description: Test collections
-                example:
-                    - duration: 1234
-                      fail_count: 1
-                      name: Locator Tests
-                      pass_count: 12
-                      results:
-                        - duration: 1234
-                          error: 'error getting location for valid ip: %v'
-                          name: TestValidIP
-                          passed: true
-                        - duration: 1234
-                          error: 'error getting location for valid ip: %v'
-                          name: TestValidIP
-                          passed: true
-                    - duration: 1234
-                      fail_count: 1
-                      name: Locator Tests
-                      pass_count: 12
-                      results:
-                        - duration: 1234
-                          error: 'error getting location for valid ip: %v'
-                          name: TestValidIP
-                          passed: true
-                        - duration: 1234
-                          error: 'error getting location for valid ip: %v'
-                          name: TestValidIP
-                          passed: true
-            duration:
-                type: integer
-                description: Duration of the tests in ms
-                example: 1234
-                format: int64
-            fail_count:
-                type: integer
-                description: Number of tests that failed
-                example: 1
-                format: int64
-            pass_count:
-                type: integer
-                description: Number of tests that passed
-                example: 12
-                format: int64
-        example:
-            collections:
-                - duration: 1234
-                  fail_count: 1
-                  name: Locator Tests
-                  pass_count: 12
-                  results:
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                - duration: 1234
-                  fail_count: 1
-                  name: Locator Tests
-                  pass_count: 12
-                  results:
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                - duration: 1234
-                  fail_count: 1
-                  name: Locator Tests
-                  pass_count: 12
-                  results:
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-            duration: 1234
-            fail_count: 1
-            pass_count: 12
-        required:
-            - collections
-            - duration
-            - pass_count
-            - fail_count
-    FrontTestSmokeResponseBody:
-        title: FrontTestSmokeResponseBody
-        type: object
-        properties:
-            collections:
-                type: array
-                items:
-                    $ref: '#/definitions/TestCollectionResponseBody'
-                description: Test collections
-                example:
-                    - duration: 1234
-                      fail_count: 1
-                      name: Locator Tests
-                      pass_count: 12
-                      results:
-                        - duration: 1234
-                          error: 'error getting location for valid ip: %v'
-                          name: TestValidIP
-                          passed: true
-                        - duration: 1234
-                          error: 'error getting location for valid ip: %v'
-                          name: TestValidIP
-                          passed: true
-                    - duration: 1234
-                      fail_count: 1
-                      name: Locator Tests
-                      pass_count: 12
-                      results:
-                        - duration: 1234
-                          error: 'error getting location for valid ip: %v'
-                          name: TestValidIP
-                          passed: true
-                        - duration: 1234
-                          error: 'error getting location for valid ip: %v'
-                          name: TestValidIP
-                          passed: true
-            duration:
-                type: integer
-                description: Duration of the tests in ms
-                example: 1234
-                format: int64
-            fail_count:
-                type: integer
-                description: Number of tests that failed
-                example: 1
-                format: int64
-            pass_count:
-                type: integer
-                description: Number of tests that passed
-                example: 12
-                format: int64
-        example:
-            collections:
-                - duration: 1234
-                  fail_count: 1
-                  name: Locator Tests
-                  pass_count: 12
-                  results:
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                - duration: 1234
-                  fail_count: 1
-                  name: Locator Tests
-                  pass_count: 12
-                  results:
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                - duration: 1234
-                  fail_count: 1
-                  name: Locator Tests
-                  pass_count: 12
-                  results:
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                - duration: 1234
-                  fail_count: 1
-                  name: Locator Tests
-                  pass_count: 12
-                  results:
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-            duration: 1234
-            fail_count: 1
-            pass_count: 12
-        required:
-            - collections
-            - duration
-            - pass_count
-            - fail_count
-    LocationResponseBody:
-        title: LocationResponseBody
+                - Possimus iste eius.
+                - Nesciunt sit dolores ducimus.
+                - Eligendi sequi.
+    Location:
+        title: Location
         type: object
         properties:
             city:
@@ -477,8 +246,8 @@ definitions:
             - long
             - city
             - state
-    PeriodResponseBody:
-        title: PeriodResponseBody
+    Period:
+        title: Period
         type: object
         properties:
             endTime:
@@ -523,8 +292,8 @@ definitions:
             - temperature
             - temperatureUnit
             - summary
-    TestCollectionResponseBody:
-        title: TestCollectionResponseBody
+    TestCollection:
+        title: TestCollection
         type: object
         properties:
             duration:
@@ -549,9 +318,17 @@ definitions:
             results:
                 type: array
                 items:
-                    $ref: '#/definitions/TestResultResponseBody'
+                    $ref: '#/definitions/TestResult'
                 description: Test results
                 example:
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
+                      passed: true
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
+                      passed: true
                     - duration: 1234
                       error: 'error getting location for valid ip: %v'
                       name: TestValidIP
@@ -588,8 +365,8 @@ definitions:
             - duration
             - pass_count
             - fail_count
-    TestResultResponseBody:
-        title: TestResultResponseBody
+    TestResult:
+        title: TestResult
         type: object
         properties:
             duration:
@@ -619,3 +396,140 @@ definitions:
             - name
             - passed
             - duration
+    TestResults:
+        title: TestResults
+        type: object
+        properties:
+            collections:
+                type: array
+                items:
+                    $ref: '#/definitions/TestCollection'
+                description: Test collections
+                example:
+                    - duration: 1234
+                      fail_count: 1
+                      name: Locator Tests
+                      pass_count: 12
+                      results:
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                    - duration: 1234
+                      fail_count: 1
+                      name: Locator Tests
+                      pass_count: 12
+                      results:
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                    - duration: 1234
+                      fail_count: 1
+                      name: Locator Tests
+                      pass_count: 12
+                      results:
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+            duration:
+                type: integer
+                description: Duration of the tests in ms
+                example: 1234
+                format: int64
+            fail_count:
+                type: integer
+                description: Number of tests that failed
+                example: 1
+                format: int64
+            pass_count:
+                type: integer
+                description: Number of tests that passed
+                example: 12
+                format: int64
+        example:
+            collections:
+                - duration: 1234
+                  fail_count: 1
+                  name: Locator Tests
+                  pass_count: 12
+                  results:
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
+                      passed: true
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
+                      passed: true
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
+                      passed: true
+                - duration: 1234
+                  fail_count: 1
+                  name: Locator Tests
+                  pass_count: 12
+                  results:
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
+                      passed: true
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
+                      passed: true
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
+                      passed: true
+                - duration: 1234
+                  fail_count: 1
+                  name: Locator Tests
+                  pass_count: 12
+                  results:
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
+                      passed: true
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
+                      passed: true
+                    - duration: 1234
+                      error: 'error getting location for valid ip: %v'
+                      name: TestValidIP
+                      passed: true
+            duration: 1234
+            fail_count: 1
+            pass_count: 12
+        required:
+            - collections
+            - duration
+            - pass_count
+            - fail_count

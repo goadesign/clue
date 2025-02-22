@@ -49,9 +49,10 @@ type (
 
 	Generic[K comparable, V ~int | bool | string, X, Y any] interface {
 		Simple(k K, v V, x X, y Y) (K, V, X, Y)
-		Complex(map[K]V, []X, *Y) (map[K]V, []X, *Y)
+		Complex(map[K]V, []X, *Y, Set[K]) (map[K]V, []X, *Y, Set[K])
 	}
 
-	Struct struct{}
-	Array  [5]Struct
+	Struct            struct{}
+	Array             [5]Struct
+	Set[K comparable] map[K]Struct
 )

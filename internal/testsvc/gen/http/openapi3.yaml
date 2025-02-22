@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
     title: Goa API
     description: metrics test service
-    version: "1.0"
+    version: 0.0.1
 servers:
     - url: http://localhost:80
       description: Default server for itest
@@ -21,15 +21,15 @@ paths:
                   schema:
                     type: integer
                     description: Int operand
-                    example: 3649691564958456519
+                    example: 5686343733477757409
                     format: int64
-                  example: 1375309373032297875
+                  example: 5571735705013562983
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/HTTPMethodRequestBody'
+                            $ref: '#/components/schemas/Fields2'
                         example:
                             s: Voluptas exercitationem vitae.
             responses:
@@ -50,16 +50,16 @@ components:
                 i:
                     type: integer
                     description: Int operand
-                    example: 6616172494300219579
+                    example: 506856245359991540
                     format: int64
                 s:
                     type: string
                     description: String operand
-                    example: Recusandae quis est illum voluptatem.
+                    example: Eos nulla ut doloremque.
             example:
-                i: 2844263105501442990
-                s: Aliquam facere officia.
-        HTTPMethodRequestBody:
+                i: 8161197411161146199
+                s: Quam dolores est corporis nulla.
+        Fields2:
             type: object
             properties:
                 s:

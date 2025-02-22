@@ -50,7 +50,7 @@ type (
 	}
 
 	GenericSimpleFunc[K comparable, V ~int | bool | string, X, Y any]  func(k K, v V, x X, y Y) (K, V, X, Y)
-	GenericComplexFunc[K comparable, V ~int | bool | string, X, Y any] func(p0 map[K]V, p1 []X, p2 *Y) (map[K]V, []X, *Y)
+	GenericComplexFunc[K comparable, V ~int | bool | string, X, Y any] func(p0 map[K]V, p1 []X, p2 *Y, p3 extensive.Set[K]) (map[K]V, []X, *Y, extensive.Set[K])
 )
 
 func NewExtensive(t *testing.T) *Extensive {
@@ -348,13 +348,13 @@ func (m *Generic[K, V, X, Y]) SetComplex(f GenericComplexFunc[K, V, X, Y]) {
 	m.m.Set("Complex", f)
 }
 
-func (m *Generic[K, V, X, Y]) Complex(p0 map[K]V, p1 []X, p2 *Y) (map[K]V, []X, *Y) {
+func (m *Generic[K, V, X, Y]) Complex(p0 map[K]V, p1 []X, p2 *Y, p3 extensive.Set[K]) (map[K]V, []X, *Y, extensive.Set[K]) {
 	if f := m.m.Next("Complex"); f != nil {
-		return f.(GenericComplexFunc[K, V, X, Y])(p0, p1, p2)
+		return f.(GenericComplexFunc[K, V, X, Y])(p0, p1, p2, p3)
 	}
 	m.t.Helper()
 	m.t.Error("unexpected Complex call")
-	return nil, nil, nil
+	return nil, nil, nil, nil
 }
 
 func (m *Generic[K, V, X, Y]) HasMore() bool {

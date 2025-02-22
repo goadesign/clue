@@ -1,8 +1,6 @@
 module goa.design/clue
 
-go 1.22.0
-
-toolchain go1.23.2
+go 1.24.0
 
 require (
 	github.com/aws/smithy-go v1.22.2
@@ -20,7 +18,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.34.0
 	go.opentelemetry.io/otel/sdk/metric v1.34.0
 	go.opentelemetry.io/otel/trace v1.34.0
-	goa.design/goa/v3 v3.19.1
+	goa.design/goa/v3 v3.20.0
 	golang.org/x/term v0.29.0
 	golang.org/x/tools v0.30.0
 	google.golang.org/genproto v0.0.0-20241015192408-796eee8c2d53
@@ -32,8 +30,9 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dimfeld/httppath v0.0.0-20170720192232-ee938bf73598 // indirect
-	github.com/go-chi/chi/v5 v5.1.0 // indirect
+	github.com/go-chi/chi/v5 v5.2.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/gohugoio/hashstructure v0.5.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1 // indirect
@@ -47,6 +46,6 @@ require (
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250115164207-1a7da9e5054f // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250219182151-9fdb1cabc7b2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

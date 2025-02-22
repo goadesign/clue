@@ -28,6 +28,8 @@ func (ta *typeAdder) name(tt types.Type) (name string) {
 	name, ok := ta.names[tt]
 	if !ok {
 		switch t := tt.(type) {
+		case *types.Alias:
+			name = ta.name(t.Underlying())
 		case *types.Array:
 			name = fmt.Sprintf("[%v]%v", t.Len(), ta.name(t.Elem()))
 		case *types.Basic:
@@ -134,6 +136,8 @@ func (ta *typeAdder) zero(tt types.Type) (zero string) {
 	zero, ok := ta.zeros[tt]
 	if !ok {
 		switch t := tt.(type) {
+		case *types.Alias:
+			zero = ta.zero(t.Underlying())
 		case *types.Array, *types.Struct:
 			zero = ta.name(t) + "{}"
 		case *types.Basic:
