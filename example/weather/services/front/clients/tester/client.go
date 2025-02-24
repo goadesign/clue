@@ -5,7 +5,6 @@ import (
 
 	"goa.design/clue/debug"
 	"goa.design/clue/log"
-	goa "goa.design/goa/v3/pkg"
 	"google.golang.org/grpc"
 
 	genfront "goa.design/clue/example/weather/services/front/gen/front"
@@ -27,28 +26,26 @@ type (
 	}
 
 	client struct {
-		testSmoke goa.Endpoint
-		testAll   goa.Endpoint
+		genc *gentester.Client
 	}
 )
 
 // Creates a new client for the Tester service.
 func New(cc *grpc.ClientConn) Client {
 	c := genclient.NewClient(cc, grpc.WaitForReady(true))
-	return &client{
-		debug.LogPayloads(debug.WithClient())(c.TestSmoke()),
-		debug.LogPayloads(debug.WithClient())(c.TestAll()),
-	}
+	testSmoke := debug.LogPayloads(debug.WithClient())(c.TestSmoke())
+	testAll := debug.LogPayloads(debug.WithClient())(c.TestAll())
+	return &client{genc: gentester.NewClient(testSmoke, testAll, nil, nil)}
 }
 
 // TestSmoke runs the Smoke collection as defined in func_map.go of the tester service
 func (c *client) TestSmoke(ctx context.Context) (*genfront.TestResults, error) {
-	res, err := c.testSmoke(ctx, nil)
+	res, err := c.genc.TestSmoke(ctx)
 	if err != nil {
 		log.Errorf(ctx, err, "failed to run smoke tests: %s", err)
 		return nil, err
 	}
-	return testerTestResultsToFrontTestResults(res.(*gentester.TestResults)), nil
+	return testerTestResultsToFrontTestResults(res), nil
 }
 
 // TestAll runs all tests in all collections. Obeys include and exclude filters.
@@ -58,12 +55,12 @@ func (c *client) TestAll(ctx context.Context, included, excluded []string) (*gen
 		Include: included,
 		Exclude: excluded,
 	}
-	res, err := c.testAll(ctx, gtPayload)
+	res, err := c.genc.TestAll(ctx, gtPayload)
 	if err != nil {
 		log.Errorf(ctx, err, "failed to run all tests: %s", err)
 		return nil, err
 	}
-	return testerTestResultsToFrontTestResults(res.(*gentester.TestResults)), nil
+	return testerTestResultsToFrontTestResults(res), nil
 }
 
 func testerTestResultsToFrontTestResults(testResults *gentester.TestResults) *genfront.TestResults {
