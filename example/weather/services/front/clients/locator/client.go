@@ -3,7 +3,6 @@ package locator
 import (
 	"context"
 
-	goa "goa.design/goa/v3/pkg"
 	"google.golang.org/grpc"
 
 	"goa.design/clue/debug"
@@ -34,23 +33,23 @@ type (
 
 	// client is the client implementation.
 	client struct {
-		locator goa.Endpoint
+		genc *genlocator.Client
 	}
 )
 
 // New instantiates a new locator service client.
 func New(cc *grpc.ClientConn) Client {
 	c := genclient.NewClient(cc, grpc.WaitForReady(true))
-	return &client{debug.LogPayloads(debug.WithClient())(c.GetLocation())}
+	locator := debug.LogPayloads(debug.WithClient())(c.GetLocation())
+	return &client{genc: genlocator.NewClient(locator)}
 }
 
 // GetLocation returns the location for the given IP address.
 func (c *client) GetLocation(ctx context.Context, ip string) (*WorldLocation, error) {
-	res, err := c.locator(ctx, ip)
+	res, err := c.genc.GetLocation(ctx, ip)
 	if err != nil {
 		return nil, err
 	}
-	ipl := res.(*genlocator.WorldLocation)
-	l := WorldLocation(*ipl)
+	l := WorldLocation(*res)
 	return &l, nil
 }

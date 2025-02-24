@@ -3,12 +3,11 @@ package forecaster
 import (
 	"context"
 
-	goa "goa.design/goa/v3/pkg"
 	"google.golang.org/grpc"
 
 	"goa.design/clue/debug"
 	genforecast "goa.design/clue/example/weather/services/forecaster/gen/forecaster"
-	genclient "goa.design/clue/example/weather/services/forecaster/gen/grpc/forecaster/client"
+	gengrpcclient "goa.design/clue/example/weather/services/forecaster/gen/grpc/forecaster/client"
 )
 
 type (
@@ -56,27 +55,27 @@ type (
 
 	// client is the client implementation.
 	client struct {
-		forecast goa.Endpoint
+		genc *genforecast.Client
 	}
 )
 
 // New instantiates a new forecast service client.
 func New(cc *grpc.ClientConn) Client {
-	c := genclient.NewClient(cc, grpc.WaitForReady(true))
-	return &client{debug.LogPayloads(debug.WithClient())(c.Forecast())}
+	c := gengrpcclient.NewClient(cc, grpc.WaitForReady(true))
+	forecast := debug.LogPayloads(debug.WithClient())(c.Forecast())
+	return &client{genc: genforecast.NewClient(forecast)}
 }
 
 // Forecast returns the forecast for the given location or current location if
 // lat or long are nil.
 func (c *client) GetForecast(ctx context.Context, lat, long float64) (*Forecast, error) {
-	res, err := c.forecast(ctx, &genforecast.ForecastPayload{Lat: lat, Long: long})
+	res, err := c.genc.Forecast(ctx, &genforecast.ForecastPayload{Lat: lat, Long: long})
 	if err != nil {
 		return nil, err
 	}
-	f := res.(*genforecast.Forecast2)
-	l := Location(*f.Location)
-	ps := make([]*Period, len(f.Periods))
-	for i, p := range f.Periods {
+	l := Location(*res.Location)
+	ps := make([]*Period, len(res.Periods))
+	for i, p := range res.Periods {
 		pval := Period(*p)
 		ps[i] = &pval
 	}
