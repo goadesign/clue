@@ -19,7 +19,11 @@ type (
 		t *testing.T
 	}
 
-	ConflictsSimpleFunc func(c *testing1.Conflicts) *testing1.Conflicts
+	ConflictsSimpleFunc      func(c *testing1.Conflicts) *testing1.Conflicts
+	ConflictsAddSimpleFunc   func()
+	ConflictsSetSimpleFunc   func()
+	ConflictsHasMoreFunc     func()
+	ConflictsHasMoreMockFunc func()
 )
 
 func NewConflicts(t *testing.T) *Conflicts {
@@ -30,11 +34,11 @@ func NewConflicts(t *testing.T) *Conflicts {
 	return m
 }
 
-func (m *Conflicts) AddSimple(f ConflictsSimpleFunc) {
+func (m *Conflicts) AddSimpleMock(f ConflictsSimpleFunc) {
 	m.m.Add("Simple", f)
 }
 
-func (m *Conflicts) SetSimple(f ConflictsSimpleFunc) {
+func (m *Conflicts) SetSimpleMock(f ConflictsSimpleFunc) {
 	m.m.Set("Simple", f)
 }
 
@@ -47,6 +51,74 @@ func (m *Conflicts) Simple(c *testing1.Conflicts) *testing1.Conflicts {
 	return nil
 }
 
-func (m *Conflicts) HasMore() bool {
+func (m *Conflicts) AddAddSimple(f ConflictsAddSimpleFunc) {
+	m.m.Add("AddSimple", f)
+}
+
+func (m *Conflicts) SetAddSimple(f ConflictsAddSimpleFunc) {
+	m.m.Set("AddSimple", f)
+}
+
+func (m *Conflicts) AddSimple() {
+	if f := m.m.Next("AddSimple"); f != nil {
+		f.(ConflictsAddSimpleFunc)()
+		return
+	}
+	m.t.Helper()
+	m.t.Error("unexpected AddSimple call")
+}
+
+func (m *Conflicts) AddSetSimple(f ConflictsSetSimpleFunc) {
+	m.m.Add("SetSimple", f)
+}
+
+func (m *Conflicts) SetSetSimple(f ConflictsSetSimpleFunc) {
+	m.m.Set("SetSimple", f)
+}
+
+func (m *Conflicts) SetSimple() {
+	if f := m.m.Next("SetSimple"); f != nil {
+		f.(ConflictsSetSimpleFunc)()
+		return
+	}
+	m.t.Helper()
+	m.t.Error("unexpected SetSimple call")
+}
+
+func (m *Conflicts) AddHasMore(f ConflictsHasMoreFunc) {
+	m.m.Add("HasMore", f)
+}
+
+func (m *Conflicts) SetHasMore(f ConflictsHasMoreFunc) {
+	m.m.Set("HasMore", f)
+}
+
+func (m *Conflicts) HasMore() {
+	if f := m.m.Next("HasMore"); f != nil {
+		f.(ConflictsHasMoreFunc)()
+		return
+	}
+	m.t.Helper()
+	m.t.Error("unexpected HasMore call")
+}
+
+func (m *Conflicts) AddHasMoreMock(f ConflictsHasMoreMockFunc) {
+	m.m.Add("HasMoreMock", f)
+}
+
+func (m *Conflicts) SetHasMoreMock(f ConflictsHasMoreMockFunc) {
+	m.m.Set("HasMoreMock", f)
+}
+
+func (m *Conflicts) HasMoreMock() {
+	if f := m.m.Next("HasMoreMock"); f != nil {
+		f.(ConflictsHasMoreMockFunc)()
+		return
+	}
+	m.t.Helper()
+	m.t.Error("unexpected HasMoreMock call")
+}
+
+func (m *Conflicts) HasMoreMock1() bool {
 	return m.m.HasMore()
 }

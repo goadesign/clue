@@ -67,7 +67,7 @@ func ({{ .InterfaceVar }} *{{ $interface.Name }}{{ $interface.TypeParameterVars 
 }
 {{- end }}
 
-func ({{ $interface.Var }} *{{ $interface.Name }}{{ $interface.TypeParameterVars }}) HasMore() bool {
+func ({{ $interface.Var }} *{{ $interface.Name }}{{ $interface.TypeParameterVars }}) {{ .HasMore }}() bool {
 	return {{ $interface.Var }}.m.HasMore()
 }
 {{- end }}

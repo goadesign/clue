@@ -25,12 +25,12 @@ type (
 	method struct {
 		parse.Method
 
-		func_, add, set, interfaceVar, funcVar string
-		typeNames, typeZeros                   typeMap
+		funcName, addName, setName, interfaceVar, funcVar string
+		typeNames, typeZeros                              typeMap
 	}
 )
 
-func newMethod(m parse.Method, i parse.Interface, typeNames, typeZeros typeMap, stdImports, extImports, intImports importMap, modPath string) Method {
+func newMethod(m parse.Method, i parse.Interface, typeNames, typeZeros typeMap, stdImports, extImports, intImports importMap, modPath string, is interfaceScope) Method {
 	parameterVars := make(map[string]struct{})
 	for _, t := range m.Parameters() {
 		parameterVars[t.Name()] = struct{}{}
@@ -40,27 +40,27 @@ func newMethod(m parse.Method, i parse.Interface, typeNames, typeZeros typeMap, 
 		addType(t.Type(), typeNames, typeZeros, stdImports, extImports, intImports, modPath)
 	}
 	return &method{
-		m,
-		i.Name() + m.Name() + "Func",
-		"Add" + m.Name(),
-		"Set" + m.Name(),
-		uniqueVar("m", parameterVars),
-		uniqueVar("f", parameterVars),
-		typeNames,
-		typeZeros,
+		Method:       m,
+		funcName:     i.Name() + m.Name() + "Func",
+		addName:      is.uniqueName("Add" + m.Name()),
+		setName:      is.uniqueName("Set" + m.Name()),
+		interfaceVar: uniqueVar("m", parameterVars),
+		funcVar:      uniqueVar("f", parameterVars),
+		typeNames:    typeNames,
+		typeZeros:    typeZeros,
 	}
 }
 
 func (m *method) Func() string {
-	return m.func_
+	return m.funcName
 }
 
 func (m *method) Add() string {
-	return m.add
+	return m.addName
 }
 
 func (m *method) Set() string {
-	return m.set
+	return m.setName
 }
 
 func (m *method) InterfaceVar() string {
