@@ -67,7 +67,7 @@ func TestPackage_Name(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
-			p := &package_{tc.Package}
+			p := &packageImpl{tc.Package}
 			name := p.Name()
 			assert.Equal(t, tc.Expected, name)
 		})
@@ -91,7 +91,7 @@ func TestPackage_PkgPath(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
-			p := &package_{tc.Package}
+			p := &packageImpl{tc.Package}
 			path := p.PkgPath()
 			assert.Equal(t, tc.Expected, path)
 		})
@@ -120,7 +120,7 @@ func TestPackage_ModPath(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
-			p := &package_{tc.Package}
+			p := &packageImpl{tc.Package}
 			path := p.ModPath()
 			assert.Equal(t, tc.Expected, path)
 		})

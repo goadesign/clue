@@ -16,7 +16,7 @@ type (
 		Methods() []Method
 	}
 
-	interface_ struct {
+	interfaceImpl struct {
 		p             *packages.Package
 		file          string
 		typeSpec      *ast.TypeSpec
@@ -25,22 +25,22 @@ type (
 )
 
 func newInterface(p *packages.Package, file string, typeSpec *ast.TypeSpec, interfaceType *ast.InterfaceType) Interface {
-	return &interface_{p: p, file: file, typeSpec: typeSpec, interfaceType: interfaceType}
+	return &interfaceImpl{p: p, file: file, typeSpec: typeSpec, interfaceType: interfaceType}
 }
 
-func (i *interface_) Name() string {
+func (i *interfaceImpl) Name() string {
 	return i.typeSpec.Name.Name
 }
 
-func (i *interface_) IsExported() bool {
+func (i *interfaceImpl) IsExported() bool {
 	return i.typeSpec.Name.IsExported()
 }
 
-func (i *interface_) File() string {
+func (i *interfaceImpl) File() string {
 	return i.file
 }
 
-func (i *interface_) TypeParameters() (typeParameters []Type) {
+func (i *interfaceImpl) TypeParameters() (typeParameters []Type) {
 	if i.typeSpec.TypeParams != nil {
 		for _, tp := range i.typeSpec.TypeParams.List {
 			for _, ident := range tp.Names {
@@ -51,11 +51,11 @@ func (i *interface_) TypeParameters() (typeParameters []Type) {
 	return
 }
 
-func (i *interface_) Methods() []Method {
+func (i *interfaceImpl) Methods() []Method {
 	return i.methods(i.interfaceType)
 }
 
-func (i *interface_) methods(it *ast.InterfaceType) (methods []Method) {
+func (i *interfaceImpl) methods(it *ast.InterfaceType) (methods []Method) {
 	for _, m := range it.Methods.List {
 		switch t := m.Type.(type) {
 		case *ast.FuncType:

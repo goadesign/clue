@@ -13,7 +13,7 @@ type (
 		Constraint() types.Type
 	}
 
-	type_ struct {
+	typeImpl struct {
 		p        *packages.Package
 		ident    *ast.Ident
 		typeType ast.Expr
@@ -21,13 +21,13 @@ type (
 )
 
 func newType(p *packages.Package, ident *ast.Ident, typeType ast.Expr) Type {
-	return &type_{p: p, ident: ident, typeType: typeType}
+	return &typeImpl{p: p, ident: ident, typeType: typeType}
 }
 
-func (t *type_) Name() string {
+func (t *typeImpl) Name() string {
 	return t.ident.Name
 }
 
-func (t *type_) Constraint() types.Type {
+func (t *typeImpl) Constraint() types.Type {
 	return t.p.TypesInfo.Types[t.typeType].Type
 }

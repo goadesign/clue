@@ -17,7 +17,7 @@ type (
 
 	importMap map[string]Import
 
-	import_ struct {
+	importImpl struct {
 		pkgPath, pkgName, alias string
 	}
 )
@@ -36,22 +36,22 @@ func newImport(pkgPath string, args ...string) Import {
 		pkgName = args[0]
 		alias = args[1]
 	}
-	return &import_{pkgPath: pkgPath, pkgName: pkgName, alias: alias}
+	return &importImpl{pkgPath: pkgPath, pkgName: pkgName, alias: alias}
 }
 
-func (i *import_) PkgName() string {
+func (i *importImpl) PkgName() string {
 	return i.pkgName
 }
 
-func (i *import_) PkgPath() string {
+func (i *importImpl) PkgPath() string {
 	return i.pkgPath
 }
 
-func (i *import_) Alias() string {
+func (i *importImpl) Alias() string {
 	return i.alias
 }
 
-func (i *import_) AliasOrPkgName() string {
+func (i *importImpl) AliasOrPkgName() string {
 	if i.alias != "" {
 		return i.alias
 	}

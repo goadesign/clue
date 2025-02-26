@@ -14,7 +14,7 @@ type (
 		Interfaces() ([]Interface, error)
 	}
 
-	package_ struct {
+	packageImpl struct {
 		p *packages.Package
 	}
 
@@ -38,28 +38,28 @@ func LoadPackages(patterns []string, dir string) ([]Package, error) {
 
 	packages := make([]Package, len(ps))
 	for i, p := range ps {
-		packages[i] = &package_{p: p}
+		packages[i] = &packageImpl{p: p}
 	}
 
 	return packages, nil
 }
 
-func (p *package_) Name() string {
+func (p *packageImpl) Name() string {
 	return p.p.Name
 }
 
-func (p *package_) PkgPath() string {
+func (p *packageImpl) PkgPath() string {
 	return p.p.PkgPath
 }
 
-func (p *package_) ModPath() string {
+func (p *packageImpl) ModPath() string {
 	if p.p.Module != nil {
 		return p.p.Module.Path
 	}
 	return ""
 }
 
-func (p *package_) Interfaces() ([]Interface, error) {
+func (p *packageImpl) Interfaces() ([]Interface, error) {
 	if len(p.p.Errors) > 0 {
 		return nil, p.p.Errors[0]
 	}
