@@ -41,6 +41,10 @@ packages. For example, Clue does not provide a HTTP router or a HTTP server
 implementation. Instead, Clue provides a way to instrument existing HTTP or gRPC
 servers and clients using the standard library and the OpenTelemetry API.
 
+Learn more about Clue's observability features in the [Observability](https://goa.design/docs/5-real-world/2-observability/)
+section of the [goa.design](https://goa.design) documentation. The guide covers how to effectively monitor,
+debug and operate microservices using Clue's instrumentation capabilities.
+
 ## Packages
 
 * The `clue` package provides a simple API for configuring OpenTelemetry
