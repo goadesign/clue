@@ -243,7 +243,7 @@ func WithDisableCallID() GRPCLogOption {
 	}
 }
 
-// WithCallLogFunc returns a HTTP middleware option that configures the logger to use
+// WithCallLogFunc returns a GRPC logger option that configures the logger to use
 // the given log function instead of log.Print() as default.
 func WithCallLogFunc(logFunc func(ctx context.Context, keyvals ...Fielder)) GRPCLogOption {
 	return func(o *grpcOptions) {
