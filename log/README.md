@@ -148,9 +148,9 @@ Values must be strings, numbers, booleans, nil or a slice of these types.
 
 ## Log Severity
 
-`log` supports three log severities: `debug`, `info`, and `error`. By default
-debug logs are not written to the log output. The following example shows how to
-enable debug logging:
+`log` supports five log severities: `debug`, `info`, `warn`, `error` and `fatal`.
+By default debug logs are not written to the log output. The following example
+shows how to enable debug logging:
 
 ```go
 ctx := log.Context(context.Background())
