@@ -38,6 +38,8 @@ type (
 		NamedTypes(Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array]) (Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array])
 		FuncNamedTypes(func(Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array])) func(Struct, Array, io.Reader, imported.Type, goa.Endpoint, Generic[uint, string, Struct, Array])
 		VariableConflicts(f, m uint)
+		AliasedTypes(IntAlias, ArrayAlias, StructAlias, IntSetAlias, SetAlias[string]) (IntAlias, ArrayAlias, StructAlias, IntSetAlias, SetAlias[string])
+		AliasedFuncTypes(func(IntAlias, ArrayAlias, StructAlias, IntSetAlias, SetAlias[string])) func(IntAlias, ArrayAlias, StructAlias, IntSetAlias, SetAlias[string])
 
 		Embedded
 		imported.Interface
@@ -52,7 +54,12 @@ type (
 		Complex(map[K]V, []X, *Y, Set[K]) (map[K]V, []X, *Y, Set[K])
 	}
 
-	Struct            struct{}
-	Array             [5]Struct
-	Set[K comparable] map[K]Struct
+	Struct                 struct{ A, B int }
+	Array                  [5]Struct
+	Set[K comparable]      map[K]Struct
+	IntAlias               = int
+	ArrayAlias             = [5]Struct
+	StructAlias            = struct{ A, B int }
+	IntSetAlias            = Set[int]
+	SetAlias[K comparable] = Set[K]
 )

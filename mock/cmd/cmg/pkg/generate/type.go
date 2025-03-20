@@ -29,7 +29,20 @@ func (ta *typeAdder) name(tt types.Type) (name string) {
 	if !ok {
 		switch t := tt.(type) {
 		case *types.Alias:
-			name = ta.name(t.Underlying())
+			o := t.Obj()
+			if p := o.Pkg(); p != nil {
+				i := addImport(newImport(p.Path(), p.Name()), ta.stdImports, ta.extImports, ta.intImports, ta.modPath)
+				name = fmt.Sprintf("%v.%v", i.AliasOrPkgName(), o.Name())
+			} else {
+				name = o.Name()
+			}
+			if tas := t.TypeArgs(); tas != nil {
+				as := make([]string, 0, tas.Len())
+				for i := 0; i < tas.Len(); i++ {
+					as = append(as, ta.name(tas.At(i)))
+				}
+				name += "[" + strings.Join(as, ", ") + "]"
+			}
 		case *types.Array:
 			name = fmt.Sprintf("[%v]%v", t.Len(), ta.name(t.Elem()))
 		case *types.Basic:
@@ -137,7 +150,12 @@ func (ta *typeAdder) zero(tt types.Type) (zero string) {
 	if !ok {
 		switch t := tt.(type) {
 		case *types.Alias:
-			zero = ta.zero(t.Underlying())
+			switch t.Underlying().(type) {
+			case *types.Array, *types.Struct:
+				zero = ta.name(t) + "{}"
+			default:
+				zero = ta.zero(t.Underlying())
+			}
 		case *types.Array, *types.Struct:
 			zero = ta.name(t) + "{}"
 		case *types.Basic:

@@ -34,6 +34,8 @@ type (
 	ExtensiveNamedTypesFunc        func(p0 extensive.Struct, p1 extensive.Array, p2 io.Reader, p3 imported.Type, p4 goa.Endpoint, p5 extensive.Generic[uint, string, extensive.Struct, extensive.Array]) (extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])
 	ExtensiveFuncNamedTypesFunc    func(p0 func(extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])) func(extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])
 	ExtensiveVariableConflictsFunc func(f, m uint)
+	ExtensiveAliasedTypesFunc      func(p0 extensive.IntAlias, p1 extensive.ArrayAlias, p2 extensive.StructAlias, p3 extensive.IntSetAlias, p4 extensive.SetAlias[string]) (extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string])
+	ExtensiveAliasedFuncTypesFunc  func(p0 func(extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string])) func(extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string])
 	ExtensiveEmbeddedFunc          func(p0 int8) int8
 	ExtensiveImportedFunc          func(p0 imported.Type) imported.Type
 
@@ -246,6 +248,40 @@ func (m1 *Extensive) VariableConflicts(f, m uint) {
 	}
 	m1.t.Helper()
 	m1.t.Error("unexpected VariableConflicts call")
+}
+
+func (m *Extensive) AddAliasedTypes(f ExtensiveAliasedTypesFunc) {
+	m.m.Add("AliasedTypes", f)
+}
+
+func (m *Extensive) SetAliasedTypes(f ExtensiveAliasedTypesFunc) {
+	m.m.Set("AliasedTypes", f)
+}
+
+func (m *Extensive) AliasedTypes(p0 extensive.IntAlias, p1 extensive.ArrayAlias, p2 extensive.StructAlias, p3 extensive.IntSetAlias, p4 extensive.SetAlias[string]) (extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string]) {
+	if f := m.m.Next("AliasedTypes"); f != nil {
+		return f.(ExtensiveAliasedTypesFunc)(p0, p1, p2, p3, p4)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected AliasedTypes call")
+	return 0, extensive.ArrayAlias{}, extensive.StructAlias{}, nil, nil
+}
+
+func (m *Extensive) AddAliasedFuncTypes(f ExtensiveAliasedFuncTypesFunc) {
+	m.m.Add("AliasedFuncTypes", f)
+}
+
+func (m *Extensive) SetAliasedFuncTypes(f ExtensiveAliasedFuncTypesFunc) {
+	m.m.Set("AliasedFuncTypes", f)
+}
+
+func (m *Extensive) AliasedFuncTypes(p0 func(extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string])) func(extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string]) {
+	if f := m.m.Next("AliasedFuncTypes"); f != nil {
+		return f.(ExtensiveAliasedFuncTypesFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected AliasedFuncTypes call")
+	return nil
 }
 
 func (m *Extensive) AddEmbedded(f ExtensiveEmbeddedFunc) {
