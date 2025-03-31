@@ -1,7 +1,6 @@
 module goa.design/clue
 
 go 1.24.0
-
 require (
 	github.com/aws/smithy-go v1.22.3
 	github.com/go-logr/logr v1.4.2
@@ -18,12 +17,12 @@ require (
 	go.opentelemetry.io/otel/sdk v1.35.0
 	go.opentelemetry.io/otel/sdk/metric v1.35.0
 	go.opentelemetry.io/otel/trace v1.35.0
-	goa.design/goa/v3 v3.20.0
+	goa.design/goa/v3 v3.20.1
 	golang.org/x/term v0.30.0
 	golang.org/x/tools v0.31.0
 	google.golang.org/genproto v0.0.0-20250219182151-9fdb1cabc7b2
 	google.golang.org/grpc v1.71.0
-	google.golang.org/protobuf v1.36.5
+	google.golang.org/protobuf v1.36.6
 )
 
 require (
@@ -32,6 +31,7 @@ require (
 	github.com/dimfeld/httppath v0.0.0-20170720192232-ee938bf73598 // indirect
 	github.com/go-chi/chi/v5 v5.2.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/gohugoio/hashstructure v0.5.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1 // indirect
