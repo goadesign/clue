@@ -3,10 +3,25 @@
 set -e
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
+# Ensure we are in the correct directory for the following commands
 pushd ${GIT_ROOT} > /dev/null
 
+# --- BEGIN DEBUGGING ---
+echo "--- DEBUG: Checking environment before golangci-lint ---"
+echo "Current Directory: $(pwd)" # Should be your git repo root
+echo "Listing files in current directory (showing .golangci.yaml):"
+ls -la .golangci.yaml # Check existence and permissions
+echo "Content of .golangci.yaml:"
+cat .golangci.yaml || echo "!!! ERROR: .golangci.yaml not found or cannot be read by cat !!!" # Display content or error
+echo "Verifying golangci-lint binary location:"
+which golangci-lint # See which binary is found in PATH
+echo "Verifying golangci-lint version:"
+golangci-lint --version # Check the version of the binary found
+echo "--- END DEBUGGING ---"
+# --- END DEBUGGING ---
+
 echo "Running static analysis..."
-golangci-lint run --timeout 5m
+golangci-lint run --timeout 5m --verbose
 
 echo "Running tests..."
 go test -race -coverprofile=coverage.out -covermode=atomic ./...
