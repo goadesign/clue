@@ -72,8 +72,12 @@ func SetupGRPC(t *testing.T, opts ...GRPCOption) (c GRPClient, stop func()) {
 	// Cleanup
 	stop = func() {
 		server.GracefulStop()
-		conn.Close()
-		l.Close()
+		if err := conn.Close(); err != nil {
+			t.Logf("error closing connection: %v", err)
+		}
+		if err := l.Close(); err != nil {
+			t.Logf("error closing listener: %v", err)
+		}
 	}
 
 	return

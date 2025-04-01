@@ -188,7 +188,12 @@ func makeRequest(t *testing.T, url string) (int, string) {
 	if err != nil {
 		t.Fatalf("failed to make request %q: %s", url, err)
 	}
-	defer res.Body.Close()
+	defer func() {
+		err := res.Body.Close()
+		if err != nil {
+			t.Logf("failed to close response body: %v", err)
+		}
+	}()
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(res.Body) // nolint: errcheck
 	return res.StatusCode, buf.String()

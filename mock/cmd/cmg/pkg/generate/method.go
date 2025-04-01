@@ -82,9 +82,9 @@ func (m *method) Parameters() string {
 		if n, _ := b.WriteString(p.Name()); n == 0 {
 			fmt.Fprintf(b, "p%v", i)
 		}
-		if m.Method.Variadic() && i == last {
+		if m.Variadic() && i == last {
 			b.WriteString(" ..." + m.typeNames[p.Type()][2:])
-		} else if !(i+1 < len(ps) && p.Type() == ps[i+1].Type()) {
+		} else if i+1 >= len(ps) || p.Type() != ps[i+1].Type() {
 			b.WriteString(" " + m.typeNames[p.Type()])
 		}
 		parameters = append(parameters, b.String())
@@ -103,7 +103,7 @@ func (m *method) ParameterVars() string {
 		if v == "" {
 			v = fmt.Sprintf("p%v", i)
 		}
-		if m.Method.Variadic() && i == last {
+		if m.Variadic() && i == last {
 			v += "..."
 		}
 		vars = append(vars, v)
@@ -123,7 +123,7 @@ func (m *method) Results() string {
 			named = true
 		}
 		if named {
-			if !(i+1 < len(rs) && r.Type() == rs[i+1].Type()) {
+			if i+1 >= len(rs) || r.Type() != rs[i+1].Type() {
 				b.WriteString(" " + m.typeNames[r.Type()])
 			}
 		} else {

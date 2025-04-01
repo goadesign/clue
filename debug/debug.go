@@ -52,9 +52,9 @@ func MountDebugLogEnabler(mux Muxer, opts ...DebugLogEnablerOption) {
 			debugLogs = false
 		}
 		if debugLogs {
-			w.Write([]byte(fmt.Sprintf(`{"%s":"%s"}`, o.query, o.onval))) // nolint: errcheck
+			fmt.Fprintf(w, `{"%s":"%s"}`, o.query, o.onval) // nolint: errcheck
 		} else {
-			w.Write([]byte(fmt.Sprintf(`{"%s":"%s"}`, o.query, o.offval))) // nolint: errcheck
+			fmt.Fprintf(w, `{"%s":"%s"}`, o.query, o.offval) // nolint: errcheck
 		}
 	}))
 }

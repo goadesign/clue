@@ -105,8 +105,16 @@ func generateFile(ctx context.Context, p parse.Package, file string, interfaces 
 		log.Error(ctx, err)
 		return err
 	}
-	defer os.Remove(f.Name())
-	defer f.Close()
+	defer func() {
+		if removeErr := os.Remove(f.Name()); removeErr != nil {
+			log.Error(ctx, fmt.Errorf("failed to remove temporary file: %w", removeErr))
+		}
+	}()
+	defer func() {
+		if closeErr := f.Close(); closeErr != nil {
+			log.Error(ctx, fmt.Errorf("failed to close file: %w", closeErr))
+		}
+	}()
 
 	mocks := generate.NewMocks("mock", p, interfaces, Version)
 	if err := mocks.Render(f); err != nil {
