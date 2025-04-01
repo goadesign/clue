@@ -76,7 +76,12 @@ func TestStreamServerInterceptor(t *testing.T) {
 		debugLogs = step.enableDebugLogs
 		stream, err := cli.GRPCStream(context.Background())
 		assert.NoError(t, err)
-		defer stream.Close()
+		defer func() {
+			err := stream.Close()
+			if err != nil {
+				t.Logf("failed to close stream: %v", err)
+			}
+		}()
 		err = stream.Send(&testsvc.Fields{})
 		assert.NoError(t, err)
 		_, err = stream.Recv()
