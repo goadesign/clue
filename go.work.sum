@@ -7,6 +7,7 @@ cloud.google.com/go v0.115.1/go.mod h1:DuujITeaufu3gL68/lOFIirVNJwQeyf5UXyi+Wbgk
 cloud.google.com/go v0.116.0 h1:B3fRrSDkLRt5qSHWe40ERJvhvnQwdZiHu0bJOpldweE=
 cloud.google.com/go v0.116.0/go.mod h1:cEPSRWPzZEswwdr9BxE6ChEn01dWlTaF05LiC2Xs70U=
 cloud.google.com/go v0.118.2/go.mod h1:CFO4UPEPi8oV21xoezZCrd3d81K4fFkDTEJu4R8K+9M=
+cloud.google.com/go v0.118.3/go.mod h1:Lhs3YLnBlwJ4KA6nuObNMZ/fCbOQBPuWKPoE0Wa/9Vc=
 cloud.google.com/go/accessapproval v1.8.1 h1:WC6pA5Gyqkrvdc18AHvriShwk8wgMe9EWvBAQSLxTc8=
 cloud.google.com/go/accessapproval v1.8.1/go.mod h1:3HAtm2ertsWdwgjSGObyas6fj3ZC/3zwV2WVZXO53sU=
 cloud.google.com/go/accessapproval v1.8.3/go.mod h1:3speETyAv63TDrDmo5lIkpVueFkQcQchkiw/TAMbBo4=
@@ -16,6 +17,7 @@ cloud.google.com/go/accesscontextmanager v1.9.3/go.mod h1:S1MEQV5YjkAKBoMekpGrkX
 cloud.google.com/go/aiplatform v1.68.0 h1:EPPqgHDJpBZKRvv+OsB3cr0jYz3EL2pZ+802rBPcG8U=
 cloud.google.com/go/aiplatform v1.68.0/go.mod h1:105MFA3svHjC3Oazl7yjXAmIR89LKhRAeNdnDKJczME=
 cloud.google.com/go/aiplatform v1.73.0/go.mod h1:LlBf3MtNnJMlfq2VsMZ122+QvcUT4jt40bvhMNqpmlA=
+cloud.google.com/go/aiplatform v1.74.0/go.mod h1:hVEw30CetNut5FrblYd1AJUWRVSIjoyIvp0EVUh51HA=
 cloud.google.com/go/analytics v0.25.1 h1:tMlK9KGTwHYASagAHXXbIPUVCRknA0Yv4jquim5HdRE=
 cloud.google.com/go/analytics v0.25.1/go.mod h1:hrAWcN/7tqyYwF/f60Nph1yz5UE3/PxOPzzFsJgtU+Y=
 cloud.google.com/go/analytics v0.26.0/go.mod h1:KZWJfs8uX/+lTjdIjvT58SFa86V9KM6aPXwZKK6uNVI=
@@ -81,12 +83,14 @@ cloud.google.com/go/cloudbuild v1.22.0/go.mod h1:p99MbQrzcENHb/MqU3R6rpqFRk/X+lN
 cloud.google.com/go/clouddms v1.8.1 h1:vf5R4/FoLHxEP2BBKEafLHfYFWa6Zd9gwrXe/FjrwUg=
 cloud.google.com/go/clouddms v1.8.1/go.mod h1:bmW2eDFH1LjuwkHcKKeeppcmuBGS0r6Qz6TXanehKP0=
 cloud.google.com/go/clouddms v1.8.3/go.mod h1:wn8O2KhhJWcOlQk0pMC7F/4TaJRS5sN6KdNWM8A7o6c=
+cloud.google.com/go/clouddms v1.8.4/go.mod h1:RadeJ3KozRwy4K/gAs7W74ZU3GmGgVq5K8sRqNs3HfA=
 cloud.google.com/go/cloudtasks v1.13.1 h1:s1JTLBD+WbzQwxYPAwa2WIxPT3kOiv7MSKyvSEgNQtg=
 cloud.google.com/go/cloudtasks v1.13.1/go.mod h1:dyRD7tEEkLMbHLagb7UugkDa77UVJp9d/6O9lm3ModI=
 cloud.google.com/go/cloudtasks v1.13.3/go.mod h1:f9XRvmuFTm3VhIKzkzLCPyINSU3rjjvFUsFVGR5wi24=
 cloud.google.com/go/compute v1.28.1 h1:XwPcZjgMCnU2tkwY10VleUjSAfpTj9RDn+kGrbYsi8o=
 cloud.google.com/go/compute v1.28.1/go.mod h1:b72iXMY4FucVry3NR3Li4kVyyTvbMDE7x5WsqvxjsYk=
 cloud.google.com/go/compute v1.33.0/go.mod h1:Z8NErRhrWA3RmVWczlAPJjZcRTlqZB1pcpD0MaIc1ug=
+cloud.google.com/go/compute v1.34.0/go.mod h1:zWZwtLwZQyonEvIQBuIa0WvraMYK69J5eDCOw9VZU4g=
 cloud.google.com/go/compute/metadata v0.3.0/go.mod h1:zFmK7XCadkQkj6TtorcaGlCW1hT1fIilQDwofLpJ20k=
 cloud.google.com/go/compute/metadata v0.5.0/go.mod h1:aHnloV2TPI38yx4s9+wAZhHykWvVCfu7hQbF+9CWoiY=
 cloud.google.com/go/compute/metadata v0.5.2 h1:UxK4uu/Tn+I3p2dYWTfiX4wva7aYlKixAHn3fyqngqo=
@@ -123,6 +127,7 @@ cloud.google.com/go/dataplex v1.22.0/go.mod h1:g166QMCGHvwc3qlTG4p34n+lHwu7JFfaN
 cloud.google.com/go/dataproc/v2 v2.9.0 h1:9fSMjWgFKQfmfKu7V10C5foxU/2iDa8bVkiBB8uh1EU=
 cloud.google.com/go/dataproc/v2 v2.9.0/go.mod h1:i4365hSwNP6Bx0SAUnzCC6VloeNxChDjJWH6BfVPcbs=
 cloud.google.com/go/dataproc/v2 v2.10.1/go.mod h1:fq+LSN/HYUaaV2EnUPFVPxfe1XpzGVqFnL0TTXs8juk=
+cloud.google.com/go/dataproc/v2 v2.11.0/go.mod h1:9vgGrn57ra7KBqz+B2KD+ltzEXvnHAUClFgq/ryU99g=
 cloud.google.com/go/dataqna v0.9.1 h1:ptKKT+CNwp9Q+9Zxr+npUO7qUwKfyq/oF7/nS7CC6sc=
 cloud.google.com/go/dataqna v0.9.1/go.mod h1:86DNLE33yEfNDp5F2nrITsmTYubMbsF7zQRzC3CcZrY=
 cloud.google.com/go/dataqna v0.9.3/go.mod h1:PiAfkXxa2LZYxMnOWVYWz3KgY7txdFg9HEMQPb4u1JA=
@@ -139,9 +144,11 @@ cloud.google.com/go/deploy v1.26.2/go.mod h1:XpS3sG/ivkXCfzbzJXY9DXTeCJ5r68gIyeO
 cloud.google.com/go/dialogflow v1.58.0 h1:RTpoVCJHkgNLK8Co/f7F8ipyg3h8fJIaQzdaAbyg788=
 cloud.google.com/go/dialogflow v1.58.0/go.mod h1:sWcyFLdUrg+TWBJVq/OtwDyjcyDOfirTF0Gx12uKy7o=
 cloud.google.com/go/dialogflow v1.65.0/go.mod h1:PyZHXJRQ+hfprGl3earnQoeYdNOVQd+XtIYqEt8vgpc=
+cloud.google.com/go/dialogflow v1.66.0/go.mod h1:BPiRTnnXP/tHLot5h/U62Xcp+i6ekRj/bq6uq88p+Lw=
 cloud.google.com/go/dlp v1.19.0 h1:AJB26PpDG0gOkf6wxQqbBXs9G+jOVnCjCagOlNiroKM=
 cloud.google.com/go/dlp v1.19.0/go.mod h1:cr8dKBq8un5LALiyGkz4ozcwzt3FyTlOwA4/fFzJ64c=
 cloud.google.com/go/dlp v1.20.1/go.mod h1:NO0PLy43RQV0QI6vZcPiNTR9eiKu9pFzawaueBlDwz8=
+cloud.google.com/go/dlp v1.21.0/go.mod h1:Y9HOVtPoArpL9sI1O33aN/vK9QRwDERU9PEJJfM8DvE=
 cloud.google.com/go/documentai v1.34.0 h1:gmBmrTLzbpZkllu2xExISZg2Hh/ai0y605SWdheWHvI=
 cloud.google.com/go/documentai v1.34.0/go.mod h1:onJlbHi4ZjQTsANSZJvW7fi2M8LZJrrupXkWDcy4gLY=
 cloud.google.com/go/documentai v1.35.2/go.mod h1:oh/0YXosgEq3hVhyH4ZQ7VNXPaveRO4eLVM3tBSZOsI=
@@ -199,6 +206,7 @@ cloud.google.com/go/iot v1.8.3/go.mod h1:dYhrZh+vUxIQ9m3uajyKRSW7moF/n0rYmA2PhYA
 cloud.google.com/go/kms v1.20.0 h1:uKUvjGqbBlI96xGE669hcVnEMw1Px/Mvfa62dhM5UrY=
 cloud.google.com/go/kms v1.20.0/go.mod h1:/dMbFF1tLLFnQV44AoI2GlotbjowyUfgVwezxW291fM=
 cloud.google.com/go/kms v1.20.5/go.mod h1:C5A8M1sv2YWYy1AE6iSrnddSG9lRGdJq5XEdBy28Lmw=
+cloud.google.com/go/kms v1.21.0/go.mod h1:zoFXMhVVK7lQ3JC9xmhHMoQhnjEDZFoLAr5YMwzBLtk=
 cloud.google.com/go/language v1.14.1 h1:lyBks2W2k7bVPvfEECH08eMOP3Vd7zkHCATt/Vy0sLM=
 cloud.google.com/go/language v1.14.1/go.mod h1:WaAL5ZdLLBjiorXl/8vqgb6/Fyt2qijl96c1ZP/vdc8=
 cloud.google.com/go/language v1.14.3/go.mod h1:hjamj+KH//QzF561ZuU2J+82DdMlFUjmiGVWpovGGSA=
@@ -217,6 +225,7 @@ cloud.google.com/go/managedidentities v1.7.3/go.mod h1:H9hO2aMkjlpY+CNnKWRh+WoQi
 cloud.google.com/go/maps v1.14.0 h1:bLT2nvuOm4ye6YRgIJQ0L9zbKcbBj+TCg8k2g3c2Qlk=
 cloud.google.com/go/maps v1.14.0/go.mod h1:UepOes9un0UP7i8JBiaqgh8jqUaZAHVRXCYjrVlhSC8=
 cloud.google.com/go/maps v1.18.0/go.mod h1:am4HxIsBHO/7ZVAorhlSHWjCQJwN/rlSI/LgfaFIQRU=
+cloud.google.com/go/maps v1.19.0/go.mod h1:goHUXrmzoZvQjUVd0KGhH8t3AYRm17P8b+fsyR1UAmQ=
 cloud.google.com/go/mediatranslation v0.9.1 h1:7X1cA4TWO0+r1RT0JTT0RE+SyO41eoFUmBDw17Oi9T8=
 cloud.google.com/go/mediatranslation v0.9.1/go.mod h1:vQH1amULNhSGryBjbjLb37g54rxrOwVxywS8WvUCsIU=
 cloud.google.com/go/mediatranslation v0.9.3/go.mod h1:KTrFV0dh7duYKDjmuzjM++2Wn6yw/I5sjZQVV5k3BAA=
@@ -320,6 +329,7 @@ cloud.google.com/go/spanner v1.69.0/go.mod h1:X5T0XftydYp0K1adeJQDJtdWpbrOeJ7wHe
 cloud.google.com/go/spanner v1.70.0 h1:nj6p/GJTgMDiSQ1gQ034ItsKuJgHiMOjtOlONOg8PSo=
 cloud.google.com/go/spanner v1.70.0/go.mod h1:X5T0XftydYp0K1adeJQDJtdWpbrOeJ7wHecM4tK6FiE=
 cloud.google.com/go/spanner v1.75.0/go.mod h1:TLFZBvPQmx3We7sGh12eTk9lLsRLczzZaiweqfMpR80=
+cloud.google.com/go/spanner v1.76.1/go.mod h1:YtwoE+zObKY7+ZeDCBtZ2ukM+1/iPaMfUM+KnTh/sx0=
 cloud.google.com/go/speech v1.25.1 h1:iGZJS3wrdkje/Vqiacx1+r+zVwUZoXVMdklYIVsvfNw=
 cloud.google.com/go/speech v1.25.1/go.mod h1:WgQghvghkZ1htG6BhYn98mP7Tg0mti8dBFDLMVXH/vM=
 cloud.google.com/go/speech v1.26.0/go.mod h1:78bqDV2SgwFlP/M4n3i3PwLthFq6ta7qmyG6lUV7UCA=
@@ -379,8 +389,6 @@ github.com/bazelbuild/rules_go v0.49.0 h1:5vCbuvy8Q11g41lseGJDc5vxhDjJtfxr6nM/IC
 github.com/bazelbuild/rules_go v0.49.0/go.mod h1:Dhcz716Kqg1RHNWos+N6MlXNkjNP2EwZQ0LukRKJfMs=
 github.com/census-instrumentation/opencensus-proto v0.4.1 h1:iKLQ0xPNFxR/2hzXZMrBo8f1j86j5WHzznCCQxV/b8g=
 github.com/census-instrumentation/opencensus-proto v0.4.1/go.mod h1:4T9NM4+4Vw91VeyqjLS6ao50K5bOcLKN6Q42XnYaRYw=
-github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
-github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/cncf/xds/go v0.0.0-20240723142845-024c85f92f20/go.mod h1:W+zGtBO5Y1IgJhy4+A9GOqVhqLpfZi+vwmdNXUehLA8=
 github.com/cncf/xds/go v0.0.0-20240905190251-b4127c9b8d78 h1:QVw89YDxXxEe+l8gU8ETbOasdwEV+avkR75ZzsVV9WI=
 github.com/cncf/xds/go v0.0.0-20240905190251-b4127c9b8d78/go.mod h1:W+zGtBO5Y1IgJhy4+A9GOqVhqLpfZi+vwmdNXUehLA8=
@@ -425,6 +433,7 @@ github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/
 github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/gorilla/mux v1.8.0 h1:i40aqfkR1h2SlN9hojwV5ZA91wcXFOvkdNIeFDP5koI=
 github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB71So=
+github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1/go.mod h1:tIxuGz/9mpox++sgp9fJjHO0+q1X9/UOWd798aAm22M=
 github.com/iancoleman/strcase v0.3.0 h1:nTXanmYxhfFAMjZL34Ov6gkzEsSJZ5DbhxWjvSASxEI=
 github.com/iancoleman/strcase v0.3.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47ZCWhYzw7ho=
 github.com/invopop/yaml v0.3.1 h1:f0+ZpmhfBSS4MhG+4HYseMdJhoeeopbSKbq5Rpeelso=
@@ -507,6 +516,7 @@ golang.org/x/net v0.32.0/go.mod h1:CwU0IoeOlnQQWJ6ioyFrfRuomB8GKF6KbYXZVyeXNfs=
 golang.org/x/net v0.33.0/go.mod h1:HXLR5J+9DxmrqMwG9qjGCxZ+zKXxBru04zlTvWlWuN4=
 golang.org/x/net v0.34.0/go.mod h1:di0qlW3YNM5oh6GqDGQr92MyTozJPmybPK4Ev/Gm31k=
 golang.org/x/net v0.35.0/go.mod h1:EglIi67kWsHKlRzzVMUD93VMSWGFOMSZgxFjparz1Qk=
+golang.org/x/net v0.37.0/go.mod h1:ivrbrMbzFq5J41QOQh0siUuly180yBYtLp+CKbEaFx8=
 golang.org/x/oauth2 v0.22.0/go.mod h1:XYTD2NtWslqkgxebSiOHnXEap4TF09sJSc7H1sXbhtI=
 golang.org/x/oauth2 v0.23.0/go.mod h1:XYTD2NtWslqkgxebSiOHnXEap4TF09sJSc7H1sXbhtI=
 golang.org/x/oauth2 v0.24.0 h1:KTBBxWqUa0ykRPLtV69rRto9TLXcqYkeswu48x/gvNE=
@@ -563,6 +573,7 @@ google.golang.org/grpc v1.67.0/go.mod h1:1gLDyUQU7CTLJI90u3nXZ9ekeghjeM7pTDZlqFN
 google.golang.org/grpc v1.67.1/go.mod h1:1gLDyUQU7CTLJI90u3nXZ9ekeghjeM7pTDZlqFNg2AA=
 google.golang.org/grpc v1.69.2/go.mod h1:vyjdE6jLBI76dgpDojsFGNaHlxdjXN9ghpnd2o7JGZ4=
 google.golang.org/grpc v1.69.4/go.mod h1:vyjdE6jLBI76dgpDojsFGNaHlxdjXN9ghpnd2o7JGZ4=
+google.golang.org/grpc v1.71.0/go.mod h1:H0GRtasmQOh9LkFoCPDu3ZrwUtD1YGE+b2vYBYd/8Ec=
 google.golang.org/protobuf v1.26.0-rc.1/go.mod h1:jlhhOSvTdKEhbULTjvd4ARK9grFBp09yW+WbY/TyQbw=
 google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
 google.golang.org/protobuf v1.33.0/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=

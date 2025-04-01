@@ -70,7 +70,7 @@ func (i *interfaceImpl) TypeParameters() string {
 	var parameters []string
 	for j, p := range ps {
 		parameter := p.Name()
-		if !(j+1 < len(ps) && p.Constraint() == ps[j+1].Constraint()) {
+		if j+1 >= len(ps) || p.Constraint() != ps[j+1].Constraint() {
 			parameter += " " + i.typeNames[p.Constraint()]
 		}
 		parameters = append(parameters, parameter)

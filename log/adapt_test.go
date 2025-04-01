@@ -129,7 +129,7 @@ func TestAsAWSLogger(t *testing.T) {
 	key := ctxkey("key")
 	pctx := context.WithValue(context.Background(), key, "small")
 	logger = logger.(logging.ContextLogger).WithContext(pctx)
-	logger.Logf(logging.Classification("INFO"), "hello %v world", logger.(*AWSLogger).Context.Value(key))
+	logger.Logf(logging.Classification("INFO"), "hello %v world", pctx.Value(key))
 	want = "time=2022-01-09T20:29:45Z level=info msg=\"hello small world\"\n"
 	assert.Equal(t, want, buf.String())
 }

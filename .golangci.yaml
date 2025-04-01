@@ -11,6 +11,11 @@ linters:
       - linters:
           - staticcheck
         text: 'SA1019:'
+      - linters:
+          - staticcheck
+        text: 'ST1001:'
+        paths:
+          - '.*design/.*\.go$'
     paths:
       - third_party$
       - builtin$
