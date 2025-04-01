@@ -1,15 +1,20 @@
+# .golangci.yaml
+
+# Minimal 'run' section to satisfy parser structure. Uses default values.
 run: {}
 
+# By omitting the 'linters:' section entirely, golangci-lint will use its
+# default set of enabled linters. This matches the behavior of having no
+# config file or a config file without a 'linters:' section.
+
+# By omitting the 'linters-settings:' section, all linters will use their
+# default configurations.
+
+# Keep the original 'issues' section to apply the specific exclusion rule.
 issues:
-  # List of regexps of issue texts to exclude.
-  #
-  # But independently of this option we use default exclude patterns,
-  # it can be disabled by `exclude-use-default: false`.
-  # To list all excluded by default patterns execute `golangci-lint run --help`
-  #
-  # Default: https://golangci-lint.run/usage/false-positives/#default-exclusions
   exclude-rules:
     - linters:
         - staticcheck
-      text: "SA1019:"
+      text: "SA1019:" # Exclude deprecated symbol warnings
 
+# By omitting the 'output:' section, the default output format will be used.
