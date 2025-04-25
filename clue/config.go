@@ -67,7 +67,7 @@ func ConfigureOpenTelemetry(ctx context.Context, cfg *Config) {
 //	if err != nil {
 //		return err
 //	}
-//	cfg := clue.NewConfig("mysvc", "1.0.0", metricExporter, spanExporter)
+//	cfg := clue.NewConfig(ctx, "mysvc", "1.0.0", metricExporter, spanExporter)
 func NewConfig(
 	ctx context.Context,
 	svcName string,
