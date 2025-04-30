@@ -59,6 +59,18 @@ func GetTraceStreamRecvContext(ctx context.Context) context.Context {
 	return rc.ctx
 }
 
+// InsertTraceStreamRecvContext inserts a receive context into a context that has been set up for use
+// with the receive method of a stream. This should only be used to simulate the usage of the Trace Stream
+// Interceptors in tests to prevent GetTraceStreamRecvContext, or a wrapped stream receive method, from
+// panicking.
+func InsertTraceStreamRecvContext(ctx, recvCtx context.Context) {
+	rc, ok := ctx.Value(traceStreamRecvContextKey).(*traceStreamRecvContext)
+	if !ok {
+		panic(fmt.Errorf("clue interceptors insert trace stream receive context method called without prior setup"))
+	}
+	rc.ctx = recvCtx
+}
+
 // traceStreamSend is a helper function that traces a stream by injecting the trace metadata
 // into the streaming payload or result. The injected trace metadata comes from the context
 // passed to the send method of the stream.
