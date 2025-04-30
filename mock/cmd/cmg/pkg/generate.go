@@ -2,7 +2,9 @@ package cluemockgen
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -106,7 +108,7 @@ func generateFile(ctx context.Context, p parse.Package, file string, interfaces 
 		return err
 	}
 	defer func() {
-		if removeErr := os.Remove(f.Name()); removeErr != nil {
+		if removeErr := os.Remove(f.Name()); removeErr != nil && !errors.Is(removeErr, fs.ErrNotExist) {
 			log.Error(ctx, fmt.Errorf("failed to remove temporary file: %w", removeErr))
 		}
 	}()
