@@ -85,7 +85,7 @@ func init() {
 func TestSetupTraceStreamRecvContext(t *testing.T) {
 	ctx := context.Background()
 	ctx = SetupTraceStreamRecvContext(ctx)
-	assert.Equal(t, &traceStreamRecvContext{ctx: ctx}, ctx.Value(traceStreamRecvContextKey))
+	assert.Equal(t, &traceStreamRecvContext{}, ctx.Value(traceStreamRecvContextKey))
 }
 
 func TestGetTraceStreamRecvContext(t *testing.T) {
