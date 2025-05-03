@@ -22,6 +22,11 @@ type (
 		typeSpec      *ast.TypeSpec
 		interfaceType *ast.InterfaceType
 	}
+
+	interfaceAlias struct {
+		Interface
+		aliasedInterface *types.Interface
+	}
 )
 
 func newInterface(p *packages.Package, file string, typeSpec *ast.TypeSpec, interfaceType *ast.InterfaceType) Interface {
@@ -74,12 +79,26 @@ func (i *interfaceImpl) methods(it *ast.InterfaceType) (methods []Method) {
 		case *ast.SelectorExpr:
 			if tv, ok := i.p.TypesInfo.Types[t]; ok {
 				if ti, ok := tv.Type.Underlying().(*types.Interface); ok {
-					for j := 0; j < ti.NumMethods(); j++ {
-						methods = append(methods, newTypesMethod(ti.Method(j)))
+					for m := range ti.Methods() {
+						methods = append(methods, newTypesMethod(m))
 					}
 				}
 			}
 		}
+	}
+	return
+}
+
+func newInterfaceAlias(p *packages.Package, file string, typeSpec *ast.TypeSpec, aliasedInterface *types.Interface) Interface {
+	return &interfaceAlias{
+		Interface:        newInterface(p, file, typeSpec, nil),
+		aliasedInterface: aliasedInterface,
+	}
+}
+
+func (i *interfaceAlias) Methods() (methods []Method) {
+	for m := range i.aliasedInterface.Methods() {
+		methods = append(methods, newTypesMethod(m))
 	}
 	return
 }

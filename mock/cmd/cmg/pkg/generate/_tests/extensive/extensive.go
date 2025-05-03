@@ -62,4 +62,9 @@ type (
 	StructAlias            = struct{ A, B int }
 	IntSetAlias            = Set[int]
 	SetAlias[K comparable] = Set[K]
+
+	ExtensiveAlias                                               = Extensive
+	ImportedAlias                                                = imported.Interface
+	GenericAlias[K comparable, V ~int | bool | string, X, Y any] = Generic[K, V, X, Y]
+	ConstrainedGenericAlias                                      = Generic[string, IntAlias, float32, float64]
 )

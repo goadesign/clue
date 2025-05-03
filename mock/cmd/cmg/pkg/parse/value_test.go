@@ -46,7 +46,6 @@ func TestValue_Name(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
@@ -82,7 +81,6 @@ func TestValue_Type(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
