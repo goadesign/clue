@@ -1,7 +1,6 @@
 package parse
 
 import (
-	"fmt"
 	"go/ast"
 	"go/types"
 	"testing"
@@ -133,18 +132,26 @@ func TestInterface_Methods(t *testing.T) {
 	p := ps[0]
 
 	var (
-		externalDoerSelectorExpr *ast.SelectorExpr
-		externalDoerInterface    *types.Interface
+		externalDoerSelectorExpr, externalGenericDoerSelectorExpr *ast.SelectorExpr
+		externalDoerInterface, externalGenericDoerInterface       *types.Interface
 	)
 	for at, tv := range p.TypesInfo.Types {
 		if se, ok := at.(*ast.SelectorExpr); ok {
 			if i, ok := se.X.(*ast.Ident); ok {
-				if i.Name == "external" && se.Sel.Name == "Doer" {
-					externalDoerSelectorExpr = se
-					externalDoerInterface, _ = tv.Type.Underlying().(*types.Interface)
-					break
+				if i.Name == "external" {
+					if se.Sel.Name == "Doer" {
+						externalDoerSelectorExpr = se
+						externalDoerInterface, _ = tv.Type.Underlying().(*types.Interface)
+					} else if se.Sel.Name == "GenericDoer" {
+						externalGenericDoerSelectorExpr = se
+						externalGenericDoerInterface, _ = tv.Type.Underlying().(*types.Interface)
+					}
 				}
 			}
+		}
+
+		if externalDoerSelectorExpr != nil && externalDoerInterface != nil && externalGenericDoerSelectorExpr != nil && externalGenericDoerInterface != nil {
+			break
 		}
 	}
 	require.NotNil(t, externalDoerSelectorExpr)
@@ -255,7 +262,6 @@ func TestInterfaceAlias_Methods(t *testing.T) {
 
 	var doerInterface, externalDoerInterface *types.Interface
 	for at, tv := range p.TypesInfo.Types {
-		fmt.Printf("%T %v %T %v\n", at, at, tv, tv)
 		switch t := at.(type) {
 		case *ast.Ident:
 			if t.Name == "Doer" {

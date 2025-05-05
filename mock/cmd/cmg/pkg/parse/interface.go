@@ -76,7 +76,7 @@ func (i *interfaceImpl) methods(it *ast.InterfaceType) (methods []Method) {
 					methods = append(methods, i.methods(t)...)
 				}
 			}
-		case *ast.SelectorExpr:
+		case *ast.SelectorExpr, *ast.IndexExpr, *ast.IndexListExpr:
 			if tv, ok := i.p.TypesInfo.Types[t]; ok {
 				if ti, ok := tv.Type.Underlying().(*types.Interface); ok {
 					for m := range ti.Methods() {

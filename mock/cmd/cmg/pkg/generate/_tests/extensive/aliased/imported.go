@@ -6,4 +6,8 @@ type (
 	Interface interface {
 		Imported(Type) Type
 	}
+
+	Generic[T any] interface {
+		ImportedGeneric(T) T
+	}
 )

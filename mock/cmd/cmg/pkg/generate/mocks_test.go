@@ -2,6 +2,7 @@ package generate
 
 import (
 	"bytes"
+	"flag"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,6 +12,12 @@ import (
 
 	"goa.design/clue/mock/cmd/cmg/pkg/parse"
 )
+
+var updateGolden = false
+
+func init() {
+	flag.BoolVar(&updateGolden, "update-golden", false, "update golden files")
+}
 
 func TestMocks_Render(t *testing.T) {
 	cases := []struct {
@@ -50,6 +57,23 @@ func TestMocks_Render(t *testing.T) {
 				interfacesByFile[f] = append(interfacesByFile[f], i)
 			}
 
+			mocksDir := filepath.Join("_tests", tc.Pattern, "mocks")
+
+			if updateGolden {
+				require.NoError(os.MkdirAll(mocksDir, 0750))
+
+				for f, is := range interfacesByFile {
+					of, err := os.OpenFile(filepath.Join(mocksDir, f), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0640)
+					require.NoError(err)
+					t.Cleanup(func() { of.Close() })
+
+					m := NewMocks("mock", p, is, toolVersion)
+					require.NoError(m.Render(of))
+				}
+
+				return
+			}
+
 			var files []string
 			for f := range interfacesByFile {
 				files = append(files, f)
@@ -57,8 +81,8 @@ func TestMocks_Render(t *testing.T) {
 			assert.ElementsMatch(tc.ExpectedFiles, files)
 
 			for f, is := range interfacesByFile {
-				f := filepath.Join("_tests", tc.Pattern, "mocks", f)
-				m := NewMocks("mock", p, is, func() string { return "TEST VERSION" })
+				f := filepath.Join(mocksDir, f)
+				m := NewMocks("mock", p, is, toolVersion)
 				b := &bytes.Buffer{}
 
 				err := m.Render(b)
@@ -71,4 +95,8 @@ func TestMocks_Render(t *testing.T) {
 			}
 		})
 	}
+}
+
+func toolVersion() string {
+	return "TEST VERSION"
 }

@@ -43,15 +43,25 @@ type (
 
 		Embedded
 		imported.Interface
+
+		EmbeddedGeneric[uint16, uint32]
+		imported.Generic[rune]
 	}
 
 	Embedded interface {
 		Embedded(int8) int8
 	}
 
+	EmbeddedGeneric[X, Y any] interface {
+		EmbeddedGeneric(x X, y Y) (X, Y)
+	}
+
 	Generic[K comparable, V ~int | bool | string, X, Y any] interface {
 		Simple(k K, v V, x X, y Y) (K, V, X, Y)
 		Complex(map[K]V, []X, *Y, Set[K]) (map[K]V, []X, *Y, Set[K])
+
+		EmbeddedGeneric[X, Y]
+		imported.Generic[Y]
 	}
 
 	Struct                 struct{ A, B int }
