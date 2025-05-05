@@ -85,7 +85,7 @@ func init() {
 func TestSetupTraceStreamRecvContext(t *testing.T) {
 	ctx := context.Background()
 	ctx = SetupTraceStreamRecvContext(ctx)
-	assert.Equal(t, ctx.Value(traceStreamRecvContextKey), &traceStreamRecvContext{})
+	assert.Equal(t, &traceStreamRecvContext{}, ctx.Value(traceStreamRecvContextKey))
 }
 
 func TestGetTraceStreamRecvContext(t *testing.T) {
@@ -102,9 +102,25 @@ func TestGetTraceStreamRecvContext(t *testing.T) {
 		GetTraceStreamRecvContext(ctx)
 	})
 
-	expectedContext := context.WithValue(ctx, ctxKey("trace_metadata"), "test")
-	ctx = context.WithValue(ctx, traceStreamRecvContextKey, &traceStreamRecvContext{ctx: expectedContext})
-	assert.Equal(t, GetTraceStreamRecvContext(ctx), expectedContext)
+	expectedCtx := context.WithValue(ctx, ctxKey("trace_metadata"), "test")
+	ctx = context.WithValue(ctx, traceStreamRecvContextKey, &traceStreamRecvContext{ctx: expectedCtx})
+	assert.Equal(t, expectedCtx, GetTraceStreamRecvContext(ctx))
+}
+
+func TestInsertTraceStreamRecvContext(t *testing.T) {
+	type ctxKey string
+	var (
+		ctx         = context.Background()
+		expectedCtx = context.WithValue(ctx, ctxKey("trace_metadata"), "test")
+	)
+
+	assert.PanicsWithError(t, "clue interceptors insert trace stream receive context method called without prior setup", func() {
+		InsertTraceStreamRecvContext(ctx, expectedCtx)
+	})
+
+	ctx = context.WithValue(ctx, traceStreamRecvContextKey, &traceStreamRecvContext{})
+	InsertTraceStreamRecvContext(ctx, expectedCtx)
+	assert.Equal(t, expectedCtx, ctx.Value(traceStreamRecvContextKey).(*traceStreamRecvContext).ctx)
 }
 
 func newMockTraceStreamInfo(assert *assert.Assertions) *mockTraceStreamInfo {
