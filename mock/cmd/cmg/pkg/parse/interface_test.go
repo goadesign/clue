@@ -132,8 +132,8 @@ func TestInterface_Methods(t *testing.T) {
 	p := ps[0]
 
 	var (
-		externalDoerSelectorExpr, externalGenericDoerSelectorExpr *ast.SelectorExpr
-		externalDoerInterface, externalGenericDoerInterface       *types.Interface
+		externalDoerSelectorExpr *ast.SelectorExpr
+		externalDoerInterface    *types.Interface
 	)
 	for at, tv := range p.TypesInfo.Types {
 		if se, ok := at.(*ast.SelectorExpr); ok {
@@ -142,16 +142,10 @@ func TestInterface_Methods(t *testing.T) {
 					if se.Sel.Name == "Doer" {
 						externalDoerSelectorExpr = se
 						externalDoerInterface, _ = tv.Type.Underlying().(*types.Interface)
-					} else if se.Sel.Name == "GenericDoer" {
-						externalGenericDoerSelectorExpr = se
-						externalGenericDoerInterface, _ = tv.Type.Underlying().(*types.Interface)
+						break
 					}
 				}
 			}
-		}
-
-		if externalDoerSelectorExpr != nil && externalDoerInterface != nil && externalGenericDoerSelectorExpr != nil && externalGenericDoerInterface != nil {
-			break
 		}
 	}
 	require.NotNil(t, externalDoerSelectorExpr)

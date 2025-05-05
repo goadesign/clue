@@ -65,7 +65,7 @@ func TestMocks_Render(t *testing.T) {
 				for f, is := range interfacesByFile {
 					of, err := os.OpenFile(filepath.Join(mocksDir, f), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0640)
 					require.NoError(err)
-					t.Cleanup(func() { of.Close() })
+					t.Cleanup(func() { assert.NoError(of.Close()) })
 
 					m := NewMocks("mock", p, is, toolVersion)
 					require.NoError(m.Render(of))
