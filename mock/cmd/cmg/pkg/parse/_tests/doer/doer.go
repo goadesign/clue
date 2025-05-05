@@ -20,4 +20,10 @@ type (
 	doer interface { //nolint:unused
 		do(a, b int, c float64) (d, e int, err error)
 	}
+
+	DoerAlias                 = Doer
+	EmbeddedDoerAlias         = EmbeddedDoer
+	ExternalEmbeddedDoerAlias = ExternalEmbeddedDoer
+	ExternalDoerAlias         = external.Doer
+	DoerAliasAlias            = DoerAlias
 )

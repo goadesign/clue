@@ -23,7 +23,6 @@ func TestInterface_Name(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
@@ -53,7 +52,6 @@ func TestInterface_IsExported(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
@@ -76,7 +74,6 @@ func TestInterface_File(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
@@ -115,7 +112,6 @@ func TestInterface_TypeParameters(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
@@ -142,13 +138,12 @@ func TestInterface_Methods(t *testing.T) {
 	for at, tv := range p.TypesInfo.Types {
 		if se, ok := at.(*ast.SelectorExpr); ok {
 			if i, ok := se.X.(*ast.Ident); ok {
-				if i.Name != "external" {
-					continue
-				}
-				if se.Sel.Name == "Doer" {
-					externalDoerSelectorExpr = se
-					externalDoerInterface, _ = tv.Type.Underlying().(*types.Interface)
-					break
+				if i.Name == "external" {
+					if se.Sel.Name == "Doer" {
+						externalDoerSelectorExpr = se
+						externalDoerInterface, _ = tv.Type.Underlying().(*types.Interface)
+						break
+					}
 				}
 			}
 		}
@@ -164,7 +159,7 @@ func TestInterface_Methods(t *testing.T) {
 		Expected      []Method
 	}{
 		{
-			Name:     "success",
+			Name:     "interface",
 			TypeSpec: &ast.TypeSpec{Name: ast.NewIdent("Doer")},
 			InterfaceType: &ast.InterfaceType{Methods: &ast.FieldList{List: []*ast.Field{
 				{
@@ -240,11 +235,102 @@ func TestInterface_Methods(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
 			i := newInterface(p, "", tc.TypeSpec, tc.InterfaceType)
+			methods := i.Methods()
+			assert.Equal(t, tc.Expected, methods)
+		})
+	}
+}
+
+func TestInterfaceAlias_Methods(t *testing.T) {
+	ps, err := packages.Load(&packages.Config{
+		Dir:  "_tests",
+		Mode: packages.NeedName | packages.NeedFiles | packages.NeedImports | packages.NeedTypes | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedModule,
+	}, "./doer")
+	require.NoError(t, err)
+	require.Len(t, ps, 1)
+	p := ps[0]
+
+	var doerInterface, externalDoerInterface *types.Interface
+	for at, tv := range p.TypesInfo.Types {
+		switch t := at.(type) {
+		case *ast.Ident:
+			if t.Name == "Doer" {
+				doerInterface, _ = tv.Type.Underlying().(*types.Interface)
+			}
+		case *ast.SelectorExpr:
+			if i, ok := t.X.(*ast.Ident); ok {
+				if i.Name == "external" && t.Sel.Name == "Doer" {
+					externalDoerInterface, _ = tv.Type.Underlying().(*types.Interface)
+				}
+			}
+		}
+
+		if doerInterface != nil && externalDoerInterface != nil {
+			break
+		}
+	}
+	require.NotNil(t, doerInterface)
+	require.Greater(t, doerInterface.NumMethods(), 0)
+	require.NotNil(t, externalDoerInterface)
+	require.Greater(t, externalDoerInterface.NumMethods(), 0)
+
+	cases := []struct {
+		Name             string
+		TypeSpec         *ast.TypeSpec
+		AliasedInterface *types.Interface
+		Expected         []Method
+	}{
+		{
+			Name:             "interface alias",
+			TypeSpec:         &ast.TypeSpec{Name: ast.NewIdent("DoerAlias")},
+			AliasedInterface: doerInterface,
+			Expected: []Method{
+				newTypesMethod(doerInterface.Method(0)),
+			},
+		},
+		{
+			Name:             "embedded interface alias",
+			TypeSpec:         &ast.TypeSpec{Name: ast.NewIdent("EmbeddedDoerAlias")},
+			AliasedInterface: doerInterface,
+			Expected: []Method{
+				newTypesMethod(doerInterface.Method(0)),
+			},
+		},
+		{
+			Name:             "external embedded interface alias",
+			TypeSpec:         &ast.TypeSpec{Name: ast.NewIdent("ExternalEmbeddedDoerAlias")},
+			AliasedInterface: externalDoerInterface,
+			Expected: []Method{
+				newTypesMethod(externalDoerInterface.Method(0)),
+			},
+		},
+		{
+			Name:             "external interface alias",
+			TypeSpec:         &ast.TypeSpec{Name: ast.NewIdent("ExternalDoerAlias")},
+			AliasedInterface: externalDoerInterface,
+			Expected: []Method{
+				newTypesMethod(externalDoerInterface.Method(0)),
+			},
+		},
+		{
+			Name:             "interface alias alias",
+			TypeSpec:         &ast.TypeSpec{Name: ast.NewIdent("DoerAliasAlias")},
+			AliasedInterface: doerInterface,
+			Expected: []Method{
+				newTypesMethod(doerInterface.Method(0)),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
+
+			i := newInterfaceAlias(p, "", tc.TypeSpec, tc.AliasedInterface)
 			methods := i.Methods()
 			assert.Equal(t, tc.Expected, methods)
 		})

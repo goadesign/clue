@@ -2,6 +2,8 @@ package parse
 
 import (
 	"go/ast"
+	"go/token"
+	"go/types"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -75,11 +77,17 @@ func (p *packageImpl) Interfaces() ([]Interface, error) {
 }
 
 func (iv *interfaceVisitor) Visit(node ast.Node) ast.Visitor {
-	switch n := node.(type) {
-	case *ast.TypeSpec:
+	if n, ok := node.(*ast.TypeSpec); ok {
 		switch t := n.Type.(type) {
 		case *ast.InterfaceType:
 			iv.interfaces = append(iv.interfaces, newInterface(iv.p, iv.file, n, t))
+		default:
+			if n.Assign != token.NoPos {
+				underlying := iv.p.TypesInfo.Types[t].Type.Underlying()
+				if u, ok := underlying.(*types.Interface); ok {
+					iv.interfaces = append(iv.interfaces, newInterfaceAlias(iv.p, iv.file, n, u))
+				}
+			}
 		}
 	}
 	return iv

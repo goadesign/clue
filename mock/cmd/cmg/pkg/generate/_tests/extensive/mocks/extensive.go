@@ -38,6 +38,8 @@ type (
 	ExtensiveAliasedFuncTypesFunc  func(p0 func(extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string])) func(extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string])
 	ExtensiveEmbeddedFunc          func(p0 int8) int8
 	ExtensiveImportedFunc          func(p0 imported.Type) imported.Type
+	ExtensiveEmbeddedGenericFunc   func(x uint16, y uint32) (uint16, uint32)
+	ExtensiveImportedGenericFunc   func(p0 rune) rune
 
 	Embedded struct {
 		m *mock.Mock
@@ -46,13 +48,72 @@ type (
 
 	EmbeddedEmbeddedFunc func(p0 int8) int8
 
+	EmbeddedGeneric[X, Y any] struct {
+		m *mock.Mock
+		t *testing.T
+	}
+
+	EmbeddedGenericEmbeddedGenericFunc[X, Y any] func(x X, y Y) (X, Y)
+
 	Generic[K comparable, V ~int | bool | string, X, Y any] struct {
 		m *mock.Mock
 		t *testing.T
 	}
 
-	GenericSimpleFunc[K comparable, V ~int | bool | string, X, Y any]  func(k K, v V, x X, y Y) (K, V, X, Y)
-	GenericComplexFunc[K comparable, V ~int | bool | string, X, Y any] func(p0 map[K]V, p1 []X, p2 *Y, p3 extensive.Set[K]) (map[K]V, []X, *Y, extensive.Set[K])
+	GenericSimpleFunc[K comparable, V ~int | bool | string, X, Y any]          func(k K, v V, x X, y Y) (K, V, X, Y)
+	GenericComplexFunc[K comparable, V ~int | bool | string, X, Y any]         func(p0 map[K]V, p1 []X, p2 *Y, p3 extensive.Set[K]) (map[K]V, []X, *Y, extensive.Set[K])
+	GenericEmbeddedGenericFunc[K comparable, V ~int | bool | string, X, Y any] func(x X, y Y) (X, Y)
+	GenericImportedGenericFunc[K comparable, V ~int | bool | string, X, Y any] func(p0 Y) Y
+
+	ExtensiveAlias struct {
+		m *mock.Mock
+		t *testing.T
+	}
+
+	ExtensiveAliasAliasedFuncTypesFunc  func(p0 func(extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string])) func(extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string])
+	ExtensiveAliasAliasedTypesFunc      func(p0 extensive.IntAlias, p1 extensive.ArrayAlias, p2 extensive.StructAlias, p3 extensive.IntSetAlias, p4 extensive.SetAlias[string]) (extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string])
+	ExtensiveAliasComplexTypesFunc      func(p0 [5]string, p1 []string, p2 map[string]string, p3 *string, p4 chan int, p5 chan<- int, p6 <-chan int) ([5]string, []string, map[string]string, *string, chan int, chan<- int, <-chan int)
+	ExtensiveAliasEmbeddedFunc          func(p0 int8) int8
+	ExtensiveAliasEmbeddedGenericFunc   func(x uint16, y uint32) (uint16, uint32)
+	ExtensiveAliasFuncNamedTypesFunc    func(p0 func(extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])) func(extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])
+	ExtensiveAliasImportedFunc          func(p0 imported.Type) imported.Type
+	ExtensiveAliasImportedGenericFunc   func(p0 rune) rune
+	ExtensiveAliasMoreComplexTypesFunc  func(p0 interface{}, p1 interface{io.ReadWriter; A(int) error; B()}, p2 struct{extensive.Struct; A, B int; C float64}, p3 func(int) (bool, error)) (interface{}, interface{io.ReadWriter; A(int) error; B()}, struct{extensive.Struct; A, B int; C float64}, func(int) (bool, error))
+	ExtensiveAliasMultipleResultsFunc   func() (bool, complex64, complex128, string, unsafe.Pointer, error)
+	ExtensiveAliasNamedResultFunc       func() (err error)
+	ExtensiveAliasNamedTypesFunc        func(p0 extensive.Struct, p1 extensive.Array, p2 io.Reader, p3 imported.Type, p4 goa.Endpoint, p5 extensive.Generic[uint, string, extensive.Struct, extensive.Array]) (extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])
+	ExtensiveAliasNoResultFunc          func()
+	ExtensiveAliasRepeatedTypesFunc     func(a, b int, c, d float64) (e, f int, g, h float64, err error)
+	ExtensiveAliasSimpleFunc            func(p0 int, p1 string) float64
+	ExtensiveAliasVariableConflictsFunc func(f, m uint)
+	ExtensiveAliasVariadicFunc          func(args ...string)
+
+	ImportedAlias struct {
+		m *mock.Mock
+		t *testing.T
+	}
+
+	ImportedAliasImportedFunc func(p0 imported.Type) imported.Type
+
+	GenericAlias[K comparable, V ~int | bool | string, X, Y any] struct {
+		m *mock.Mock
+		t *testing.T
+	}
+
+	GenericAliasComplexFunc[K comparable, V ~int | bool | string, X, Y any]         func(p0 map[K]V, p1 []X, p2 *Y, p3 extensive.Set[K]) (map[K]V, []X, *Y, extensive.Set[K])
+	GenericAliasEmbeddedGenericFunc[K comparable, V ~int | bool | string, X, Y any] func(x X, y Y) (X, Y)
+	GenericAliasImportedGenericFunc[K comparable, V ~int | bool | string, X, Y any] func(p0 Y) Y
+	GenericAliasSimpleFunc[K comparable, V ~int | bool | string, X, Y any]          func(k K, v V, x X, y Y) (K, V, X, Y)
+
+	ConstrainedGenericAlias struct {
+		m *mock.Mock
+		t *testing.T
+	}
+
+	ConstrainedGenericAliasComplexFunc         func(p0 map[string]extensive.IntAlias, p1 []float32, p2 *float64, p3 extensive.Set[string]) (map[string]extensive.IntAlias, []float32, *float64, extensive.Set[string])
+	ConstrainedGenericAliasEmbeddedGenericFunc func(x float32, y float64) (float32, float64)
+	ConstrainedGenericAliasImportedGenericFunc func(p0 float64) float64
+	ConstrainedGenericAliasSimpleFunc          func(k string, v extensive.IntAlias, x float32, y float64) (string, extensive.IntAlias, float32, float64)
 )
 
 func NewExtensive(t *testing.T) *Extensive {
@@ -318,6 +379,40 @@ func (m *Extensive) Imported(p0 imported.Type) imported.Type {
 	return 0
 }
 
+func (m *Extensive) AddEmbeddedGeneric(f ExtensiveEmbeddedGenericFunc) {
+	m.m.Add("EmbeddedGeneric", f)
+}
+
+func (m *Extensive) SetEmbeddedGeneric(f ExtensiveEmbeddedGenericFunc) {
+	m.m.Set("EmbeddedGeneric", f)
+}
+
+func (m *Extensive) EmbeddedGeneric(x uint16, y uint32) (uint16, uint32) {
+	if f := m.m.Next("EmbeddedGeneric"); f != nil {
+		return f.(ExtensiveEmbeddedGenericFunc)(x, y)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected EmbeddedGeneric call")
+	return 0, 0
+}
+
+func (m *Extensive) AddImportedGeneric(f ExtensiveImportedGenericFunc) {
+	m.m.Add("ImportedGeneric", f)
+}
+
+func (m *Extensive) SetImportedGeneric(f ExtensiveImportedGenericFunc) {
+	m.m.Set("ImportedGeneric", f)
+}
+
+func (m *Extensive) ImportedGeneric(p0 rune) rune {
+	if f := m.m.Next("ImportedGeneric"); f != nil {
+		return f.(ExtensiveImportedGenericFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected ImportedGeneric call")
+	return 0
+}
+
 func (m *Extensive) HasMore() bool {
 	return m.m.HasMore()
 }
@@ -348,6 +443,35 @@ func (m *Embedded) Embedded(p0 int8) int8 {
 }
 
 func (m *Embedded) HasMore() bool {
+	return m.m.HasMore()
+}
+
+func NewEmbeddedGeneric[X, Y any](t *testing.T) *EmbeddedGeneric[X, Y] {
+	var (
+		m                                 = &EmbeddedGeneric[X, Y]{mock.New(), t}
+		_ extensive.EmbeddedGeneric[X, Y] = m
+	)
+	return m
+}
+
+func (m *EmbeddedGeneric[X, Y]) AddEmbeddedGeneric(f EmbeddedGenericEmbeddedGenericFunc[X, Y]) {
+	m.m.Add("EmbeddedGeneric", f)
+}
+
+func (m *EmbeddedGeneric[X, Y]) SetEmbeddedGeneric(f EmbeddedGenericEmbeddedGenericFunc[X, Y]) {
+	m.m.Set("EmbeddedGeneric", f)
+}
+
+func (m *EmbeddedGeneric[X, Y]) EmbeddedGeneric(x X, y Y) (X, Y) {
+	if f := m.m.Next("EmbeddedGeneric"); f != nil {
+		return f.(EmbeddedGenericEmbeddedGenericFunc[X, Y])(x, y)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected EmbeddedGeneric call")
+	return *new(X), *new(Y)
+}
+
+func (m *EmbeddedGeneric[X, Y]) HasMore() bool {
 	return m.m.HasMore()
 }
 
@@ -393,6 +517,530 @@ func (m *Generic[K, V, X, Y]) Complex(p0 map[K]V, p1 []X, p2 *Y, p3 extensive.Se
 	return nil, nil, nil, nil
 }
 
+func (m *Generic[K, V, X, Y]) AddEmbeddedGeneric(f GenericEmbeddedGenericFunc[K, V, X, Y]) {
+	m.m.Add("EmbeddedGeneric", f)
+}
+
+func (m *Generic[K, V, X, Y]) SetEmbeddedGeneric(f GenericEmbeddedGenericFunc[K, V, X, Y]) {
+	m.m.Set("EmbeddedGeneric", f)
+}
+
+func (m *Generic[K, V, X, Y]) EmbeddedGeneric(x X, y Y) (X, Y) {
+	if f := m.m.Next("EmbeddedGeneric"); f != nil {
+		return f.(GenericEmbeddedGenericFunc[K, V, X, Y])(x, y)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected EmbeddedGeneric call")
+	return *new(X), *new(Y)
+}
+
+func (m *Generic[K, V, X, Y]) AddImportedGeneric(f GenericImportedGenericFunc[K, V, X, Y]) {
+	m.m.Add("ImportedGeneric", f)
+}
+
+func (m *Generic[K, V, X, Y]) SetImportedGeneric(f GenericImportedGenericFunc[K, V, X, Y]) {
+	m.m.Set("ImportedGeneric", f)
+}
+
+func (m *Generic[K, V, X, Y]) ImportedGeneric(p0 Y) Y {
+	if f := m.m.Next("ImportedGeneric"); f != nil {
+		return f.(GenericImportedGenericFunc[K, V, X, Y])(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected ImportedGeneric call")
+	return *new(Y)
+}
+
 func (m *Generic[K, V, X, Y]) HasMore() bool {
+	return m.m.HasMore()
+}
+
+func NewExtensiveAlias(t *testing.T) *ExtensiveAlias {
+	var (
+		m                          = &ExtensiveAlias{mock.New(), t}
+		_ extensive.ExtensiveAlias = m
+	)
+	return m
+}
+
+func (m *ExtensiveAlias) AddAliasedFuncTypes(f ExtensiveAliasAliasedFuncTypesFunc) {
+	m.m.Add("AliasedFuncTypes", f)
+}
+
+func (m *ExtensiveAlias) SetAliasedFuncTypes(f ExtensiveAliasAliasedFuncTypesFunc) {
+	m.m.Set("AliasedFuncTypes", f)
+}
+
+func (m *ExtensiveAlias) AliasedFuncTypes(p0 func(extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string])) func(extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string]) {
+	if f := m.m.Next("AliasedFuncTypes"); f != nil {
+		return f.(ExtensiveAliasAliasedFuncTypesFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected AliasedFuncTypes call")
+	return nil
+}
+
+func (m *ExtensiveAlias) AddAliasedTypes(f ExtensiveAliasAliasedTypesFunc) {
+	m.m.Add("AliasedTypes", f)
+}
+
+func (m *ExtensiveAlias) SetAliasedTypes(f ExtensiveAliasAliasedTypesFunc) {
+	m.m.Set("AliasedTypes", f)
+}
+
+func (m *ExtensiveAlias) AliasedTypes(p0 extensive.IntAlias, p1 extensive.ArrayAlias, p2 extensive.StructAlias, p3 extensive.IntSetAlias, p4 extensive.SetAlias[string]) (extensive.IntAlias, extensive.ArrayAlias, extensive.StructAlias, extensive.IntSetAlias, extensive.SetAlias[string]) {
+	if f := m.m.Next("AliasedTypes"); f != nil {
+		return f.(ExtensiveAliasAliasedTypesFunc)(p0, p1, p2, p3, p4)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected AliasedTypes call")
+	return 0, extensive.ArrayAlias{}, extensive.StructAlias{}, nil, nil
+}
+
+func (m *ExtensiveAlias) AddComplexTypes(f ExtensiveAliasComplexTypesFunc) {
+	m.m.Add("ComplexTypes", f)
+}
+
+func (m *ExtensiveAlias) SetComplexTypes(f ExtensiveAliasComplexTypesFunc) {
+	m.m.Set("ComplexTypes", f)
+}
+
+func (m *ExtensiveAlias) ComplexTypes(p0 [5]string, p1 []string, p2 map[string]string, p3 *string, p4 chan int, p5 chan<- int, p6 <-chan int) ([5]string, []string, map[string]string, *string, chan int, chan<- int, <-chan int) {
+	if f := m.m.Next("ComplexTypes"); f != nil {
+		return f.(ExtensiveAliasComplexTypesFunc)(p0, p1, p2, p3, p4, p5, p6)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected ComplexTypes call")
+	return [5]string{}, nil, nil, nil, nil, nil, nil
+}
+
+func (m *ExtensiveAlias) AddEmbedded(f ExtensiveAliasEmbeddedFunc) {
+	m.m.Add("Embedded", f)
+}
+
+func (m *ExtensiveAlias) SetEmbedded(f ExtensiveAliasEmbeddedFunc) {
+	m.m.Set("Embedded", f)
+}
+
+func (m *ExtensiveAlias) Embedded(p0 int8) int8 {
+	if f := m.m.Next("Embedded"); f != nil {
+		return f.(ExtensiveAliasEmbeddedFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Embedded call")
+	return 0
+}
+
+func (m *ExtensiveAlias) AddEmbeddedGeneric(f ExtensiveAliasEmbeddedGenericFunc) {
+	m.m.Add("EmbeddedGeneric", f)
+}
+
+func (m *ExtensiveAlias) SetEmbeddedGeneric(f ExtensiveAliasEmbeddedGenericFunc) {
+	m.m.Set("EmbeddedGeneric", f)
+}
+
+func (m *ExtensiveAlias) EmbeddedGeneric(x uint16, y uint32) (uint16, uint32) {
+	if f := m.m.Next("EmbeddedGeneric"); f != nil {
+		return f.(ExtensiveAliasEmbeddedGenericFunc)(x, y)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected EmbeddedGeneric call")
+	return 0, 0
+}
+
+func (m *ExtensiveAlias) AddFuncNamedTypes(f ExtensiveAliasFuncNamedTypesFunc) {
+	m.m.Add("FuncNamedTypes", f)
+}
+
+func (m *ExtensiveAlias) SetFuncNamedTypes(f ExtensiveAliasFuncNamedTypesFunc) {
+	m.m.Set("FuncNamedTypes", f)
+}
+
+func (m *ExtensiveAlias) FuncNamedTypes(p0 func(extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array])) func(extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array]) {
+	if f := m.m.Next("FuncNamedTypes"); f != nil {
+		return f.(ExtensiveAliasFuncNamedTypesFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected FuncNamedTypes call")
+	return nil
+}
+
+func (m *ExtensiveAlias) AddImported(f ExtensiveAliasImportedFunc) {
+	m.m.Add("Imported", f)
+}
+
+func (m *ExtensiveAlias) SetImported(f ExtensiveAliasImportedFunc) {
+	m.m.Set("Imported", f)
+}
+
+func (m *ExtensiveAlias) Imported(p0 imported.Type) imported.Type {
+	if f := m.m.Next("Imported"); f != nil {
+		return f.(ExtensiveAliasImportedFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Imported call")
+	return 0
+}
+
+func (m *ExtensiveAlias) AddImportedGeneric(f ExtensiveAliasImportedGenericFunc) {
+	m.m.Add("ImportedGeneric", f)
+}
+
+func (m *ExtensiveAlias) SetImportedGeneric(f ExtensiveAliasImportedGenericFunc) {
+	m.m.Set("ImportedGeneric", f)
+}
+
+func (m *ExtensiveAlias) ImportedGeneric(p0 rune) rune {
+	if f := m.m.Next("ImportedGeneric"); f != nil {
+		return f.(ExtensiveAliasImportedGenericFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected ImportedGeneric call")
+	return 0
+}
+
+func (m *ExtensiveAlias) AddMoreComplexTypes(f ExtensiveAliasMoreComplexTypesFunc) {
+	m.m.Add("MoreComplexTypes", f)
+}
+
+func (m *ExtensiveAlias) SetMoreComplexTypes(f ExtensiveAliasMoreComplexTypesFunc) {
+	m.m.Set("MoreComplexTypes", f)
+}
+
+func (m *ExtensiveAlias) MoreComplexTypes(p0 interface{}, p1 interface{io.ReadWriter; A(int) error; B()}, p2 struct{extensive.Struct; A, B int; C float64}, p3 func(int) (bool, error)) (interface{}, interface{io.ReadWriter; A(int) error; B()}, struct{extensive.Struct; A, B int; C float64}, func(int) (bool, error)) {
+	if f := m.m.Next("MoreComplexTypes"); f != nil {
+		return f.(ExtensiveAliasMoreComplexTypesFunc)(p0, p1, p2, p3)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected MoreComplexTypes call")
+	return nil, nil, struct{extensive.Struct; A, B int; C float64}{}, nil
+}
+
+func (m *ExtensiveAlias) AddMultipleResults(f ExtensiveAliasMultipleResultsFunc) {
+	m.m.Add("MultipleResults", f)
+}
+
+func (m *ExtensiveAlias) SetMultipleResults(f ExtensiveAliasMultipleResultsFunc) {
+	m.m.Set("MultipleResults", f)
+}
+
+func (m *ExtensiveAlias) MultipleResults() (bool, complex64, complex128, string, unsafe.Pointer, error) {
+	if f := m.m.Next("MultipleResults"); f != nil {
+		return f.(ExtensiveAliasMultipleResultsFunc)()
+	}
+	m.t.Helper()
+	m.t.Error("unexpected MultipleResults call")
+	return false, 0i, 0i, "", nil, nil
+}
+
+func (m *ExtensiveAlias) AddNamedResult(f ExtensiveAliasNamedResultFunc) {
+	m.m.Add("NamedResult", f)
+}
+
+func (m *ExtensiveAlias) SetNamedResult(f ExtensiveAliasNamedResultFunc) {
+	m.m.Set("NamedResult", f)
+}
+
+func (m *ExtensiveAlias) NamedResult() (err error) {
+	if f := m.m.Next("NamedResult"); f != nil {
+		return f.(ExtensiveAliasNamedResultFunc)()
+	}
+	m.t.Helper()
+	m.t.Error("unexpected NamedResult call")
+	return nil
+}
+
+func (m *ExtensiveAlias) AddNamedTypes(f ExtensiveAliasNamedTypesFunc) {
+	m.m.Add("NamedTypes", f)
+}
+
+func (m *ExtensiveAlias) SetNamedTypes(f ExtensiveAliasNamedTypesFunc) {
+	m.m.Set("NamedTypes", f)
+}
+
+func (m *ExtensiveAlias) NamedTypes(p0 extensive.Struct, p1 extensive.Array, p2 io.Reader, p3 imported.Type, p4 goa.Endpoint, p5 extensive.Generic[uint, string, extensive.Struct, extensive.Array]) (extensive.Struct, extensive.Array, io.Reader, imported.Type, goa.Endpoint, extensive.Generic[uint, string, extensive.Struct, extensive.Array]) {
+	if f := m.m.Next("NamedTypes"); f != nil {
+		return f.(ExtensiveAliasNamedTypesFunc)(p0, p1, p2, p3, p4, p5)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected NamedTypes call")
+	return extensive.Struct{}, extensive.Array{}, nil, 0, nil, nil
+}
+
+func (m *ExtensiveAlias) AddNoResult(f ExtensiveAliasNoResultFunc) {
+	m.m.Add("NoResult", f)
+}
+
+func (m *ExtensiveAlias) SetNoResult(f ExtensiveAliasNoResultFunc) {
+	m.m.Set("NoResult", f)
+}
+
+func (m *ExtensiveAlias) NoResult() {
+	if f := m.m.Next("NoResult"); f != nil {
+		f.(ExtensiveAliasNoResultFunc)()
+		return
+	}
+	m.t.Helper()
+	m.t.Error("unexpected NoResult call")
+}
+
+func (m *ExtensiveAlias) AddRepeatedTypes(f ExtensiveAliasRepeatedTypesFunc) {
+	m.m.Add("RepeatedTypes", f)
+}
+
+func (m *ExtensiveAlias) SetRepeatedTypes(f ExtensiveAliasRepeatedTypesFunc) {
+	m.m.Set("RepeatedTypes", f)
+}
+
+func (m *ExtensiveAlias) RepeatedTypes(a, b int, c, d float64) (e, f int, g, h float64, err error) {
+	if f := m.m.Next("RepeatedTypes"); f != nil {
+		return f.(ExtensiveAliasRepeatedTypesFunc)(a, b, c, d)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected RepeatedTypes call")
+	return 0, 0, 0, 0, nil
+}
+
+func (m *ExtensiveAlias) AddSimple(f ExtensiveAliasSimpleFunc) {
+	m.m.Add("Simple", f)
+}
+
+func (m *ExtensiveAlias) SetSimple(f ExtensiveAliasSimpleFunc) {
+	m.m.Set("Simple", f)
+}
+
+func (m *ExtensiveAlias) Simple(p0 int, p1 string) float64 {
+	if f := m.m.Next("Simple"); f != nil {
+		return f.(ExtensiveAliasSimpleFunc)(p0, p1)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Simple call")
+	return 0
+}
+
+func (m *ExtensiveAlias) AddVariableConflicts(f ExtensiveAliasVariableConflictsFunc) {
+	m.m.Add("VariableConflicts", f)
+}
+
+func (m *ExtensiveAlias) SetVariableConflicts(f ExtensiveAliasVariableConflictsFunc) {
+	m.m.Set("VariableConflicts", f)
+}
+
+func (m1 *ExtensiveAlias) VariableConflicts(f, m uint) {
+	if f1 := m1.m.Next("VariableConflicts"); f1 != nil {
+		f1.(ExtensiveAliasVariableConflictsFunc)(f, m)
+		return
+	}
+	m1.t.Helper()
+	m1.t.Error("unexpected VariableConflicts call")
+}
+
+func (m *ExtensiveAlias) AddVariadic(f ExtensiveAliasVariadicFunc) {
+	m.m.Add("Variadic", f)
+}
+
+func (m *ExtensiveAlias) SetVariadic(f ExtensiveAliasVariadicFunc) {
+	m.m.Set("Variadic", f)
+}
+
+func (m *ExtensiveAlias) Variadic(args ...string) {
+	if f := m.m.Next("Variadic"); f != nil {
+		f.(ExtensiveAliasVariadicFunc)(args...)
+		return
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Variadic call")
+}
+
+func (m *ExtensiveAlias) HasMore() bool {
+	return m.m.HasMore()
+}
+
+func NewImportedAlias(t *testing.T) *ImportedAlias {
+	var (
+		m                         = &ImportedAlias{mock.New(), t}
+		_ extensive.ImportedAlias = m
+	)
+	return m
+}
+
+func (m *ImportedAlias) AddImported(f ImportedAliasImportedFunc) {
+	m.m.Add("Imported", f)
+}
+
+func (m *ImportedAlias) SetImported(f ImportedAliasImportedFunc) {
+	m.m.Set("Imported", f)
+}
+
+func (m *ImportedAlias) Imported(p0 imported.Type) imported.Type {
+	if f := m.m.Next("Imported"); f != nil {
+		return f.(ImportedAliasImportedFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Imported call")
+	return 0
+}
+
+func (m *ImportedAlias) HasMore() bool {
+	return m.m.HasMore()
+}
+
+func NewGenericAlias[K comparable, V ~int | bool | string, X, Y any](t *testing.T) *GenericAlias[K, V, X, Y] {
+	var (
+		m                                    = &GenericAlias[K, V, X, Y]{mock.New(), t}
+		_ extensive.GenericAlias[K, V, X, Y] = m
+	)
+	return m
+}
+
+func (m *GenericAlias[K, V, X, Y]) AddComplex(f GenericAliasComplexFunc[K, V, X, Y]) {
+	m.m.Add("Complex", f)
+}
+
+func (m *GenericAlias[K, V, X, Y]) SetComplex(f GenericAliasComplexFunc[K, V, X, Y]) {
+	m.m.Set("Complex", f)
+}
+
+func (m *GenericAlias[K, V, X, Y]) Complex(p0 map[K]V, p1 []X, p2 *Y, p3 extensive.Set[K]) (map[K]V, []X, *Y, extensive.Set[K]) {
+	if f := m.m.Next("Complex"); f != nil {
+		return f.(GenericAliasComplexFunc[K, V, X, Y])(p0, p1, p2, p3)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Complex call")
+	return nil, nil, nil, nil
+}
+
+func (m *GenericAlias[K, V, X, Y]) AddEmbeddedGeneric(f GenericAliasEmbeddedGenericFunc[K, V, X, Y]) {
+	m.m.Add("EmbeddedGeneric", f)
+}
+
+func (m *GenericAlias[K, V, X, Y]) SetEmbeddedGeneric(f GenericAliasEmbeddedGenericFunc[K, V, X, Y]) {
+	m.m.Set("EmbeddedGeneric", f)
+}
+
+func (m *GenericAlias[K, V, X, Y]) EmbeddedGeneric(x X, y Y) (X, Y) {
+	if f := m.m.Next("EmbeddedGeneric"); f != nil {
+		return f.(GenericAliasEmbeddedGenericFunc[K, V, X, Y])(x, y)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected EmbeddedGeneric call")
+	return *new(X), *new(Y)
+}
+
+func (m *GenericAlias[K, V, X, Y]) AddImportedGeneric(f GenericAliasImportedGenericFunc[K, V, X, Y]) {
+	m.m.Add("ImportedGeneric", f)
+}
+
+func (m *GenericAlias[K, V, X, Y]) SetImportedGeneric(f GenericAliasImportedGenericFunc[K, V, X, Y]) {
+	m.m.Set("ImportedGeneric", f)
+}
+
+func (m *GenericAlias[K, V, X, Y]) ImportedGeneric(p0 Y) Y {
+	if f := m.m.Next("ImportedGeneric"); f != nil {
+		return f.(GenericAliasImportedGenericFunc[K, V, X, Y])(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected ImportedGeneric call")
+	return *new(Y)
+}
+
+func (m *GenericAlias[K, V, X, Y]) AddSimple(f GenericAliasSimpleFunc[K, V, X, Y]) {
+	m.m.Add("Simple", f)
+}
+
+func (m *GenericAlias[K, V, X, Y]) SetSimple(f GenericAliasSimpleFunc[K, V, X, Y]) {
+	m.m.Set("Simple", f)
+}
+
+func (m *GenericAlias[K, V, X, Y]) Simple(k K, v V, x X, y Y) (K, V, X, Y) {
+	if f := m.m.Next("Simple"); f != nil {
+		return f.(GenericAliasSimpleFunc[K, V, X, Y])(k, v, x, y)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Simple call")
+	return *new(K), *new(V), *new(X), *new(Y)
+}
+
+func (m *GenericAlias[K, V, X, Y]) HasMore() bool {
+	return m.m.HasMore()
+}
+
+func NewConstrainedGenericAlias(t *testing.T) *ConstrainedGenericAlias {
+	var (
+		m                                   = &ConstrainedGenericAlias{mock.New(), t}
+		_ extensive.ConstrainedGenericAlias = m
+	)
+	return m
+}
+
+func (m *ConstrainedGenericAlias) AddComplex(f ConstrainedGenericAliasComplexFunc) {
+	m.m.Add("Complex", f)
+}
+
+func (m *ConstrainedGenericAlias) SetComplex(f ConstrainedGenericAliasComplexFunc) {
+	m.m.Set("Complex", f)
+}
+
+func (m *ConstrainedGenericAlias) Complex(p0 map[string]extensive.IntAlias, p1 []float32, p2 *float64, p3 extensive.Set[string]) (map[string]extensive.IntAlias, []float32, *float64, extensive.Set[string]) {
+	if f := m.m.Next("Complex"); f != nil {
+		return f.(ConstrainedGenericAliasComplexFunc)(p0, p1, p2, p3)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Complex call")
+	return nil, nil, nil, nil
+}
+
+func (m *ConstrainedGenericAlias) AddEmbeddedGeneric(f ConstrainedGenericAliasEmbeddedGenericFunc) {
+	m.m.Add("EmbeddedGeneric", f)
+}
+
+func (m *ConstrainedGenericAlias) SetEmbeddedGeneric(f ConstrainedGenericAliasEmbeddedGenericFunc) {
+	m.m.Set("EmbeddedGeneric", f)
+}
+
+func (m *ConstrainedGenericAlias) EmbeddedGeneric(x float32, y float64) (float32, float64) {
+	if f := m.m.Next("EmbeddedGeneric"); f != nil {
+		return f.(ConstrainedGenericAliasEmbeddedGenericFunc)(x, y)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected EmbeddedGeneric call")
+	return 0, 0
+}
+
+func (m *ConstrainedGenericAlias) AddImportedGeneric(f ConstrainedGenericAliasImportedGenericFunc) {
+	m.m.Add("ImportedGeneric", f)
+}
+
+func (m *ConstrainedGenericAlias) SetImportedGeneric(f ConstrainedGenericAliasImportedGenericFunc) {
+	m.m.Set("ImportedGeneric", f)
+}
+
+func (m *ConstrainedGenericAlias) ImportedGeneric(p0 float64) float64 {
+	if f := m.m.Next("ImportedGeneric"); f != nil {
+		return f.(ConstrainedGenericAliasImportedGenericFunc)(p0)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected ImportedGeneric call")
+	return 0
+}
+
+func (m *ConstrainedGenericAlias) AddSimple(f ConstrainedGenericAliasSimpleFunc) {
+	m.m.Add("Simple", f)
+}
+
+func (m *ConstrainedGenericAlias) SetSimple(f ConstrainedGenericAliasSimpleFunc) {
+	m.m.Set("Simple", f)
+}
+
+func (m *ConstrainedGenericAlias) Simple(k string, v extensive.IntAlias, x float32, y float64) (string, extensive.IntAlias, float32, float64) {
+	if f := m.m.Next("Simple"); f != nil {
+		return f.(ConstrainedGenericAliasSimpleFunc)(k, v, x, y)
+	}
+	m.t.Helper()
+	m.t.Error("unexpected Simple call")
+	return "", 0, 0, 0
+}
+
+func (m *ConstrainedGenericAlias) HasMore() bool {
 	return m.m.HasMore()
 }

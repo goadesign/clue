@@ -29,7 +29,6 @@ func TestLoadPackages(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
@@ -63,7 +62,6 @@ func TestPackage_Name(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
@@ -87,7 +85,6 @@ func TestPackage_PkgPath(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
@@ -116,7 +113,6 @@ func TestPackage_ModPath(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
@@ -146,6 +142,11 @@ func TestPackage_Interfaces(t *testing.T) {
 				{Name: "EmbeddedDoer", File: "doer.go", IsExported: true},
 				{Name: "ExternalEmbeddedDoer", File: "doer.go", IsExported: true},
 				{Name: "doer", File: "doer.go", IsExported: false},
+				{Name: "DoerAlias", File: "doer.go", IsExported: true},
+				{Name: "EmbeddedDoerAlias", File: "doer.go", IsExported: true},
+				{Name: "ExternalEmbeddedDoerAlias", File: "doer.go", IsExported: true},
+				{Name: "ExternalDoerAlias", File: "doer.go", IsExported: true},
+				{Name: "DoerAliasAlias", File: "doer.go", IsExported: true},
 			},
 		},
 		{
@@ -156,7 +157,6 @@ func TestPackage_Interfaces(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
