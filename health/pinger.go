@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 type (
@@ -21,13 +22,15 @@ type (
 	Option func(o *options)
 
 	client struct {
-		name string
-		req  *http.Request
+		name       string
+		req        *http.Request
+		httpClient *http.Client
 	}
 
 	options struct {
-		scheme string
-		path   string
+		scheme  string
+		path    string
+		timeout time.Duration
 	}
 )
 
@@ -45,8 +48,9 @@ func NewPinger(name, addr string, opts ...Option) Pinger {
 		panic(err)
 	}
 	return &client{
-		name: name,
-		req:  req,
+		name:       name,
+		req:        req,
+		httpClient: &http.Client{Timeout: options.timeout},
 	}
 }
 
@@ -55,7 +59,7 @@ func (c *client) Name() string {
 }
 
 func (c *client) Ping(ctx context.Context) error {
-	resp, err := http.DefaultClient.Do(c.req.WithContext(ctx))
+	resp, err := c.httpClient.Do(c.req.WithContext(ctx))
 	if err != nil {
 		return fmt.Errorf("failed to make health check request to %q: %v", c.name, err)
 	}
@@ -79,5 +83,13 @@ func WithScheme(scheme string) Option {
 func WithPath(path string) Option {
 	return func(o *options) {
 		o.path = path
+	}
+}
+
+// WithTimeout sets the timeout used to ping the service.
+// Default is no timeout.
+func WithTimeout(timeout time.Duration) Option {
+	return func(o *options) {
+		o.timeout = timeout
 	}
 }
