@@ -22,9 +22,9 @@ type (
 	Option func(o *options)
 
 	client struct {
-		name    string
-		req     *http.Request
-		timeout time.Duration
+		name       string
+		req        *http.Request
+		httpClient *http.Client
 	}
 
 	options struct {
@@ -48,9 +48,9 @@ func NewPinger(name, addr string, opts ...Option) Pinger {
 		panic(err)
 	}
 	return &client{
-		name:    name,
-		req:     req,
-		timeout: options.timeout,
+		name:       name,
+		req:        req,
+		httpClient: &http.Client{Timeout: options.timeout},
 	}
 }
 
@@ -59,8 +59,7 @@ func (c *client) Name() string {
 }
 
 func (c *client) Ping(ctx context.Context) error {
-	httpClient := &http.Client{Timeout: c.timeout}
-	resp, err := httpClient.Do(c.req.WithContext(ctx))
+	resp, err := c.httpClient.Do(c.req.WithContext(ctx))
 	if err != nil {
 		return fmt.Errorf("failed to make health check request to %q: %v", c.name, err)
 	}

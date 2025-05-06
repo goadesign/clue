@@ -109,8 +109,8 @@ func TestOptions(t *testing.T) {
 			if pinger.req.URL.Path != c.expectedPath {
 				t.Errorf("got path: %s, expected %s", pinger.req.URL.Path, c.expectedPath)
 			}
-			if pinger.timeout != c.expectedTimeout {
-				t.Errorf("got timeout: %s, expected %s", pinger.timeout, c.expectedTimeout)
+			if pinger.httpClient.Timeout != c.expectedTimeout {
+				t.Errorf("got timeout: %s, expected %s", pinger.httpClient.Timeout, c.expectedTimeout)
 			}
 		})
 	}
