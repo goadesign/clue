@@ -17,13 +17,18 @@ import (
 {{- end }}
 )
 
+{{ $testify := .Testify -}}
 type (
 {{- range $index, $interface := .Interfaces }}
 {{- if ge $index 1 }}
 {{ end }}
 	{{ .Name }}{{ .TypeParameters }} struct {
 		m *mock.Mock
+		{{- if $testify }}
+		assert *assert.Assertions
+		{{- else }}
 		t *testing.T
+		{{- end }}
 	}
 {{ range .Methods }}
 	{{ printf "%v%v" .Func $interface.TypeParameters | printf $interface.MaxFuncLenFmt }} func({{ .Parameters }}){{ if .Results }} {{ .Results }}{{ end }}
@@ -36,7 +41,7 @@ type (
 {{ end }}
 func {{ .Constructor }}{{ .TypeParameters }}(t *testing.T) *{{ .Name }}{{ .TypeParameterVars }} {
 	var (
-		{{ .Var | printf ($import.AliasOrPkgName | .ConstructorFmt) }} = &{{ .Name }}{{ .TypeParameterVars }}{mock.New(), t}
+		{{ .Var | printf ($import.AliasOrPkgName | .ConstructorFmt) }} = &{{ .Name }}{{ .TypeParameterVars }}{mock.New(), {{ if $testify }}assert.New(t){{ else }}t{{ end }}}
 		_ {{ $import.AliasOrPkgName }}.{{ .Name }}{{ .TypeParameterVars }} = m
 	)
 	return {{ .Var }}
@@ -59,8 +64,12 @@ func ({{ .InterfaceVar }} *{{ $interface.Name }}{{ $interface.TypeParameterVars 
 		return
 {{- end }}
 	}
+	{{- if $testify }}
+	{{ .InterfaceVar }}.assert.Fail("unexpected {{ .Name }} call")
+	{{- else }}
 	{{ .InterfaceVar }}.t.Helper()
 	{{ .InterfaceVar }}.t.Error("unexpected {{ .Name }} call")
+	{{- end }}
 {{- if .ZeroResults }}
 	return {{ .ZeroResults }}
 {{- end }}
