@@ -109,7 +109,7 @@ func traceStreamRecv[Message TraceStreamStreamingRecvMessage](
 	propagator := otel.GetTextMapPropagator()
 	sm := streamingMessage(msg)
 	rc.ctx = propagator.Extract(ctx, propagation.MapCarrier(sm.TraceMetadata()))
-	return msg, err
+	return msg, nil
 }
 
 // traceStreamWrapRecvAndReturnContext is a helper function for wrapped trace stream receive methods
