@@ -82,9 +82,6 @@ func TestTraceBidirectionalStreamServerInterceptor(t *testing.T) {
 		info.addRawPayload(func() any {
 			return nil
 		})
-		info.addServerStreamingPayload(func(pay any) *mockTraceStreamingRecvMessage {
-			return newMockTraceStreamingRecvMessage(assert)
-		})
 		info.addService(func() string {
 			return "TestService"
 		})
@@ -155,6 +152,37 @@ func TestTraceBidirectionalStreamServerInterceptor(t *testing.T) {
 		assert.True(nextCalled, "missing expected next call")
 		assert.False(info.hasMore(), "missing expected interceptor info calls")
 		assert.False(payload.hasMore(), "missing expected payload calls")
+	})
+
+	t.Run("receive with error", func(t *testing.T) {
+		var (
+			ctx         = log.Context(context.Background(), log.WithFormat(log.FormatText))
+			info        = newMockTraceStreamInfo(assert.New(t))
+			interceptor = &TraceBidirectionalStreamServerInterceptor[*mockTraceStreamInfo, *mockTraceStreamingRecvMessage, *mockTraceStreamingSendMessage]{}
+			nextCalled  = false
+			next        = func(ctx context.Context, payload any) (any, error) {
+				nextCalled = true
+				return nil, assert.AnError
+			}
+		)
+		info.addCallType(func() goa.InterceptorCallType {
+			return goa.InterceptorStreamingRecv
+		})
+		info.addRawPayload(func() any {
+			return nil
+		})
+
+		ctx = SetupTraceStreamRecvContext(ctx)
+		res, err := interceptor.TraceBidirectionalStream(ctx, info, next)
+		assert.ErrorIs(t, err, assert.AnError)
+		assert.Nil(t, res)
+
+		assert.NotPanics(t, func() {
+			ctx = GetTraceStreamRecvContext(ctx)
+		})
+
+		assert.True(t, nextCalled, "missing expected next call")
+		assert.False(t, info.hasMore(), "missing expected interceptor info calls")
 	})
 
 	t.Run("unary", func(t *testing.T) {
@@ -285,9 +313,6 @@ func TestTraceClientToServerStreamServerInterceptor(t *testing.T) {
 		info.addRawPayload(func() any {
 			return nil
 		})
-		info.addServerStreamingPayload(func(pay any) *mockTraceStreamingRecvMessage {
-			return newMockTraceStreamingRecvMessage(assert)
-		})
 		info.addService(func() string {
 			return "TestService"
 		})
@@ -358,6 +383,37 @@ func TestTraceClientToServerStreamServerInterceptor(t *testing.T) {
 		assert.True(nextCalled, "missing expected next call")
 		assert.False(info.hasMore(), "missing expected interceptor info calls")
 		assert.False(payload.hasMore(), "missing expected payload calls")
+	})
+
+	t.Run("receive with error", func(t *testing.T) {
+		var (
+			ctx         = log.Context(context.Background(), log.WithFormat(log.FormatText))
+			info        = newMockTraceStreamInfo(assert.New(t))
+			interceptor = &TraceClientToServerStreamServerInterceptor[*mockTraceStreamInfo, *mockTraceStreamingRecvMessage]{}
+			nextCalled  = false
+			next        = func(ctx context.Context, payload any) (any, error) {
+				nextCalled = true
+				return nil, assert.AnError
+			}
+		)
+		info.addCallType(func() goa.InterceptorCallType {
+			return goa.InterceptorStreamingRecv
+		})
+		info.addRawPayload(func() any {
+			return nil
+		})
+
+		ctx = SetupTraceStreamRecvContext(ctx)
+		res, err := interceptor.TraceClientToServerStream(ctx, info, next)
+		assert.ErrorIs(t, err, assert.AnError)
+		assert.Nil(t, res)
+
+		assert.NotPanics(t, func() {
+			ctx = GetTraceStreamRecvContext(ctx)
+		})
+
+		assert.True(t, nextCalled, "missing expected next call")
+		assert.False(t, info.hasMore(), "missing expected interceptor info calls")
 	})
 
 	t.Run("unary", func(t *testing.T) {
