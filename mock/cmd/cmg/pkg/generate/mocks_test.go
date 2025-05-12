@@ -23,6 +23,7 @@ func TestMocks_Render(t *testing.T) {
 	cases := []struct {
 		Name, Pattern string
 		ExpectedFiles []string
+		Testify       bool
 	}{
 		{
 			Name:          "extensive",
@@ -33,6 +34,12 @@ func TestMocks_Render(t *testing.T) {
 			Name:          "conflicts",
 			Pattern:       "./conflicts",
 			ExpectedFiles: []string{"conflicts.go"},
+		},
+		{
+			Name:          "testify",
+			Pattern:       "./testify",
+			ExpectedFiles: []string{"testify.go"},
+			Testify:       true,
 		},
 	}
 
@@ -67,7 +74,7 @@ func TestMocks_Render(t *testing.T) {
 					require.NoError(err)
 					t.Cleanup(func() { assert.NoError(of.Close()) })
 
-					m := NewMocks("mock", p, is, toolVersion)
+					m := NewMocks("mock", p, is, toolVersion, tc.Testify)
 					require.NoError(m.Render(of))
 				}
 
@@ -82,7 +89,7 @@ func TestMocks_Render(t *testing.T) {
 
 			for f, is := range interfacesByFile {
 				f := filepath.Join(mocksDir, f)
-				m := NewMocks("mock", p, is, toolVersion)
+				m := NewMocks("mock", p, is, toolVersion, tc.Testify)
 				b := &bytes.Buffer{}
 
 				err := m.Render(b)

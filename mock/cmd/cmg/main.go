@@ -12,10 +12,11 @@ import (
 
 func main() {
 	var (
-		gSet           = flag.NewFlagSet("global", flag.ExitOnError)
-		debug, help, h *bool
-		addGlobals     = func(set *flag.FlagSet) {
+		gSet                    = flag.NewFlagSet("global", flag.ExitOnError)
+		debug, testify, help, h *bool
+		addGlobals              = func(set *flag.FlagSet) {
 			debug = set.Bool("debug", false, "Print debug output")
+			testify = set.Bool("testify", false, "Use github.com/stretchr/testify for assertions")
 			help = set.Bool("help", false, "Print help information")
 			h = set.Bool("h", false, "Print help information")
 		}
@@ -67,7 +68,7 @@ func main() {
 		} else {
 			ctx = log.Context(ctx)
 		}
-		err := cluemockgen.Generate(ctx, args, "")
+		err := cluemockgen.Generate(ctx, args, "", *testify)
 		if err != nil {
 			os.Exit(1)
 		}
