@@ -63,7 +63,7 @@ func generatePackage(ctx context.Context, p parse.Package) error {
 				}
 			}
 			if exportedMethods <= 0 || len(unexportedMethods) > 0 {
-				log.Print(ctx, log.KV{K: "msg", V: "skipping"},
+				log.Warn(ctx, log.KV{K: "msg", V: "skipping"},
 					log.KV{K: "exported", V: exportedMethods},
 					log.KV{K: "unexported", V: unexportedMethods})
 				continue
