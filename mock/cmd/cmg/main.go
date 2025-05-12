@@ -66,7 +66,7 @@ func main() {
 		if *debug {
 			ctx = log.Context(ctx, log.WithDebug())
 		} else {
-			ctx = log.Context(ctx)
+			ctx = log.Context(ctx, log.WithDisableBuffering(func(ctx context.Context) bool { return true }))
 		}
 		err := cluemockgen.Generate(ctx, args, "", *testify)
 		if err != nil {

@@ -7,7 +7,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"goa.design/clue/log"
 	"goa.design/clue/mock/cmd/cmg/pkg/generate"
@@ -67,12 +66,10 @@ func generatePackage(ctx context.Context, p parse.Package, testify bool) error {
 					unexportedMethods = append(unexportedMethods, method.Name())
 				}
 			}
-			if len(unexportedMethods) > 0 {
-				err = fmt.Errorf("unexported methods: %v", strings.Join(unexportedMethods, ", "))
-				log.Error(ctx, err)
-				return err
-			}
-			if exportedMethods <= 0 {
+			if exportedMethods <= 0 || len(unexportedMethods) > 0 {
+				log.Warn(ctx, log.KV{K: "msg", V: "skipping"},
+					log.KV{K: "exported", V: exportedMethods},
+					log.KV{K: "unexported", V: unexportedMethods})
 				continue
 			}
 			interfacesByFile[i.File()] = append(interfacesByFile[i.File()], i)
