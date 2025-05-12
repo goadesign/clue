@@ -13,7 +13,9 @@ import (
 	"goa.design/clue/mock/cmd/cmg/pkg/parse"
 )
 
-func Generate(ctx context.Context, patterns []string, dir string) error {
+// Generate generates the mocks for the given patterns and directory.
+// If testify is true, it uses github.com/stretchr/testify for assertions.
+func Generate(ctx context.Context, patterns []string, dir string, testify bool) error {
 	ps, err := parse.LoadPackages(patterns, dir)
 	if err != nil {
 		log.Error(ctx, err)
@@ -23,7 +25,7 @@ func Generate(ctx context.Context, patterns []string, dir string) error {
 	var errs []error
 
 	for _, p := range ps {
-		err = generatePackage(ctx, p)
+		err = generatePackage(ctx, p, testify)
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -36,9 +38,11 @@ func Generate(ctx context.Context, patterns []string, dir string) error {
 	return nil
 }
 
-func generatePackage(ctx context.Context, p parse.Package) error {
+// generatePackage generates the mocks for the given package.
+// If testify is true, it uses github.com/stretchr/testify for assertions.
+func generatePackage(ctx context.Context, p parse.Package, testify bool) error {
 	ctx = log.With(ctx, log.KV{K: "pkg name", V: p.Name()})
-	log.Print(ctx, log.KV{K: "pkg path", V: p.PkgPath()})
+	log.Print(ctx, log.KV{K: "pkg path", V: p.PkgPath()}, log.KV{K: "testify", V: testify})
 
 	is, err := p.Interfaces()
 	if err != nil {
@@ -72,7 +76,7 @@ func generatePackage(ctx context.Context, p parse.Package) error {
 		}
 	}
 	for file, interfaces := range interfacesByFile {
-		err = generateFile(ctx, p, file, interfaces)
+		err = generateFile(ctx, p, file, interfaces, testify)
 		if err != nil {
 			return err
 		}
@@ -81,13 +85,15 @@ func generatePackage(ctx context.Context, p parse.Package) error {
 	return nil
 }
 
-func generateFile(ctx context.Context, p parse.Package, file string, interfaces []parse.Interface) error {
+// generateFile generates the mocks for the given file.
+// If testify is true, it uses github.com/stretchr/testify for assertions.
+func generateFile(ctx context.Context, p parse.Package, file string, interfaces []parse.Interface, testify bool) error {
 	ctx = log.With(ctx, log.KV{K: "file", V: file})
 	interfaceNames := make([]string, len(interfaces))
 	for j, i := range interfaces {
 		interfaceNames[j] = i.Name()
 	}
-	log.Print(ctx, log.KV{K: "interface names", V: interfaceNames})
+	log.Print(ctx, log.KV{K: "interface names", V: interfaceNames}, log.KV{K: "testify", V: testify})
 
 	dir, baseFile := filepath.Split(file)
 	mocksDir := filepath.Join(dir, "mocks")
@@ -115,7 +121,7 @@ func generateFile(ctx context.Context, p parse.Package, file string, interfaces 
 		}
 	}()
 
-	mocks := generate.NewMocks("mock", p, interfaces, Version)
+	mocks := generate.NewMocks("mock", p, interfaces, Version, testify)
 	if err := mocks.Render(f); err != nil {
 		log.Error(ctx, err)
 		return err
