@@ -98,14 +98,18 @@ func traceStreamRecv[Message TraceStreamStreamingRecvMessage](
 	streamingMessage func(any) Message,
 ) (any, error) {
 	msg, err := next(ctx, info.RawPayload())
-	propagator := otel.GetTextMapPropagator()
-	sm := streamingMessage(msg)
 	rc, ok := ctx.Value(traceStreamRecvContextKey).(*traceStreamRecvContext)
 	if !ok {
 		panic(fmt.Errorf("clue interceptors trace stream receive method called without prior setup (service: %v, method: %v)", info.Service(), info.Method()))
 	}
+	if err != nil {
+		rc.ctx = ctx
+		return nil, err
+	}
+	propagator := otel.GetTextMapPropagator()
+	sm := streamingMessage(msg)
 	rc.ctx = propagator.Extract(ctx, propagation.MapCarrier(sm.TraceMetadata()))
-	return msg, err
+	return msg, nil
 }
 
 // traceStreamWrapRecvAndReturnContext is a helper function for wrapped trace stream receive methods
