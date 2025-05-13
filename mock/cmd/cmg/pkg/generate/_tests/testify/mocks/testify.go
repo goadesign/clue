@@ -16,7 +16,7 @@ import (
 
 type (
 	Testify struct {
-		m *mock.Mock
+		m      *mock.Mock
 		assert *assert.Assertions
 	}
 

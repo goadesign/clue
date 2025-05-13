@@ -23,10 +23,11 @@ type (
 {{- if ge $index 1 }}
 {{ end }}
 	{{ .Name }}{{ .TypeParameters }} struct {
-		m *mock.Mock
 		{{- if $testify }}
+		m      *mock.Mock
 		assert *assert.Assertions
 		{{- else }}
+		m *mock.Mock
 		t *testing.T
 		{{- end }}
 	}
