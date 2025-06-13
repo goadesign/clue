@@ -68,15 +68,7 @@ func (i *interfaceImpl) methods(it *ast.InterfaceType) (methods []Method) {
 				o, _, _ := types.LookupFieldOrMethod(i.p.Types.Scope().Lookup(i.Name()).Type(), true, i.p.Types, n.Name)
 				methods = append(methods, newASTMethod(i.p, n, t, o.Type().Underlying().(*types.Signature).Variadic()))
 			}
-		case *ast.Ident:
-			switch dt := t.Obj.Decl.(type) {
-			case *ast.TypeSpec:
-				switch t := dt.Type.(type) {
-				case *ast.InterfaceType:
-					methods = append(methods, i.methods(t)...)
-				}
-			}
-		case *ast.SelectorExpr, *ast.IndexExpr, *ast.IndexListExpr:
+		case *ast.Ident, *ast.SelectorExpr, *ast.IndexExpr, *ast.IndexListExpr:
 			if tv, ok := i.p.TypesInfo.Types[t]; ok {
 				if ti, ok := tv.Type.Underlying().(*types.Interface); ok {
 					for m := range ti.Methods() {
