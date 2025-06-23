@@ -73,8 +73,8 @@ go.opentelemetry.io/proto/otlp v1.6.0 h1:jQjP+AQyTf+Fe7OKj/MfkDrmK4MNVtw2NpXsf9f
 go.opentelemetry.io/proto/otlp v1.6.0/go.mod h1:cicgGehlFuNdgZkcALOCh3VE6K/u2tAjzlRhDwmVpZc=
 go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
 go.uber.org/goleak v1.3.0/go.mod h1:CoHD4mav9JJNrW/WLlf7HGZPjdw8EucARQHekz1X6bE=
-goa.design/goa/v3 v3.21.0 h1:+Y1ka2R558pkvmaV6IoAR8LYvOKWbZJVnPmax0cTA1k=
-goa.design/goa/v3 v3.21.0/go.mod h1:tiyIZM2XW66uPBvJSIJJwzTu0FUNgR10eKUFV0elx8w=
+goa.design/goa/v3 v3.21.1 h1:tLwhbcNoEBJm1CcJc3ks6oZ8BHYl6vFuxEBnl2kC428=
+goa.design/goa/v3 v3.21.1/go.mod h1:E+97AYffVIvDi6LkuNdfdvMZb8UFb/+ie3V0/WBBdgc=
 golang.org/x/mod v0.25.0 h1:n7a+ZbQKQA/Ysbyb0/6IbB1H/X41mKgbhfv7AfG/44w=
 golang.org/x/mod v0.25.0/go.mod h1:IXM97Txy2VM4PJ3gI61r1YEk/gAj6zAHN3AdZt6S9Ww=
 golang.org/x/net v0.41.0 h1:vBTly1HeNPEn3wtREYfy4GZ/NECgw2Cnl+nK6Nz3uvw=
