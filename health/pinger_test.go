@@ -8,6 +8,10 @@ import (
 	"net/url"
 	"testing"
 	"time"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/baggage"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 func TestPing(t *testing.T) {
@@ -114,4 +118,108 @@ func TestOptions(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPingWithBaggage(t *testing.T) {
+	t.Run("forwards OpenTelemetry baggage", func(t *testing.T) {
+		// Set up OpenTelemetry propagator that includes baggage
+		originalPropagator := otel.GetTextMapPropagator()
+		defer otel.SetTextMapPropagator(originalPropagator) // restore after test
+
+		propagator := propagation.NewCompositeTextMapPropagator(
+			propagation.TraceContext{},
+			propagation.Baggage{},
+		)
+		otel.SetTextMapPropagator(propagator)
+
+		var receivedHeaders map[string][]string
+		handler := func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != "GET" {
+				t.Errorf("got method: %s, expected GET", r.Method)
+			}
+			if r.URL.Path != "/livez" {
+				t.Errorf("got path: %s, expected /livez", r.URL.Path)
+			}
+			// Capture headers to verify baggage was forwarded
+			receivedHeaders = r.Header
+			w.WriteHeader(http.StatusOK)
+		}
+		svr := httptest.NewServer(http.HandlerFunc(handler))
+		defer svr.Close()
+		u, _ := url.Parse(svr.URL)
+		pinger := NewPinger("dependency", u.Host)
+
+		// Create baggage with test data
+		property, err := baggage.NewKeyValuePropertyRaw("property", "test-value")
+		if err != nil {
+			t.Fatalf("failed to create baggage property: %v", err)
+		}
+		member, err := baggage.NewMemberRaw("test-key", "test-member-value", property)
+		if err != nil {
+			t.Fatalf("failed to create baggage member: %v", err)
+		}
+		bag, err := baggage.New(member)
+		if err != nil {
+			t.Fatalf("failed to create baggage: %v", err)
+		}
+
+		// Add baggage to context
+		ctx := baggage.ContextWithBaggage(context.Background(), bag)
+
+		// Make the ping request
+		err = pinger.Ping(ctx)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		// Verify baggage header was sent
+		if receivedHeaders == nil {
+			t.Fatal("no headers received")
+		}
+
+		baggageHeaders, exists := receivedHeaders["Baggage"]
+		if !exists {
+			t.Error("baggage header not found in request")
+		} else if len(baggageHeaders) == 0 {
+			t.Error("baggage header is empty")
+		} else {
+			// Verify baggage content using propagation to extract and validate
+			extractedCtx := propagator.Extract(context.Background(), propagation.HeaderCarrier(receivedHeaders))
+			extractedBag := baggage.FromContext(extractedCtx)
+
+			testMember := extractedBag.Member("test-key")
+			if testMember.Value() != "test-member-value" {
+				t.Errorf("got baggage member value: %s, expected test-member-value", testMember.Value())
+			}
+
+			properties := testMember.Properties()
+			if len(properties) != 1 {
+				t.Errorf("got %d properties, expected 1", len(properties))
+			} else {
+				prop := properties[0]
+				if prop.Key() != "property" {
+					t.Errorf("got property key: %s, expected property", prop.Key())
+				}
+				if val, ok := prop.Value(); !ok || val != "test-value" {
+					t.Errorf("got property value: %s (ok=%t), expected test-value", val, ok)
+				}
+			}
+		}
+	})
+
+	t.Run("works without baggage", func(t *testing.T) {
+		handler := func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}
+		svr := httptest.NewServer(http.HandlerFunc(handler))
+		defer svr.Close()
+		u, _ := url.Parse(svr.URL)
+		pinger := NewPinger("dependency", u.Host)
+
+		// Make ping request without baggage
+		err := pinger.Ping(context.Background())
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
 }

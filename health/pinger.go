@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 type (
@@ -59,7 +62,24 @@ func (c *client) Name() string {
 }
 
 func (c *client) Ping(ctx context.Context) error {
-	resp, err := c.httpClient.Do(c.req.WithContext(ctx))
+	// Create a new request for each call to allow header modification
+	req, err := http.NewRequestWithContext(ctx, c.req.Method, c.req.URL.String(), c.req.Body)
+	if err != nil {
+		return fmt.Errorf("failed to create health check request to %q: %v", c.name, err)
+	}
+
+	// Copy headers from the template request
+	for key, values := range c.req.Header {
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
+	}
+
+	// Inject OpenTelemetry baggage and trace context into request headers
+	propagator := otel.GetTextMapPropagator()
+	propagator.Inject(ctx, propagation.HeaderCarrier(req.Header))
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to make health check request to %q: %v", c.name, err)
 	}
