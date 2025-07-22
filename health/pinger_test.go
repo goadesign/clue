@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"testing"
 	"time"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func TestPing(t *testing.T) {
@@ -81,16 +83,18 @@ func TestPing(t *testing.T) {
 
 func TestOptions(t *testing.T) {
 	cases := []struct {
-		name            string
-		option          Option
-		expectedScheme  string
-		expectedPath    string
-		expectedTimeout time.Duration
+		name              string
+		option            Option
+		expectedScheme    string
+		expectedPath      string
+		expectedTimeout   time.Duration
+		expectedTransport http.RoundTripper
 	}{
-		{"default", nil, "http", "/livez", 0},
-		{"scheme", WithScheme("https"), "https", "/livez", 0},
-		{"path", WithPath("/healthcheck"), "http", "/healthcheck", 0},
-		{"timeout", WithTimeout(10 * time.Second), "http", "/livez", 10 * time.Second},
+		{"default", nil, "http", "/livez", 0, nil},
+		{"scheme", WithScheme("https"), "https", "/livez", 0, nil},
+		{"path", WithPath("/healthcheck"), "http", "/healthcheck", 0, nil},
+		{"timeout", WithTimeout(10 * time.Second), "http", "/livez", 10 * time.Second, nil},
+		{"transport", WithTransport(http.DefaultTransport), "http", "/livez", 0, http.DefaultTransport},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -112,6 +116,16 @@ func TestOptions(t *testing.T) {
 			if pinger.httpClient.Timeout != c.expectedTimeout {
 				t.Errorf("got timeout: %s, expected %s", pinger.httpClient.Timeout, c.expectedTimeout)
 			}
+			if c.expectedTransport != nil && pinger.httpClient.Transport != c.expectedTransport {
+				t.Errorf("got transport: %v, expected %v", pinger.httpClient.Transport, c.expectedTransport)
+			}
 		})
+	}
+}
+
+func TestOptions_DefaultTransport(t *testing.T) {
+	pinger := NewPinger("dependency", "localhost").(*client)
+	if _, ok := pinger.httpClient.Transport.(*otelhttp.Transport); !ok {
+		t.Errorf("got transport: %v, expected otelhttp.Transport", pinger.httpClient.Transport)
 	}
 }

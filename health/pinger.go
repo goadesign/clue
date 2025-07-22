@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type (
@@ -28,9 +30,10 @@ type (
 	}
 
 	options struct {
-		scheme  string
-		path    string
-		timeout time.Duration
+		scheme    string
+		path      string
+		timeout   time.Duration
+		transport http.RoundTripper
 	}
 )
 
@@ -38,7 +41,7 @@ type (
 // if the given host address is malformed.  The default scheme is "http" and the
 // default path is "/livez". Both can be overridden via options.
 func NewPinger(name, addr string, opts ...Option) Pinger {
-	options := &options{scheme: "http", path: "/livez"}
+	options := &options{scheme: "http", path: "/livez", transport: otelhttp.NewTransport(http.DefaultTransport)}
 	for _, o := range opts {
 		o(options)
 	}
@@ -47,10 +50,11 @@ func NewPinger(name, addr string, opts ...Option) Pinger {
 	if err != nil {
 		panic(err)
 	}
+
 	return &client{
 		name:       name,
 		req:        req,
-		httpClient: &http.Client{Timeout: options.timeout},
+		httpClient: &http.Client{Timeout: options.timeout, Transport: options.transport},
 	}
 }
 
@@ -83,6 +87,12 @@ func WithScheme(scheme string) Option {
 func WithPath(path string) Option {
 	return func(o *options) {
 		o.path = path
+	}
+}
+
+func WithTransport(transport http.RoundTripper) Option {
+	return func(o *options) {
+		o.transport = transport
 	}
 }
 
