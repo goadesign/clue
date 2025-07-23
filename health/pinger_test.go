@@ -107,11 +107,15 @@ func TestOptions(t *testing.T) {
 			if pinger.Name() != "dependency" {
 				t.Errorf("got name: %s, expected dependency", pinger.Name())
 			}
-			if pinger.req.URL.Scheme != c.expectedScheme {
-				t.Errorf("got scheme: %s, expected %s", pinger.req.URL.Scheme, c.expectedScheme)
+			u, err := url.Parse(pinger.httpURL)
+			if err != nil {
+				t.Errorf("got error: %v, expected %v", err, nil)
 			}
-			if pinger.req.URL.Path != c.expectedPath {
-				t.Errorf("got path: %s, expected %s", pinger.req.URL.Path, c.expectedPath)
+			if u.Scheme != c.expectedScheme {
+				t.Errorf("got scheme: %s, expected %s", u.Scheme, c.expectedScheme)
+			}
+			if u.Path != c.expectedPath {
+				t.Errorf("got path: %s, expected %s", u.Path, c.expectedPath)
 			}
 			if pinger.httpClient.Timeout != c.expectedTimeout {
 				t.Errorf("got timeout: %s, expected %s", pinger.httpClient.Timeout, c.expectedTimeout)

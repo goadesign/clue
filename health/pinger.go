@@ -25,8 +25,8 @@ type (
 
 	client struct {
 		name       string
-		req        *http.Request
 		httpClient *http.Client
+		httpURL    string
 	}
 
 	options struct {
@@ -46,15 +46,11 @@ func NewPinger(name, addr string, opts ...Option) Pinger {
 		o(options)
 	}
 	u := url.URL{Scheme: options.scheme, Host: addr, Path: options.path}
-	req, err := http.NewRequest("GET", u.String(), nil)
-	if err != nil {
-		panic(err)
-	}
 
 	return &client{
 		name:       name,
-		req:        req,
 		httpClient: &http.Client{Timeout: options.timeout, Transport: options.transport},
+		httpURL:    u.String(),
 	}
 }
 
@@ -63,7 +59,11 @@ func (c *client) Name() string {
 }
 
 func (c *client) Ping(ctx context.Context) error {
-	resp, err := c.httpClient.Do(c.req.WithContext(ctx))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.httpURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to prepare health check request to %q: %v", c.name, err)
+	}
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to make health check request to %q: %v", c.name, err)
 	}
