@@ -74,7 +74,7 @@ func TestPing(t *testing.T) {
 			t.Errorf("got name: %s, expected dependency", pinger.Name())
 		}
 		err := pinger.Ping(context.Background())
-		expected := fmt.Errorf(`failed to make health check request to "dependency": Get "%s/livez": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`, svr.URL)
+		expected := fmt.Errorf(`failed to make health check request to "dependency": Get "%s/livez": net/http: request canceled (Client.Timeout exceeded while awaiting headers)`, svr.URL)
 		if err != nil && err.Error() != expected.Error() {
 			t.Errorf("got: %v, expected: %v", err, expected)
 		}

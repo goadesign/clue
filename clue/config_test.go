@@ -126,7 +126,7 @@ func TestNewConfig(t *testing.T) {
 				c.spanExporter,
 				WithPropagators(c.propagators),
 				WithErrorHandler(c.errorHandler))
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			if c.spanExporter != nil {
 				serialized := fmt.Sprintf("%+v", cfg.TracerProvider)
 				assert.Contains(t, serialized, "maxSamplingRate:2")
