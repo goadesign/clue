@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"go.opentelemetry.io/otel/trace"
 	"goa.design/clue/log"
 )
 
@@ -96,7 +97,10 @@ func (c *checker) Check(ctx context.Context) (*Health, bool) {
 		res.Status[dep.Name()] = "OK"
 		// Note: need to create a new context for each dependency So that one
 		// dependency canceling the context will not affect the other checks.
-		logCtx := log.With(context.Background(), log.KV{K: "dep", V: dep.Name()})
+		// Preserve tracing in new context.
+		spanCtx := trace.SpanFromContext(ctx).SpanContext()
+		logCtx := trace.ContextWithSpanContext(context.Background(), spanCtx)
+		logCtx = log.With(logCtx, log.KV{K: "dep", V: dep.Name()})
 		if err := dep.Ping(logCtx); err != nil {
 			res.Status[dep.Name()] = "NOT OK"
 			healthy = false
