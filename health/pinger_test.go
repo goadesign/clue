@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -74,9 +75,10 @@ func TestPing(t *testing.T) {
 			t.Errorf("got name: %s, expected dependency", pinger.Name())
 		}
 		err := pinger.Ping(context.Background())
-		expected := fmt.Errorf(`failed to make health check request to "dependency": Get "%s/livez": net/http: request canceled (Client.Timeout exceeded while awaiting headers)`, svr.URL)
-		if err != nil && err.Error() != expected.Error() {
-			t.Errorf("got: %v, expected: %v", err, expected)
+		// The full error message can vary due to some race conditions on child context cancellation. Check the prefix.
+		expectedPrefix := fmt.Sprintf(`failed to make health check request to "dependency": Get "%s/livez":`, svr.URL)
+		if err != nil && !strings.Contains(err.Error(), expectedPrefix) {
+			t.Errorf("got: %v, expected prefix of: %v", err, expectedPrefix)
 		}
 	})
 }
