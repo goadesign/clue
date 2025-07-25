@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type (
@@ -23,14 +25,15 @@ type (
 
 	client struct {
 		name       string
-		req        *http.Request
 		httpClient *http.Client
+		httpURL    string
 	}
 
 	options struct {
-		scheme  string
-		path    string
-		timeout time.Duration
+		scheme    string
+		path      string
+		timeout   time.Duration
+		transport http.RoundTripper
 	}
 )
 
@@ -38,19 +41,16 @@ type (
 // if the given host address is malformed.  The default scheme is "http" and the
 // default path is "/livez". Both can be overridden via options.
 func NewPinger(name, addr string, opts ...Option) Pinger {
-	options := &options{scheme: "http", path: "/livez"}
+	options := &options{scheme: "http", path: "/livez", transport: otelhttp.NewTransport(http.DefaultTransport)}
 	for _, o := range opts {
 		o(options)
 	}
 	u := url.URL{Scheme: options.scheme, Host: addr, Path: options.path}
-	req, err := http.NewRequest("GET", u.String(), nil)
-	if err != nil {
-		panic(err)
-	}
+
 	return &client{
 		name:       name,
-		req:        req,
-		httpClient: &http.Client{Timeout: options.timeout},
+		httpClient: &http.Client{Timeout: options.timeout, Transport: options.transport},
+		httpURL:    u.String(),
 	}
 }
 
@@ -59,7 +59,11 @@ func (c *client) Name() string {
 }
 
 func (c *client) Ping(ctx context.Context) error {
-	resp, err := c.httpClient.Do(c.req.WithContext(ctx))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.httpURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to prepare health check request to %q: %v", c.name, err)
+	}
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to make health check request to %q: %v", c.name, err)
 	}
@@ -83,6 +87,12 @@ func WithScheme(scheme string) Option {
 func WithPath(path string) Option {
 	return func(o *options) {
 		o.path = path
+	}
+}
+
+func WithTransport(transport http.RoundTripper) Option {
+	return func(o *options) {
+		o.transport = transport
 	}
 }
 

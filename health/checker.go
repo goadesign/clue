@@ -3,9 +3,13 @@ package health
 import (
 	"context"
 	"encoding/xml"
+	"fmt"
 	"sort"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	"goa.design/clue/log"
 )
 
@@ -92,15 +96,30 @@ func (c *checker) Check(ctx context.Context) (*Health, bool) {
 		Status:  make(map[string]string),
 	}
 	healthy := true
+	// Extract tracing information from parent context for use in new contexts.
+	spanCtx := trace.SpanFromContext(ctx).SpanContext()
+	tracer := trace.SpanFromContext(ctx).TracerProvider().Tracer("goa.design/clue/health")
 	for _, dep := range c.deps {
-		res.Status[dep.Name()] = "OK"
 		// Note: need to create a new context for each dependency So that one
 		// dependency canceling the context will not affect the other checks.
-		logCtx := log.With(context.Background(), log.KV{K: "dep", V: dep.Name()})
+		logCtx := trace.ContextWithSpanContext(context.Background(), spanCtx)
+		logCtx = log.With(logCtx, log.KV{K: "dep", V: dep.Name()})
+		spanName := fmt.Sprintf("health.ping.%s", dep.Name())
+		logCtx, span := tracer.Start(logCtx, spanName,
+			trace.WithSpanKind(trace.SpanKindClient),
+			trace.WithAttributes(attribute.KeyValue{Key: "name", Value: attribute.StringValue(spanName)}),
+		)
+		defer span.End()
+
+		res.Status[dep.Name()] = "OK"
 		if err := dep.Ping(logCtx); err != nil {
 			res.Status[dep.Name()] = "NOT OK"
 			healthy = false
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "ping failed")
 			log.Error(ctx, err, log.KV{K: "msg", V: "ping failed"})
+		} else {
+			span.SetStatus(codes.Ok, "ping successful")
 		}
 	}
 	return res, healthy
