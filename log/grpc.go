@@ -52,10 +52,10 @@ func UnaryServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc.
 
 	return func(
 		ctx context.Context,
-		req interface{},
+		req any,
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (interface{}, error) {
+	) (any, error) {
 		ctx = WithContext(ctx, logCtx)
 		if !o.disableCallID {
 			ctx = With(ctx, KV{RequestIDKey, shortID()})
@@ -101,7 +101,7 @@ func StreamServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc
 	}
 
 	return func(
-		srv interface{},
+		srv any,
 		stream grpc.ServerStream,
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
@@ -151,7 +151,7 @@ func UnaryClientInterceptor(opts ...GRPCLogOption) grpc.UnaryClientInterceptor {
 	return func(
 		ctx context.Context,
 		fullmethod string,
-		req, reply interface{},
+		req, reply any,
 		cc *grpc.ClientConn,
 		invoker grpc.UnaryInvoker,
 		opts ...grpc.CallOption,

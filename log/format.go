@@ -212,7 +212,7 @@ func appendJSONString(b []byte, s string) []byte {
 	return append(b, '"')
 }
 
-func appendJSONArray(b []byte, arr []interface{}) []byte {
+func appendJSONArray(b []byte, arr []any) []byte {
 	b = append(b, '[')
 	for i, v := range arr {
 		if i > 0 {

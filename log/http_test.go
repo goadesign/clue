@@ -70,7 +70,7 @@ func TestEndpoint(t *testing.T) {
 	now := timeNow
 	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
 	defer func() { timeNow = now }()
-	endpoint := func(ctx context.Context, _ interface{}) (interface{}, error) {
+	endpoint := func(ctx context.Context, _ any) (any, error) {
 		Printf(ctx, "test")
 		return nil, nil
 	}

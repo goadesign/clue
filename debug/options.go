@@ -21,7 +21,7 @@ type (
 
 	// FormatFunc is used to format the logged value for payloads and
 	// results.
-	FormatFunc func(context.Context, interface{}) string
+	FormatFunc func(context.Context, any) string
 
 	lpOptions struct {
 		maxsize int // maximum number of bytes in a single log message or value
@@ -107,7 +107,7 @@ func WithOffValue(offval string) DebugLogEnablerOption {
 }
 
 // FormatJSON returns a function that formats the given value as JSON.
-func FormatJSON(_ context.Context, v interface{}) string {
+func FormatJSON(_ context.Context, v any) string {
 	js, err := json.Marshal(v)
 	if err != nil {
 		return fmt.Sprintf("<invalid: %s>", err)

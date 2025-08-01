@@ -96,53 +96,53 @@ func ToLogrSink(ctx context.Context) *LogrSink {
 }
 
 // Fatal is equivalent to l.Print() followed by a call to os.Exit(1).
-func (l *StdLogger) Fatal(v ...interface{}) {
+func (l *StdLogger) Fatal(v ...any) {
 	l.Print(v...)
 	osExit(1)
 }
 
 // Fatalf is equivalent to l.Printf() followed by a call to os.Exit(1).
-func (l *StdLogger) Fatalf(format string, v ...interface{}) {
+func (l *StdLogger) Fatalf(format string, v ...any) {
 	l.Printf(format, v...)
 	osExit(1)
 }
 
 // Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
-func (l *StdLogger) Fatalln(v ...interface{}) {
+func (l *StdLogger) Fatalln(v ...any) {
 	l.Println(v...)
 	osExit(1)
 }
 
 // Panic is equivalent to l.Print() followed by a call to panic().
-func (l *StdLogger) Panic(v ...interface{}) {
+func (l *StdLogger) Panic(v ...any) {
 	l.Print(v...)
 	panic(fmt.Sprint(v...))
 }
 
 // Panicf is equivalent to l.Printf() followed by a call to panic().
-func (l *StdLogger) Panicf(format string, v ...interface{}) {
+func (l *StdLogger) Panicf(format string, v ...any) {
 	l.Printf(format, v...)
 	panic(fmt.Sprintf(format, v...))
 }
 
 // Panicln is equivalent to l.Println() followed by a call to panic().
-func (l *StdLogger) Panicln(v ...interface{}) {
+func (l *StdLogger) Panicln(v ...any) {
 	l.Println(v...)
 	panic(fmt.Sprintln(v...))
 }
 
 // Print print to the logger. Arguments are handled in the manner of fmt.Print.
-func (l *StdLogger) Print(v ...interface{}) {
+func (l *StdLogger) Print(v ...any) {
 	Printf(l.ctx, "%s", fmt.Sprint(v...))
 }
 
 // Printf prints to the logger. Arguments are handled in the manner of fmt.Printf.
-func (l *StdLogger) Printf(format string, v ...interface{}) {
+func (l *StdLogger) Printf(format string, v ...any) {
 	Printf(l.ctx, format, v...)
 }
 
 // Println prints to the logger. Arguments are handled in the manner of fmt.Println.
-func (l *StdLogger) Println(v ...interface{}) {
+func (l *StdLogger) Println(v ...any) {
 	Printf(l.ctx, "%s", fmt.Sprintln(v...))
 }
 
@@ -165,7 +165,7 @@ func (l *LogrSink) Enabled(level int) bool {
 	return true
 }
 
-func (l *LogrSink) Info(level int, msg string, keysAndValues ...interface{}) {
+func (l *LogrSink) Info(level int, msg string, keysAndValues ...any) {
 	kvs := make([]KV, len(keysAndValues)/2+1)
 	kvs[0] = KV{K: "msg", V: msg}
 	for i := 0; i < len(keysAndValues); i += 2 {
@@ -178,7 +178,7 @@ func (l *LogrSink) Info(level int, msg string, keysAndValues ...interface{}) {
 	}
 }
 
-func (l *LogrSink) Error(err error, msg string, keysAndValues ...interface{}) {
+func (l *LogrSink) Error(err error, msg string, keysAndValues ...any) {
 	kvs := make([]KV, len(keysAndValues)/2+1)
 	kvs[0] = KV{K: "msg", V: msg}
 	for i := 0; i < len(keysAndValues); i += 2 {
@@ -207,13 +207,13 @@ func (l *LogrSink) WithName(name string) logr.LogSink {
 }
 
 // Log creates a log entry using a sequence of key/value pairs.
-func (l goaLogger) Log(keyvals ...interface{}) error {
+func (l goaLogger) Log(keyvals ...any) error {
 	n := (len(keyvals) + 1) / 2
 	if len(keyvals)%2 != 0 {
 		keyvals = append(keyvals, "MISSING")
 	}
 	kvs := make([]KV, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		k, v := keyvals[2*i], keyvals[2*i+1]
 		kvs[i] = KV{K: fmt.Sprint(k), V: v}
 	}

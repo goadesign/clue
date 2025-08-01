@@ -123,7 +123,7 @@ func LogPayloads(opts ...LogPayloadsOption) func(goa.Endpoint) goa.Endpoint {
 			reqKey = "client-" + reqKey
 			resKey = "client-" + resKey
 		}
-		return func(ctx context.Context, req interface{}) (interface{}, error) {
+		return func(ctx context.Context, req any) (any, error) {
 			if !log.DebugEnabled(ctx) {
 				return next(ctx, req)
 			}

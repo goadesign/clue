@@ -14,10 +14,10 @@ import (
 func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
-		req interface{},
+		req any,
 		_ *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (interface{}, error) {
+	) (any, error) {
 		if debugLogs {
 			ctx = log.Context(ctx, log.WithDebug())
 		} else {
@@ -33,7 +33,7 @@ func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 // in conjunction with the MountDebugLogEnabler function.
 func StreamServerInterceptor() grpc.StreamServerInterceptor {
 	return func(
-		srv interface{},
+		srv any,
 		stream grpc.ServerStream,
 		_ *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,

@@ -5,8 +5,8 @@ import "sync"
 type (
 	// Mock implementation of a service client.
 	Mock struct {
-		funcs   map[string]interface{}
-		seqs    map[string][]interface{}
+		funcs   map[string]any
+		seqs    map[string][]any
 		indices []*index
 		pos     int
 		lock    sync.Mutex
@@ -22,15 +22,15 @@ type (
 // New returns a new mock client.
 func New() *Mock {
 	return &Mock{
-		funcs: make(map[string]interface{}),
-		seqs:  make(map[string][]interface{}),
+		funcs: make(map[string]any),
+		seqs:  make(map[string][]any),
 	}
 }
 
 // If there is no mock left in the sequence then Next returns the permanent mock
 // for name if any, nil otherwise.  If there are mocks left in the sequence then
 // Next returns the next mock if its name is name, nil otherwise.
-func (m *Mock) Next(name string) interface{} {
+func (m *Mock) Next(name string) any {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -53,7 +53,7 @@ func (m *Mock) Next(name string) interface{} {
 }
 
 // Add adds f to the mock sequence.
-func (m *Mock) Add(name string, f interface{}) {
+func (m *Mock) Add(name string, f any) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -62,7 +62,7 @@ func (m *Mock) Add(name string, f interface{}) {
 }
 
 // Set a permanent mock for the function with the given name.
-func (m *Mock) Set(name string, f interface{}) {
+func (m *Mock) Set(name string, f any) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 

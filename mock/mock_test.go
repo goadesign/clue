@@ -163,7 +163,7 @@ func TestHasMore(t *testing.T) {
 	}
 }
 
-func compareFuncs(t *testing.T, got interface{}, expected func() string) {
+func compareFuncs(t *testing.T, got any, expected func() string) {
 	if got == nil && expected == nil {
 		return
 	}

@@ -127,7 +127,7 @@ func TestDebugPayloads(t *testing.T) {
 	newDebugLogContext := func() context.Context {
 		return log.Context(newLogContext(), log.WithDebug())
 	}
-	formatTest := func(_ context.Context, a interface{}) string {
+	formatTest := func(_ context.Context, a any) string {
 		return "test"
 	}
 
