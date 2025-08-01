@@ -106,7 +106,7 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 // Endpoint is a Goa endpoint middleware that adds the service and method names
 // to the logged key/value pairs.
 func Endpoint(e goa.Endpoint) goa.Endpoint {
-	return func(ctx context.Context, req interface{}) (interface{}, error) {
+	return func(ctx context.Context, req any) (any, error) {
 		if s := ctx.Value(goa.ServiceKey); s != nil {
 			ctx = With(ctx, KV{K: GoaServiceKey, V: s})
 		}

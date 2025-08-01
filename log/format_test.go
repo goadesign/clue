@@ -41,8 +41,8 @@ func TestFormat(t *testing.T) {
 		{"sliceFloat32", []float32{7, 7}},
 		{"sliceFloat64", []float64{8.1, 8.1}},
 		{"sliceBool", []bool{true, false, true}},
-		{"sliceNil", []interface{}{nil, nil, nil}},
-		{"sliceMix", []interface{}{"a", 1, true, nil}},
+		{"sliceNil", []any{nil, nil, nil}},
+		{"sliceMix", []any{"a", 1, true, nil}},
 	}
 
 	formattedKeyVals := "string=val " +

@@ -57,7 +57,7 @@ func Debug(ctx context.Context, keyvals ...Fielder) {
 
 // Debugf sets the key MessageKey (default "msg") and calls Debug. Arguments
 // are handled in the manner of fmt.Printf.
-func Debugf(ctx context.Context, format string, v ...interface{}) {
+func Debugf(ctx context.Context, format string, v ...any) {
 	Debug(ctx, KV{MessageKey, fmt.Sprintf(format, v...)})
 }
 
@@ -68,7 +68,7 @@ func Print(ctx context.Context, keyvals ...Fielder) {
 
 // Printf sets the key MessageKey (default "msg") and calls Print. Arguments
 // are handled in the manner of fmt.Printf.
-func Printf(ctx context.Context, format string, v ...interface{}) {
+func Printf(ctx context.Context, format string, v ...any) {
 	Print(ctx, KV{MessageKey, fmt.Sprintf(format, v...)})
 }
 
@@ -80,7 +80,7 @@ func Info(ctx context.Context, keyvals ...Fielder) {
 
 // Infof sets the key MessageKey (default "msg") and calls Info. Arguments are
 // handled in the manner of fmt.Printf.
-func Infof(ctx context.Context, format string, v ...interface{}) {
+func Infof(ctx context.Context, format string, v ...any) {
 	Info(ctx, KV{MessageKey, fmt.Sprintf(format, v...)})
 }
 
@@ -92,7 +92,7 @@ func Warn(ctx context.Context, keyvals ...Fielder) {
 
 // Warnf sets the key MessageKey (default "msg") and calls Warn. Arguments are
 // handled in the manner of fmt.Printf.
-func Warnf(ctx context.Context, format string, v ...interface{}) {
+func Warnf(ctx context.Context, format string, v ...any) {
 	Warn(ctx, KV{MessageKey, fmt.Sprintf(format, v...)})
 }
 
@@ -112,7 +112,7 @@ func Error(ctx context.Context, err error, keyvals ...Fielder) {
 
 // Errorf sets the key MessageKey (default "msg") and calls Error. Arguments
 // are handled in the manner of fmt.Printf.
-func Errorf(ctx context.Context, err error, format string, v ...interface{}) {
+func Errorf(ctx context.Context, err error, format string, v ...any) {
 	Error(ctx, err, KV{MessageKey, fmt.Sprintf(format, v...)})
 }
 
@@ -123,7 +123,7 @@ func Fatal(ctx context.Context, err error, keyvals ...Fielder) {
 }
 
 // Fatalf is equivalent to Errorf followed by a call to os.Exit(1)
-func Fatalf(ctx context.Context, err error, format string, v ...interface{}) {
+func Fatalf(ctx context.Context, err error, format string, v ...any) {
 	Fatal(ctx, err, KV{MessageKey, fmt.Sprintf(format, v...)})
 }
 

@@ -5,7 +5,7 @@ type (
 	// booleans, nil or a slice of these types.
 	KV struct {
 		K string
-		V interface{}
+		V any
 	}
 
 	// Fielder is an interface that will return a slice of KV
@@ -15,7 +15,7 @@ type (
 
 	// Fields allows to quickly define fields for cases where you are OK with
 	// non-deterministic order of the fields
-	Fields map[string]interface{}
+	Fields map[string]any
 
 	kvList []KV
 )

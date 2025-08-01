@@ -289,7 +289,7 @@ func TestStructuredLogging(t *testing.T) {
 	if len(e.KeyVals) != 4 {
 		t.Errorf("got %d keyvals, want 4", len(e.KeyVals))
 	}
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		suffix := fmt.Sprintf("%d", i+1)
 		if e.KeyVals[i].K != "key"+suffix || e.KeyVals[i].V != "val"+suffix {
 			t.Errorf("got keyval %q=%q, want key"+suffix+"=val"+suffix, e.KeyVals[i].K, e.KeyVals[i].V)
@@ -306,7 +306,7 @@ func TestStructuredLogging(t *testing.T) {
 	if len(e.KeyVals) != 5 {
 		t.Errorf("got %d keyvals, want 5", len(e.KeyVals))
 	}
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		suffix := fmt.Sprintf("%d", i+1)
 		if e.KeyVals[i].K != "key"+suffix || e.KeyVals[i].V != "val"+suffix {
 			t.Errorf("got keyval %q=%q, want key"+suffix+"=val"+suffix, e.KeyVals[i].K, e.KeyVals[i].V)
@@ -398,7 +398,7 @@ func TestMaxSize(t *testing.T) {
 		idx := strconv.Itoa(i)
 		toomany[i] = txt
 		toomanytoolong[i] = KV{"key" + idx, txt + "b"}
-		toomanyi[i] = KV{"key" + idx, interface{}(txt + "b")}
+		toomanyi[i] = KV{"key" + idx, any(txt + "b")}
 	}
 	cases := []struct {
 		name     string
@@ -421,7 +421,7 @@ func TestMaxSize(t *testing.T) {
 				for i := 0; i < len(e.KeyVals); i++ {
 					if sv, ok := e.KeyVals[i].V.([]string); ok {
 						vals += strings.Join(sv, "")
-					} else if sv, ok := e.KeyVals[i].V.([]interface{}); ok {
+					} else if sv, ok := e.KeyVals[i].V.([]any); ok {
 						strs := make([]string, len(sv))
 						for j := range sv {
 							strs[j] = sv[j].(string)
@@ -498,7 +498,7 @@ func TestConcurrentLog(t *testing.T) {
 	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatText))
 	FlushAndDisableBuffering(ctx)
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		go func() {
 			Info(ctx, KV{"msg", "root"})
 			ctx1 := With(ctx, KV{"key1", "value1"})
