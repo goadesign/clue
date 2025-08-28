@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/term"
 
+	otellog "go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -31,6 +32,7 @@ type (
 		keyvals          kvList
 		kvfuncs          []func(context.Context) []KV
 		maxsize          int
+		otellog          otellog.Logger // OpenTelemetry logger
 	}
 )
 
@@ -114,6 +116,16 @@ func WithFileLocation() LogOption {
 func WithFunc(fn func(context.Context) []KV) LogOption {
 	return func(o *options) {
 		o.kvfuncs = append(o.kvfuncs, fn)
+	}
+}
+
+// WithOTELLogger sets the OpenTelemetry logger to send logs to OTLP.
+func WithOTELLogger(otelLogger otellog.Logger) LogOption {
+	return func(o *options) {
+		// Safety check: don't set the OTEL logger if it's nil to avoid issues
+		if otelLogger != nil {
+			o.otellog = otelLogger
+		}
 	}
 }
 

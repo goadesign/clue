@@ -3,12 +3,16 @@ package log
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"sync"
 	"time"
+
+	otellog "go.opentelemetry.io/otel/log"
 )
 
 type (
@@ -21,11 +25,13 @@ type (
 
 	// Logger implementation
 	logger struct {
-		options *options
-		lock    sync.Mutex
-		keyvals kvList
-		entries []*Entry
-		flushed bool
+		options     *options
+		lock        sync.Mutex
+		keyvals     kvList
+		entries     []*Entry
+		flushed     bool
+		otellog     otellog.Logger // OpenTelemetry logger
+		otelLogging bool           // Guard against recursive OTEL logging
 	}
 
 	// Log severity enum
@@ -151,6 +157,7 @@ func With(ctx context.Context, keyvals ...Fielder) context.Context {
 		entries: l.entries,
 		keyvals: l.keyvals.merge(keyvals),
 		flushed: l.flushed,
+		otellog: l.otellog, // Copy OTEL logger
 	}
 	if l.options.disableBuffering != nil && l.options.disableBuffering(ctx) {
 		l.flush()
@@ -176,8 +183,152 @@ func FlushAndDisableBuffering(ctx context.Context) {
 	l.flush()
 }
 
+// writeEntry writes the log entry to both the local writer and OpenTelemetry
 func (l *logger) writeEntry(e *Entry) {
+	// Write to local writer
 	l.options.w.Write(l.options.format(e)) // nolint: errcheck
+
+	// Send to OpenTelemetry if available and not already logging to OTEL
+	if l.otellog != nil && !l.otelLogging {
+		// Set recursion guard
+		l.otelLogging = true
+		defer func() { l.otelLogging = false }()
+
+		// Convert severity to OTEL level
+		var level otellog.Severity
+		switch e.Severity {
+		case SeverityDebug:
+			level = otellog.SeverityDebug
+		case SeverityInfo:
+			level = otellog.SeverityInfo
+		case SeverityWarn:
+			level = otellog.SeverityWarn
+		case SeverityError:
+			level = otellog.SeverityError
+		default:
+			level = otellog.SeverityInfo
+		}
+
+		// Create OTEL record
+		record := otellog.Record{}
+		record.SetSeverity(level)
+		record.SetTimestamp(e.Time)
+
+		// Extract message and build structured body
+		var message string
+		var attributes []otellog.KeyValue
+		var bodyParts []string
+
+		for _, kv := range e.KeyVals {
+			if kv.K == MessageKey || kv.K == ErrorMessageKey {
+				message = fmt.Sprintf("%v", kv.V)
+			} else {
+				// Add to attributes with proper type handling
+				switch v := kv.V.(type) {
+				case string:
+					attributes = append(attributes, otellog.String(kv.K, v))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%q", kv.K, v))
+				case int:
+					attributes = append(attributes, otellog.Int64(kv.K, int64(v)))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%d", kv.K, v))
+				case int8:
+					attributes = append(attributes, otellog.Int64(kv.K, int64(v)))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%d", kv.K, v))
+				case int16:
+					attributes = append(attributes, otellog.Int64(kv.K, int64(v)))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%d", kv.K, v))
+				case int32:
+					attributes = append(attributes, otellog.Int64(kv.K, int64(v)))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%d", kv.K, v))
+				case int64:
+					attributes = append(attributes, otellog.Int64(kv.K, v))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%d", kv.K, v))
+				case uint:
+					attributes = append(attributes, otellog.Int64(kv.K, int64(v)))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%d", kv.K, v))
+				case uint8:
+					attributes = append(attributes, otellog.Int64(kv.K, int64(v)))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%d", kv.K, v))
+				case uint16:
+					attributes = append(attributes, otellog.Int64(kv.K, int64(v)))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%d", kv.K, v))
+				case uint32:
+					attributes = append(attributes, otellog.Int64(kv.K, int64(v)))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%d", kv.K, v))
+				case uint64:
+					attributes = append(attributes, otellog.Int64(kv.K, int64(v)))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%d", kv.K, v))
+				case float32:
+					attributes = append(attributes, otellog.Float64(kv.K, float64(v)))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%g", kv.K, v))
+				case float64:
+					attributes = append(attributes, otellog.Float64(kv.K, v))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%g", kv.K, v))
+				case bool:
+					attributes = append(attributes, otellog.Bool(kv.K, v))
+					bodyParts = append(bodyParts, fmt.Sprintf("%s=%t", kv.K, v))
+				default:
+					// Check for Stringer interface
+					if stringer, ok := v.(fmt.Stringer); ok {
+						attributes = append(attributes, otellog.String(kv.K, stringer.String()))
+						bodyParts = append(bodyParts, fmt.Sprintf("%s=%q", kv.K, stringer.String()))
+					} else if jsonMarshaler, ok := v.(json.Marshaler); ok {
+						// Check for MarshalJSON interface
+						if data, err := jsonMarshaler.MarshalJSON(); err == nil {
+							// Remove quotes from JSON string if it's a string
+							jsonStr := string(data)
+							if len(jsonStr) >= 2 && jsonStr[0] == '"' && jsonStr[len(jsonStr)-1] == '"' {
+								jsonStr = jsonStr[1 : len(jsonStr)-1]
+							}
+							attributes = append(attributes, otellog.String(kv.K, jsonStr))
+							bodyParts = append(bodyParts, fmt.Sprintf("%s=%q", kv.K, jsonStr))
+						} else {
+							// Fallback to string representation if MarshalJSON fails
+							attributes = append(attributes, otellog.String(kv.K, fmt.Sprintf("%v", v)))
+							bodyParts = append(bodyParts, fmt.Sprintf("%s=%q", kv.K, v))
+						}
+					} else {
+						// For any other type, convert to string
+						attributes = append(attributes, otellog.String(kv.K, fmt.Sprintf("%v", v)))
+						bodyParts = append(bodyParts, fmt.Sprintf("%s=%q", kv.K, v))
+					}
+				}
+			}
+		}
+
+		// Build the structured body: "message key1=value1 key2=value2"
+		var body string
+		if message != "" {
+			body = message
+		}
+		if len(bodyParts) > 0 {
+			if body != "" {
+				body += " "
+			}
+			body += strings.Join(bodyParts, " ")
+		}
+
+		// Set the body to the structured format
+		record.SetBody(otellog.StringValue(body))
+
+		// Add all keyvals as attributes for proper OTEL structure
+		for _, attr := range attributes {
+			record.AddAttributes(attr)
+		}
+
+		// Log to OTEL - use a background context to avoid recursive logging
+		// This prevents the OTEL logger from calling back into the clue logger
+		otelCtx := context.Background()
+
+		// Add timeout to prevent hanging
+		ctx, cancel := context.WithTimeout(otelCtx, 5*time.Second)
+		defer cancel()
+
+		// Use a goroutine to prevent blocking
+		go func() {
+			l.otellog.Emit(ctx, record)
+		}()
+	}
 }
 
 func (l *logger) flush() {

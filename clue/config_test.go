@@ -8,11 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/metric"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/propagation"
+	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
@@ -87,12 +89,15 @@ func TestNewConfig(t *testing.T) {
 	require.NoError(t, err)
 	metricsExporter, err := stdoutmetric.New()
 	require.NoError(t, err)
+	logExporter, err := stdoutlog.New()
+	require.NoError(t, err)
 	noopErrorHandler := dummyErrorHandler{}
 
 	cases := []struct {
 		name            string
 		metricsExporter sdkmetric.Exporter
 		spanExporter    sdktrace.SpanExporter
+		logExporter     sdklog.Exporter
 		propagators     propagation.TextMapPropagator
 		errorHandler    otel.ErrorHandler
 
@@ -107,6 +112,9 @@ func TestNewConfig(t *testing.T) {
 		}, {
 			name:         "tracer provider",
 			spanExporter: spanExporter,
+		}, {
+			name:        "log exporter",
+			logExporter: logExporter,
 		}, {
 			name:            "propagators",
 			propagators:     propagation.Baggage{},
@@ -124,6 +132,7 @@ func TestNewConfig(t *testing.T) {
 				svcVersion,
 				c.metricsExporter,
 				c.spanExporter,
+				c.logExporter,
 				WithPropagators(c.propagators),
 				WithErrorHandler(c.errorHandler))
 			require.NoError(t, err)

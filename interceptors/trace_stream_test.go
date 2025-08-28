@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/trace"
@@ -74,7 +75,11 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	cfg, err := clue.NewConfig(ctx, "test", "0.0.1", metricExporter, traceExporter)
+	logExporter, err := stdoutlog.New()
+	if err != nil {
+		panic(err)
+	}
+	cfg, err := clue.NewConfig(ctx, "test", "0.0.1", metricExporter, traceExporter, logExporter)
 	if err != nil {
 		panic(err)
 	}

@@ -17,6 +17,10 @@ func Context(ctx context.Context, opts ...LogOption) context.Context {
 	for _, opt := range opts {
 		opt(l.options)
 	}
+	// Copy OTEL logger from options to logger struct
+	l.otellog = l.options.otellog
+	// Reset the OTEL logging guard for new loggers
+	l.otelLogging = false
 	if l.options.disableBuffering != nil && l.options.disableBuffering(ctx) {
 		l.flush()
 	}
