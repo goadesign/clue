@@ -23,7 +23,7 @@ require (
 	golang.org/x/term v0.34.0
 	golang.org/x/tools v0.36.0
 	google.golang.org/genproto v0.0.0-20250721164621-a45f3dfb1074
-	google.golang.org/grpc v1.74.2
+	google.golang.org/grpc v1.75.0
 	google.golang.org/protobuf v1.36.8
 )
 
