@@ -49,6 +49,14 @@ var (
 	osExit    = os.Exit
 )
 
+// Export color codes
+var (
+	ColorSeverityDebug = "\033[37m"
+	ColorSeverityInfo  = "\033[34m"
+	ColorSeverityWarn  = "\033[33m"
+	ColorSeverityError = "\033[1;31m"
+)
+
 // Debug writes the key/value pairs to the log output if the log context is
 // configured to log debug messages (via WithDebug).
 func Debug(ctx context.Context, keyvals ...Fielder) {
@@ -253,13 +261,13 @@ func (l Severity) Code() string {
 func (l Severity) Color() string {
 	switch l {
 	case SeverityDebug:
-		return "\033[37m"
+		return ColorSeverityDebug
 	case SeverityInfo:
-		return "\033[34m"
+		return ColorSeverityInfo
 	case SeverityWarn:
-		return "\033[33m"
+		return ColorSeverityWarn
 	case SeverityError:
-		return "\033[1;31m"
+		return ColorSeverityError
 	default:
 		return ""
 	}
