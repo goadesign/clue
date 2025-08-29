@@ -185,7 +185,7 @@ And configuring an OTLP compliant logs exporters can be done as follows:
 ```go
 import "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 // ...
-metricExporter, err := otlploggrpc.New(
+logExporter, err := otlploggrpc.New(
     context.Background(),
     otlploggrpc.WithEndpoint("localhost:4317"),
     otlploggrpc.WithTLSCredentials(insecure.NewCredentials()))
