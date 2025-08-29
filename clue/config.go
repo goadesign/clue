@@ -5,15 +5,19 @@ import (
 
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel"
+	otellog "go.opentelemetry.io/otel/log"
+	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/metric"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/propagation"
+	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	"go.opentelemetry.io/otel/trace"
 	tracenoop "go.opentelemetry.io/otel/trace/noop"
+	lognoop "go.opentelemetry.io/otel/log/noop"
 
 	"goa.design/clue/log"
 
@@ -30,6 +34,8 @@ type (
 		MeterProvider metric.MeterProvider
 		// TracerProvider is the OpenTelemetry tracer provider used clue
 		TracerProvider trace.TracerProvider
+		// LoggerProvider is the OpenTelemetry logger provider used by clue
+		LoggerProvider otellog.LoggerProvider
 		// Propagators is the OpenTelemetry propagator used by clue
 		Propagators propagation.TextMapPropagator
 		// ErrorHandler is the error handler used by OpenTelemetry
@@ -42,6 +48,7 @@ type (
 func ConfigureOpenTelemetry(ctx context.Context, cfg *Config) {
 	otel.SetMeterProvider(cfg.MeterProvider)
 	otel.SetTracerProvider(cfg.TracerProvider)
+	global.SetLoggerProvider(cfg.LoggerProvider)
 	otel.SetTextMapPropagator(cfg.Propagators)
 	otel.SetLogger(logr.New(log.ToLogrSink(ctx)))
 	otel.SetErrorHandler(cfg.ErrorHandler)
@@ -67,13 +74,18 @@ func ConfigureOpenTelemetry(ctx context.Context, cfg *Config) {
 //	if err != nil {
 //		return err
 //	}
-//	cfg := clue.NewConfig(ctx, "mysvc", "1.0.0", metricExporter, spanExporter)
+//	logExporter, err := stdoutlog.New()
+//	if err != nil {
+//		return err
+//	}
+//	cfg := clue.NewConfig(ctx, "mysvc", "1.0.0", metricExporter, spanExporter, logExporter)
 func NewConfig(
 	ctx context.Context,
 	svcName string,
 	svcVersion string,
 	metricExporter sdkmetric.Exporter,
 	spanExporter sdktrace.SpanExporter,
+	logExporter sdklog.Exporter,
 	opts ...Option,
 ) (*Config, error) {
 	options := defaultOptions(ctx)
@@ -125,9 +137,20 @@ func NewConfig(
 			sdktrace.WithBatcher(spanExporter),
 		)
 	}
+	var loggerProvider otellog.LoggerProvider
+	if logExporter == nil {
+		loggerProvider = lognoop.NewLoggerProvider()
+	} else {
+		loggerProvider = sdklog.NewLoggerProvider(
+			sdklog.WithResource(res),
+			sdklog.WithProcessor(sdklog.NewBatchProcessor(logExporter)),
+		)
+	}
+
 	return &Config{
 		MeterProvider:  meterProvider,
 		TracerProvider: tracerProvider,
+		LoggerProvider: loggerProvider,
 		Propagators:    options.propagators,
 		ErrorHandler:   options.errorHandler,
 	}, nil

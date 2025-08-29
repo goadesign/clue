@@ -180,11 +180,22 @@ metricExporter, err := otlpmetricgrpc.New(
     otlpmetricgrpc.WithTLSCredentials(insecure.NewCredentials()))
 ```
 
+And configuring an OTLP compliant logs exporters can be done as follows:
+
+```go
+import "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
+// ...
+logExporter, err := otlploggrpc.New(
+    context.Background(),
+    otlploggrpc.WithEndpoint("localhost:4317"),
+    otlploggrpc.WithTLSCredentials(insecure.NewCredentials()))
+```
+
 These exporters can then be used to configure Clue:
 
 ```go
 // Configure OpenTelemetry.
-cfg := clue.NewConfig(ctx, "service", "1.0.0", metricExporter, spanExporter)
+cfg := clue.NewConfig(ctx, "service", "1.0.0", metricExporter, spanExporter, logExporter)
 clue.ConfigureOpenTelemetry(ctx, cfg)
 ```
 
@@ -330,7 +341,8 @@ v1.x:
 ctx := log.Context(context.Background())
 traceExporter := tracestdout.New()
 metricsExporter := metricstdout.New()
-cfg := clue.NewConfig(ctx, "service", "1.0.0", metricsExporter, traceExporter)
+logsExporter = logsstdout.New()
+cfg := clue.NewConfig(ctx, "service", "1.0.0", metricsExporter, traceExporter, logsExplorer)
 clue.ConfigureOpenTelemetry(ctx, cfg)
 ```
 

@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/term"
 
+	otellog "go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -31,6 +32,7 @@ type (
 		keyvals          kvList
 		kvfuncs          []func(context.Context) []KV
 		maxsize          int
+		otellog          otellog.Logger // OpenTelemetry logger
 	}
 )
 

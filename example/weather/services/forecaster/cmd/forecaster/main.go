@@ -17,6 +17,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"goa.design/clue/clue"
@@ -82,11 +83,25 @@ func main() {
 			log.Errorf(ctx, err, "failed to shutdown metrics")
 		}
 	}()
+	logExporter, err := otlploggrpc.New(ctx,
+		otlploggrpc.WithEndpoint(*coladdr),
+		otlploggrpc.WithInsecure())
+	if err != nil {
+		log.Errorf(ctx, err, "failed to initialize logging")
+	}
+	defer func() {
+		ctx := log.Context(context.Background())
+		if err := logExporter.Shutdown(ctx); err != nil {
+			log.Errorf(ctx, err, "failed to shutdown logging")
+		}
+	}()
+
 	cfg, err := clue.NewConfig(ctx,
 		genforecaster.ServiceName,
 		genforecaster.APIVersion,
 		metricExporter,
 		spanExporter,
+		logExporter,
 	)
 	if err != nil {
 		log.Fatalf(ctx, err, "failed to initialize instrumentation")
