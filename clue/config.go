@@ -51,11 +51,6 @@ func ConfigureOpenTelemetry(ctx context.Context, cfg *Config) {
 	otel.SetTextMapPropagator(cfg.Propagators)
 	otel.SetLogger(logr.New(log.ToLogrSink(ctx)))
 	otel.SetErrorHandler(cfg.ErrorHandler)
-
-	if cfg.LoggerProvider != nil {
-		otelLogger := cfg.LoggerProvider.Logger("clue")
-		ctx = log.Context(ctx, log.WithOTELLogger(otelLogger))
-	}
 }
 
 // NewConfig creates a new Config object adequate for use by

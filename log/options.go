@@ -119,16 +119,6 @@ func WithFunc(fn func(context.Context) []KV) LogOption {
 	}
 }
 
-// WithOTELLogger sets the OpenTelemetry logger to send logs to OTLP.
-func WithOTELLogger(otelLogger otellog.Logger) LogOption {
-	return func(o *options) {
-		// Safety check: don't set the OTEL logger if it's nil to avoid issues
-		if otelLogger != nil {
-			o.otellog = otelLogger
-		}
-	}
-}
-
 // IsTerminal returns true if the process is running in a terminal.
 func IsTerminal() bool {
 	return term.IsTerminal(int(os.Stdout.Fd()))
