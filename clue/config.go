@@ -17,6 +17,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	"go.opentelemetry.io/otel/trace"
 	tracenoop "go.opentelemetry.io/otel/trace/noop"
+	lognoop "go.opentelemetry.io/otel/log/noop"
 
 	"goa.design/clue/log"
 
@@ -138,7 +139,7 @@ func NewConfig(
 	}
 	var loggerProvider otellog.LoggerProvider
 	if logExporter == nil {
-		loggerProvider = global.GetLoggerProvider()
+		loggerProvider = lognoop.NewLoggerProvider()
 	} else {
 		loggerProvider = sdklog.NewLoggerProvider(
 			sdklog.WithResource(res),
