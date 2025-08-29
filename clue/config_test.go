@@ -11,6 +11,9 @@ import (
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	otellog "go.opentelemetry.io/otel/log"
+	"go.opentelemetry.io/otel/log/global"
+	lognoop "go.opentelemetry.io/otel/log/noop"
 	"go.opentelemetry.io/otel/metric"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/propagation"
@@ -31,17 +34,20 @@ func TestConfigureOpenTelemetry(t *testing.T) {
 	ctx := log.Context(context.Background())
 	noopMeterProvider := metricnoop.NewMeterProvider()
 	noopTracerProvider := tracenoop.NewTracerProvider()
+	noopLoggerProvider := lognoop.NewLoggerProvider()
 	noopErrorHandler := dummyErrorHandler{}
 
 	cases := []struct {
 		name           string
 		meterProvider  metric.MeterProvider
 		tracerProvider trace.TracerProvider
+		loggerProvider otellog.LoggerProvider
 		propagators    propagation.TextMapPropagator
 		errorHandler   otel.ErrorHandler
 
 		wantMeterProvider  metric.MeterProvider
 		wantTracerProvider trace.TracerProvider
+		wantLoggerProvider otellog.LoggerProvider
 		wantPropagators    propagation.TextMapPropagator
 		wantErrorHandler   bool
 	}{
@@ -55,6 +61,10 @@ func TestConfigureOpenTelemetry(t *testing.T) {
 			name:               "tracer provider",
 			tracerProvider:     noopTracerProvider,
 			wantTracerProvider: noopTracerProvider,
+		}, {
+			name:               "logger provider",
+			loggerProvider:     noopLoggerProvider,
+			wantLoggerProvider: noopLoggerProvider,
 		}, {
 			name:            "propagators",
 			propagators:     propagation.Baggage{},
@@ -70,12 +80,14 @@ func TestConfigureOpenTelemetry(t *testing.T) {
 			cfg := &Config{
 				MeterProvider:  c.meterProvider,
 				TracerProvider: c.tracerProvider,
+				LoggerProvider: c.loggerProvider,
 				Propagators:    c.propagators,
 				ErrorHandler:   c.errorHandler,
 			}
 			ConfigureOpenTelemetry(ctx, cfg)
 			assert.Equal(t, c.wantMeterProvider, otel.GetMeterProvider())
 			assert.Equal(t, c.wantTracerProvider, otel.GetTracerProvider())
+			assert.Equal(t, c.wantLoggerProvider, global.GetLoggerProvider())
 			assert.Equal(t, c.wantPropagators, otel.GetTextMapPropagator())
 		})
 	}
