@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/aws/smithy-go v1.22.5
 	github.com/go-logr/logr v1.4.3
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.37.0
