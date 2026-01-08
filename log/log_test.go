@@ -78,7 +78,7 @@ func ExampleErrorf() {
 // accordingly.
 func TestFileLocation(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat), WithFileLocation())
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: testFormat}), WithFileLocation())
 	Infof(ctx, buffered)
 	require.Len(t, entries(ctx), 1)
 	e := (entries(ctx))[0]
@@ -92,7 +92,7 @@ func TestSeverity(t *testing.T) {
 	printSev := func(e *Entry) []byte {
 		return []byte(e.Severity.String() + ":" + e.Severity.Code() + ":" + e.Severity.Color() + " ")
 	}
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(printSev), WithDebug())
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: printSev}), WithDebug())
 	Debugf(ctx, "")
 	Infof(ctx, "")
 	Warnf(ctx, "")
@@ -106,7 +106,7 @@ func TestSeverity(t *testing.T) {
 
 func TestBuffering(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: testFormat}))
 
 	// Buffering is enabled by default.
 	Infof(ctx, buffered)
@@ -138,7 +138,7 @@ func TestBuffering(t *testing.T) {
 
 func TestBufferingWithError(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: testFormat}))
 	err := fmt.Errorf("error")
 
 	// Error flushes the buffer.
@@ -174,8 +174,10 @@ func TestBufferingWithDisableBufferingFunc(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			ctx := Context(context.Background(), WithOutput(&buf),
-				WithFormat(testFormat), WithDisableBuffering(disableBuffering))
+			ctx := Context(context.Background(),
+				WithOutputs(Output{Writer: &buf, Format: testFormat}),
+				WithDisableBuffering(disableBuffering),
+			)
 
 			Infof(ctx, buffered)
 			assert.Len(t, entries(ctx), 1)
@@ -194,7 +196,7 @@ func TestFatal(t *testing.T) {
 	osExit = func(_ int) { exitCalled = true }
 	defer func() { osExit = os.Exit }()
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: testFormat}))
 	err := fmt.Errorf("error")
 
 	// Fatal flushes the buffer.
@@ -211,7 +213,7 @@ func TestFatal(t *testing.T) {
 
 func TestDebug(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: testFormat}))
 
 	// Debug logs are ignored by default.
 	Debugf(ctx, ignored)
@@ -232,7 +234,7 @@ func TestDebug(t *testing.T) {
 
 func TestStructuredLogging(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: testFormat}))
 
 	// No key-value pair is logged by default.
 	Infof(ctx, buffered)
@@ -322,7 +324,10 @@ func TestDynamicKeyVals(t *testing.T) {
 	kvfunc := func(ctx context.Context) []KV {
 		return []KV{{"key1", "val1"}, {"key2", "val2"}}
 	}
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(testFormat), WithFunc(kvfunc))
+	ctx := Context(context.Background(),
+		WithOutputs(Output{Writer: &buf, Format: testFormat}),
+		WithFunc(kvfunc),
+	)
 	Infof(ctx, buffered)
 	if len(entries(ctx)) != 1 {
 		t.Fatalf("got %d buffered entries, want 1", len(entries(ctx)))
@@ -434,7 +439,10 @@ func TestMaxSize(t *testing.T) {
 				return []byte(vals)
 			}
 
-			ctx := Context(context.Background(), WithOutput(&buf), WithMaxSize(maxsize), WithFormat(format))
+			ctx := Context(context.Background(),
+				WithOutputs(Output{Writer: &buf, Format: format}),
+				WithMaxSize(maxsize),
+			)
 			Print(ctx, kvList(c.keyvals))
 
 			if buf.Len() != c.expected {
@@ -450,7 +458,10 @@ func TestMaxSize(t *testing.T) {
 		defer func() { timeNow = now; epoch = epoc }()
 
 		var buf bytes.Buffer
-		ctx := Context(context.Background(), WithOutput(&buf), WithMaxSize(maxsize), WithFormat(FormatText))
+		ctx := Context(context.Background(),
+			WithOutputs(Output{Writer: &buf, Format: FormatText}),
+			WithMaxSize(maxsize),
+		)
 		Print(ctx, KV{"truncated", "it is too long"})
 
 		want := "time=2022-01-09T20:29:45Z level=info truncated=\"it is ... <clue/log.truncated>\"\n"
@@ -462,7 +473,7 @@ func TestMaxSize(t *testing.T) {
 
 func TestWithMultipleDerivedLoggers(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatText))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatText}))
 	FlushAndDisableBuffering(ctx)
 
 	Info(ctx, KV{"msg", "root"})
@@ -495,7 +506,7 @@ func TestWithMultipleDerivedLoggers(t *testing.T) {
 func TestConcurrentLog(t *testing.T) {
 	// run with -race to detect data races
 	var buf Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatText))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatText}))
 	FlushAndDisableBuffering(ctx)
 
 	for range 10 {

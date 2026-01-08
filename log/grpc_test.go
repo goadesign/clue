@@ -60,7 +60,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+			ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatJSON}))
 			logInterceptor := UnaryServerInterceptor(ctx, c.options...)
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithServerOptions(grpc.UnaryInterceptor(logInterceptor)),
@@ -123,7 +123,7 @@ func TestStreamServerTrace(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+			ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatJSON}))
 			logInterceptor := StreamServerInterceptor(ctx, c.options...)
 			cli, stop := testsvc.SetupGRPC(t,
 				testsvc.WithServerOptions(grpc.StreamInterceptor(logInterceptor)),
@@ -194,7 +194,7 @@ func TestUnaryClientInterceptor(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			ctx := Context(context.Background(), WithOutput(&buf))
+			ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatText}))
 			if c.noLog {
 				ctx = context.Background()
 			}
@@ -238,7 +238,7 @@ func TestStreamClientInterceptor(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			ctx := Context(context.Background(), WithOutput(&buf))
+			ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatText}))
 			if c.noLog {
 				ctx = context.Background()
 			}
@@ -264,7 +264,7 @@ func TestWithCallLogFunc(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatJSON}))
 	handler := UnaryServerInterceptor(ctx, WithCallLogFunc(customLogFunc))
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.UnaryInterceptor(handler)),
@@ -290,7 +290,7 @@ func TestWithCallLogFuncStream(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatJSON}))
 	handler := StreamServerInterceptor(ctx, WithCallLogFunc(customLogFunc))
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.StreamInterceptor(handler)),
@@ -319,7 +319,7 @@ func TestWithCallLogFuncClient(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatJSON}))
 
 	// Test unary client interceptor
 	cli, stop := testsvc.SetupGRPC(t,

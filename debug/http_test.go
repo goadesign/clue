@@ -16,8 +16,8 @@ func TestHTTP(t *testing.T) {
 	// Create log context
 	var buf bytes.Buffer
 	ctx := log.Context(context.Background(),
-		log.WithOutput(&buf),
-		log.WithFormat(logKeyValsOnly))
+		log.WithOutputs(log.Output{Writer: &buf, Format: logKeyValsOnly}),
+	)
 	log.FlushAndDisableBuffering(ctx)
 
 	// Create HTTP handler

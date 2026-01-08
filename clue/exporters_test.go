@@ -48,7 +48,7 @@ func TestNewGRPCMetricExporter(t *testing.T) {
 				return otlpmetricgrpc.New(ctx)
 			}
 			var buf bytes.Buffer
-			ctx := log.Context(context.Background(), log.WithOutput(&buf))
+			ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: &buf, Format: log.FormatText}))
 
 			exporter, shutdown, err := NewGRPCMetricExporter(ctx, tt.options...)
 
@@ -100,7 +100,7 @@ func TestNewHTTPMetricExporter(t *testing.T) {
 				return otlpmetrichttp.New(ctx)
 			}
 			var buf bytes.Buffer
-			ctx := log.Context(context.Background(), log.WithOutput(&buf))
+			ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: &buf, Format: log.FormatText}))
 
 			exporter, shutdown, err := NewHTTPMetricExporter(ctx, tt.options...)
 
@@ -152,7 +152,7 @@ func TestNewGRPCSpanExporter(t *testing.T) {
 				return otlptracegrpc.New(ctx)
 			}
 			var buf bytes.Buffer
-			ctx := log.Context(context.Background(), log.WithOutput(&buf))
+			ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: &buf, Format: log.FormatText}))
 
 			exporter, shutdown, err := NewGRPCSpanExporter(ctx, tt.options...)
 
@@ -204,7 +204,7 @@ func TestNewHTTPSpanExporter(t *testing.T) {
 				return otlptracehttp.New(ctx)
 			}
 			var buf bytes.Buffer
-			ctx := log.Context(context.Background(), log.WithOutput(&buf))
+			ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: &buf, Format: log.FormatText}))
 
 			exporter, shutdown, err := NewHTTPSpanExporter(ctx, tt.options...)
 

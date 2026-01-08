@@ -17,8 +17,10 @@ func TestDefaultOptions(t *testing.T) {
 	opts := defaultOptions()
 	assert.Equal(t, fmt.Sprintf("%p", opts.disableBuffering), fmt.Sprintf("%p", IsTracing))
 	assert.False(t, opts.debug)
-	assert.Equal(t, opts.w, os.Stdout)
-	assert.Equal(t, fmt.Sprintf("%p", opts.format), fmt.Sprintf("%p", FormatText))
+	if assert.Len(t, opts.outputs, 1) {
+		assert.Equal(t, os.Stdout, opts.outputs[0].Writer)
+		assert.Equal(t, fmt.Sprintf("%p", opts.outputs[0].Format), fmt.Sprintf("%p", FormatText))
+	}
 	assert.Equal(t, opts.maxsize, DefaultMaxSize)
 }
 
@@ -42,17 +44,14 @@ func TestWithNoDebug(t *testing.T) {
 	assert.False(t, opts.debug)
 }
 
-func TestWithOutput(t *testing.T) {
+func TestWithOutputs(t *testing.T) {
 	opts := defaultOptions()
 	w := io.Discard
-	WithOutput(w)(opts)
-	assert.Equal(t, opts.w, w)
-}
-
-func TestWithFormat(t *testing.T) {
-	opts := defaultOptions()
-	WithFormat(FormatJSON)(opts)
-	assert.Equal(t, fmt.Sprintf("%p", opts.format), fmt.Sprintf("%p", FormatJSON))
+	WithOutputs(Output{Writer: w, Format: FormatJSON})(opts)
+	if assert.Len(t, opts.outputs, 1) {
+		assert.Equal(t, w, opts.outputs[0].Writer)
+		assert.Equal(t, fmt.Sprintf("%p", opts.outputs[0].Format), fmt.Sprintf("%p", FormatJSON))
+	}
 }
 
 func TestWithMaxSize(t *testing.T) {

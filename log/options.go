@@ -23,11 +23,23 @@ type (
 	// FormatFunc is a function that formats a log entry.
 	FormatFunc func(e *Entry) []byte
 
+	// Output configures where log entries are written and how they are formatted.
+	//
+	// Output is the unit of configuration for "fanout" logging: a single log entry
+	// can be written to multiple outputs, each with its own formatting.
+	//
+	// Writer and Format must be non-nil.
+	Output struct {
+		// Writer receives the formatted log bytes.
+		Writer io.Writer
+		// Format turns a log entry into bytes suitable for Writer.
+		Format FormatFunc
+	}
+
 	options struct {
 		disableBuffering DisableBufferingFunc
 		debug            bool
-		w                io.Writer
-		format           FormatFunc
+		outputs          []Output
 		keyvals          kvList
 		kvfuncs          []func(context.Context) []KV
 		maxsize          int
@@ -68,17 +80,26 @@ func WithNoDebug() LogOption {
 	}
 }
 
-// WithOutput sets the log output.
-func WithOutput(w io.Writer) LogOption {
+// WithOutputs sets the log outputs.
+//
+// Each output formats the entry then writes it to its writer. This makes it
+// possible to log to multiple destinations with independent formats (e.g.
+// terminal colors on stdout and JSON to a file).
+func WithOutputs(outputs ...Output) LogOption {
 	return func(o *options) {
-		o.w = w
-	}
-}
-
-// WithFormat sets the log format.
-func WithFormat(fn FormatFunc) LogOption {
-	return func(o *options) {
-		o.format = fn
+		if len(outputs) == 0 {
+			panic("log.WithOutputs: at least one output must be provided")
+		}
+		for i, out := range outputs {
+			if out.Writer == nil {
+				panic("log.WithOutputs: output writer is nil")
+			}
+			if out.Format == nil {
+				panic("log.WithOutputs: output format is nil")
+			}
+			outputs[i] = out
+		}
+		o.outputs = outputs
 	}
 }
 
@@ -130,8 +151,7 @@ func defaultOptions() *options {
 	}
 	return &options{
 		disableBuffering: IsTracing,
-		w:                os.Stdout,
-		format:           format,
+		outputs:          []Output{{Writer: os.Stdout, Format: format}},
 		maxsize:          DefaultMaxSize,
 	}
 }

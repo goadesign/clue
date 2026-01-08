@@ -177,7 +177,7 @@ By default `log` writes log messages to `os.Stdout`. The following example shows
 how to change the log output:
 
 ```go
-ctx := log.Context(context.Background(), log.WithOutput(os.Stderr))
+ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: os.Stderr, Format: log.FormatTerminal}))
 log.Printf(ctx, "hello world")
 ```
 
@@ -187,8 +187,8 @@ The example above logs the following message to stderr:
 INFO[0000] msg="hello world"
 ```
 
-The `WithOutput` function accepts any type that implements the `io.Writer`
-interface.
+Each `log.Output` specifies both the destination writer and the formatter used
+to turn log entries into bytes.
 
 ## Log Format
 
@@ -205,7 +205,7 @@ The text format is the default format used when the application is not running
 in a terminal.
 
 ```go
-ctx := log.Context(context.Background(), log.WithFormat(log.FormatText))
+ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: os.Stdout, Format: log.FormatText}))
 log.Printf(ctx, "hello world")
 ```
 
@@ -223,7 +223,7 @@ The terminal format is the default format used when the application is running
 in a terminal.
 
 ```go
-ctx := log.Context(context.Background(), log.WithFormat(log.FormatTerminal))
+ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: os.Stdout, Format: log.FormatTerminal}))
 log.Printf(ctx, "hello world")
 ```
 
@@ -242,7 +242,7 @@ blue for info entries and red for errors).
 The JSON format prints entries in JSON.
 
 ```go
-ctx := log.Context(context.Background(), log.WithFormat(log.FormatJSON))
+ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: os.Stdout, Format: log.FormatJSON}))
 log.Printf(ctx, "hello world")
 ```
 
@@ -254,7 +254,6 @@ The example above logs the following message:
 
 ### Custom Formats
 
-The format can be changed by using the `WithFormat` function as shown above.
 Any function that accepts a `Entry` object and returns a slice of bytes can be
 used as a format function. The following example shows how to use a custom
 format function:
@@ -264,7 +263,7 @@ func formatFunc(entry *log.Entry) []byte {
         return []byte(fmt.Sprintf("%s: %s", entry.Severity, entry.KeyVals[0].V))
 }
 
-ctx := log.Context(context.Background(), log.WithFormat(formatFunc))
+ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: os.Stdout, Format: formatFunc}))
 log.Printf(ctx, "hello world")
 ```
 

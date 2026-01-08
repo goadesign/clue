@@ -177,7 +177,16 @@ func FlushAndDisableBuffering(ctx context.Context) {
 }
 
 func (l *logger) writeEntry(e *Entry) {
-	l.options.w.Write(l.options.format(e)) // nolint: errcheck
+	for i, out := range l.options.outputs {
+		b := out.Format(e)
+		n, err := out.Writer.Write(b)
+		if err != nil {
+			panic(fmt.Errorf("log: write failed (output=%d): %w", i, err))
+		}
+		if n != len(b) {
+			panic(fmt.Errorf("log: short write (output=%d): %w", i, io.ErrShortWrite))
+		}
+	}
 }
 
 func (l *logger) flush() {
@@ -329,8 +338,12 @@ func (lw *limitWriter) Write(b []byte) (int, error) {
 	newLen := lw.n + len(b)
 	if newLen > lw.max {
 		b = b[:lw.max-lw.n]
-		lw.Writer.Write(b) // nolint: errcheck
-		return lw.max - lw.n, errTruncated
+		n, err := lw.Writer.Write(b)
+		if err != nil {
+			return n, err
+		}
+		lw.n = lw.max
+		return n, errTruncated
 	}
 	lw.n = newLen
 	return lw.Writer.Write(b)

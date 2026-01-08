@@ -202,7 +202,7 @@ func TestFormat(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(tc.format), WithDebug())
+			ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: tc.format}), WithDebug())
 			tc.logfn(ctx, kvList(tc.keyVals))
 			assert.Equal(t, tc.want, buf.String())
 		})
@@ -240,7 +240,7 @@ func TestFormat(t *testing.T) {
 	for _, tc := range errorCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(tc.format), WithDebug())
+			ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: tc.format}), WithDebug())
 			tc.logfn(ctx, errors.New("error"), kvList(tc.keyVals))
 			assert.Equal(t, tc.want, buf.String())
 		})
@@ -284,7 +284,7 @@ func TestFormat(t *testing.T) {
 				SeverityKey = severityKey
 			}()
 			var buf bytes.Buffer
-			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(tc.format), WithDebug())
+			ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: tc.format}), WithDebug())
 			tc.logfn(ctx, kvList(tc.keyVals))
 			assert.Equal(t, tc.want, buf.String())
 		})

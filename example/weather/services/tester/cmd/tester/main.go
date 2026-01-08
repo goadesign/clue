@@ -51,7 +51,10 @@ func main() {
 	if log.IsTerminal() {
 		format = log.FormatTerminal
 	}
-	ctx := log.Context(context.Background(), log.WithFormat(format), log.WithFunc(log.Span))
+	ctx := log.Context(context.Background(),
+		log.WithOutputs(log.Output{Writer: os.Stdout, Format: format}),
+		log.WithFunc(log.Span),
+	)
 	if *debugf {
 		ctx = log.Context(ctx, log.WithDebug())
 		log.Debugf(ctx, "debug logs enabled")
@@ -66,7 +69,7 @@ func main() {
 	}
 	defer func() {
 		// Create new context in case the parent context has been canceled.
-		ctx := log.Context(context.Background(), log.WithFormat(format))
+		ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: os.Stdout, Format: format}))
 		err := spanExporter.Shutdown(ctx)
 		if err != nil {
 			log.Errorf(ctx, err, "failed to shutdown tracing")
@@ -80,7 +83,7 @@ func main() {
 	}
 	defer func() {
 		// Create new context in case the parent context has been canceled.
-		ctx := log.Context(context.Background(), log.WithFormat(format))
+		ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: os.Stdout, Format: format}))
 		err := metricExporter.Shutdown(ctx)
 		if err != nil {
 			log.Errorf(ctx, err, "failed to shutdown metrics")

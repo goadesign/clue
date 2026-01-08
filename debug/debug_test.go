@@ -122,7 +122,7 @@ func TestDebugPayloads(t *testing.T) {
 	payload := &test.Fields{S: &vals, I: &vali}
 	testErr := errors.New("test error")
 	newLogContext := func() context.Context {
-		return log.Context(context.Background(), log.WithOutput(&buf), log.WithFormat(logKeyValsOnly))
+		return log.Context(context.Background(), log.WithOutputs(log.Output{Writer: &buf, Format: logKeyValsOnly}))
 	}
 	newDebugLogContext := func() context.Context {
 		return log.Context(newLogContext(), log.WithDebug())
