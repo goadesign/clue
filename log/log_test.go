@@ -154,6 +154,28 @@ func TestBufferingWithError(t *testing.T) {
 	assert.Equal(t, expected+printed, buf.String())
 }
 
+func TestMultipleOutputs(t *testing.T) {
+	var (
+		b1 bytes.Buffer
+		b2 bytes.Buffer
+	)
+	format1 := func(*Entry) []byte {
+		return []byte("one")
+	}
+	format2 := func(*Entry) []byte {
+		return []byte("two")
+	}
+	ctx := Context(context.Background(), WithOutputs(
+		Output{Writer: &b1, Format: format1},
+		Output{Writer: &b2, Format: format2},
+	))
+
+	Printf(ctx, "ignored")
+
+	assert.Equal(t, "one", b1.String())
+	assert.Equal(t, "two", b2.String())
+}
+
 type ctxTestKey int
 
 const disableBufferingKey ctxTestKey = iota + 1

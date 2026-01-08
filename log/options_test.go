@@ -44,6 +44,23 @@ func TestWithNoDebug(t *testing.T) {
 	assert.False(t, opts.debug)
 }
 
+func TestWithOutput(t *testing.T) {
+	opts := defaultOptions()
+	w := io.Discard
+	WithOutput(w)(opts)
+	if assert.Len(t, opts.outputs, 1) {
+		assert.Equal(t, w, opts.outputs[0].Writer)
+	}
+}
+
+func TestWithFormat(t *testing.T) {
+	opts := defaultOptions()
+	WithFormat(FormatJSON)(opts)
+	if assert.Len(t, opts.outputs, 1) {
+		assert.Equal(t, fmt.Sprintf("%p", opts.outputs[0].Format), fmt.Sprintf("%p", FormatJSON))
+	}
+}
+
 func TestWithOutputs(t *testing.T) {
 	opts := defaultOptions()
 	w := io.Discard

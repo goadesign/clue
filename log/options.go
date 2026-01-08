@@ -80,6 +80,34 @@ func WithNoDebug() LogOption {
 	}
 }
 
+// WithOutput sets the log output.
+//
+// This option exists for backward compatibility. When used in conjunction with
+// WithOutputs, it updates the first output writer.
+func WithOutput(w io.Writer) LogOption {
+	return func(o *options) {
+		if len(o.outputs) == 0 {
+			o.outputs = []Output{{Writer: w, Format: FormatText}}
+			return
+		}
+		o.outputs[0].Writer = w
+	}
+}
+
+// WithFormat sets the log format.
+//
+// This option exists for backward compatibility. When used in conjunction with
+// WithOutputs, it updates the first output format.
+func WithFormat(fn FormatFunc) LogOption {
+	return func(o *options) {
+		if len(o.outputs) == 0 {
+			o.outputs = []Output{{Writer: os.Stdout, Format: fn}}
+			return
+		}
+		o.outputs[0].Format = fn
+	}
+}
+
 // WithOutputs sets the log outputs.
 //
 // Each output formats the entry then writes it to its writer. This makes it
