@@ -87,8 +87,7 @@ func WithNoDebug() LogOption {
 func WithOutput(w io.Writer) LogOption {
 	return func(o *options) {
 		if len(o.outputs) == 0 {
-			o.outputs = []Output{{Writer: w, Format: FormatText}}
-			return
+			panic("log.WithOutput: logger outputs not initialized")
 		}
 		o.outputs[0].Writer = w
 	}
@@ -101,8 +100,7 @@ func WithOutput(w io.Writer) LogOption {
 func WithFormat(fn FormatFunc) LogOption {
 	return func(o *options) {
 		if len(o.outputs) == 0 {
-			o.outputs = []Output{{Writer: os.Stdout, Format: fn}}
-			return
+			panic("log.WithFormat: logger outputs not initialized")
 		}
 		o.outputs[0].Format = fn
 	}
@@ -166,9 +164,11 @@ func WithFunc(fn func(context.Context) []KV) LogOption {
 	}
 }
 
+var isTerminal = term.IsTerminal
+
 // IsTerminal returns true if the process is running in a terminal.
 func IsTerminal() bool {
-	return term.IsTerminal(int(os.Stdout.Fd()))
+	return isTerminal(int(os.Stdout.Fd()))
 }
 
 // defaultOptions returns a new options struct with default values.

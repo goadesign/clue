@@ -24,6 +24,19 @@ func TestDefaultOptions(t *testing.T) {
 	assert.Equal(t, opts.maxsize, DefaultMaxSize)
 }
 
+func TestDefaultOptionsTerminalFormat(t *testing.T) {
+	restore := isTerminal
+	isTerminal = func(int) bool {
+		return true
+	}
+	defer func() { isTerminal = restore }()
+
+	opts := defaultOptions()
+	if assert.Len(t, opts.outputs, 1) {
+		assert.Equal(t, fmt.Sprintf("%p", opts.outputs[0].Format), fmt.Sprintf("%p", FormatTerminal))
+	}
+}
+
 func TestWithDisableBuffering(t *testing.T) {
 	opts := defaultOptions()
 	disable := func(ctx context.Context) bool { return true }
@@ -71,6 +84,43 @@ func TestWithOutputs(t *testing.T) {
 	}
 }
 
+func TestWithOutputRequiresInitializedOutputs(t *testing.T) {
+	opts := &options{}
+	assert.PanicsWithValue(t, "log.WithOutput: logger outputs not initialized", func() {
+		WithOutput(io.Discard)(opts)
+	})
+}
+
+func TestWithFormatRequiresInitializedOutputs(t *testing.T) {
+	opts := &options{}
+	assert.PanicsWithValue(t, "log.WithFormat: logger outputs not initialized", func() {
+		WithFormat(FormatJSON)(opts)
+	})
+}
+
+func TestWithOutputsPanics(t *testing.T) {
+	t.Run("no outputs", func(t *testing.T) {
+		opts := defaultOptions()
+		assert.PanicsWithValue(t, "log.WithOutputs: at least one output must be provided", func() {
+			WithOutputs()(opts)
+		})
+	})
+
+	t.Run("nil writer", func(t *testing.T) {
+		opts := defaultOptions()
+		assert.PanicsWithValue(t, "log.WithOutputs: output writer is nil", func() {
+			WithOutputs(Output{Writer: nil, Format: FormatText})(opts)
+		})
+	})
+
+	t.Run("nil format", func(t *testing.T) {
+		opts := defaultOptions()
+		assert.PanicsWithValue(t, "log.WithOutputs: output format is nil", func() {
+			WithOutputs(Output{Writer: io.Discard, Format: nil})(opts)
+		})
+	})
+}
+
 func TestWithMaxSize(t *testing.T) {
 	opts := defaultOptions()
 	WithMaxSize(10)(opts)
@@ -91,7 +141,16 @@ func TestIsTracing(t *testing.T) {
 }
 
 func TestIsTerminal(t *testing.T) {
-	if IsTerminal() {
-		t.Errorf("expected IsTerminal to return false")
+	restore := isTerminal
+	defer func() { isTerminal = restore }()
+
+	isTerminal = func(int) bool {
+		return false
 	}
+	assert.False(t, IsTerminal())
+
+	isTerminal = func(int) bool {
+		return true
+	}
+	assert.True(t, IsTerminal())
 }
