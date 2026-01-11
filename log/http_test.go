@@ -53,7 +53,7 @@ func TestHTTP(t *testing.T) {
 				Print(req.Context(), KV{"key1", "value1"}, KV{"key2", "value2"})
 			})
 			var buf bytes.Buffer
-			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+			ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatJSON}))
 
 			handler = HTTP(ctx, c.opt)(handler)
 
@@ -88,7 +88,7 @@ func TestEndpoint(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+			ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatJSON}))
 			if c.sname != "" {
 				ctx = context.WithValue(ctx, goa.ServiceKey, c.sname)
 			}
@@ -130,7 +130,7 @@ func TestClient(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			ctx := Context(context.Background(), WithOutput(&buf))
+			ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatText}))
 			if c.noLog {
 				ctx = context.Background()
 			}
@@ -162,7 +162,7 @@ func TestWithPathFilter(t *testing.T) {
 		Print(req.Context(), KV{"key1", "value1"}, KV{"key2", "value2"})
 	})
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatJSON}))
 
 	handler = HTTP(ctx, WithPathFilter(regexp.MustCompile("/path/to/ignore")))(handler)
 
@@ -190,7 +190,7 @@ func TestWithRequestLogFunc(t *testing.T) {
 	var handler http.Handler = http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
 	})
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithFormat(FormatJSON))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatJSON}))
 
 	handler = HTTP(ctx, WithRequestLogFunc(customLogFunc))(handler)
 

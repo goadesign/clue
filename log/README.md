@@ -190,6 +190,15 @@ INFO[0000] msg="hello world"
 The `WithOutput` function accepts any type that implements the `io.Writer`
 interface.
 
+For multiple outputs with independent formats, use `WithOutputs`:
+
+```go
+ctx := log.Context(context.Background(), log.WithOutputs(
+        log.Output{Writer: os.Stdout, Format: log.FormatTerminal},
+        log.Output{Writer: logfile,  Format: log.FormatJSON},
+))
+```
+
 ## Log Format
 
 `log` comes with three predefined log formats and makes it easy to provide
@@ -254,7 +263,6 @@ The example above logs the following message:
 
 ### Custom Formats
 
-The format can be changed by using the `WithFormat` function as shown above.
 Any function that accepts a `Entry` object and returns a slice of bytes can be
 used as a format function. The following example shows how to use a custom
 format function:

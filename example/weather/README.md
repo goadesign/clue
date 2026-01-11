@@ -59,11 +59,14 @@ The three services make use of the
 `main`:
 
 ```go
-ctx := log.Context(context.Background(), log.WithFormat(format), log.WithFunc(log.Span))
+ctx := log.Context(context.Background(),
+    log.WithOutputs(log.Output{Writer: os.Stdout, Format: format}),
+    log.WithFunc(log.Span),
+)
 ```
 
-The `log.WithFormat` option enables colors when logging to a terminal while the
-`log.Span` option adds the trace and span IDs to each log entry.
+The output configuration sets the format while the `log.Span` option adds the
+trace and span IDs to each log entry.
 
 The `front` service uses the HTTP middleware to initialize the log context for
 for every request:

@@ -2,6 +2,7 @@ package interceptors
 
 import (
 	"context"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -65,7 +66,7 @@ type (
 var tracer trace.Tracer
 
 func init() {
-	ctx := log.Context(context.Background(), log.WithFormat(log.FormatTerminal))
+	ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: io.Discard, Format: log.FormatText}))
 	metricExporter, err := stdoutmetric.New()
 	if err != nil {
 		panic(err)

@@ -18,7 +18,7 @@ func TestAsGoaMiddlwareLogger(t *testing.T) {
 	defer func() { timeNow = restore }()
 
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatText}))
 	logger := AsGoaMiddlewareLogger(ctx)
 	assert.NoError(t, logger.Log("msg", "hello world"))
 	want := "time=2022-01-09T20:29:45Z level=info msg=\"hello world\"\n"
@@ -31,7 +31,7 @@ func TestAsStdLogger(t *testing.T) {
 	defer func() { timeNow = restore }()
 
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf))
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatText}))
 	logger := AsStdLogger(ctx)
 
 	logger.Print("hello world")
@@ -113,7 +113,7 @@ func TestAsAWSLogger(t *testing.T) {
 	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
 	defer func() { timeNow = restore }()
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithDebug())
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatText}), WithDebug())
 	var logger logging.Logger = AsAWSLogger(ctx)
 
 	logger.Logf(logging.Classification("INFO"), "hello %s", "world")
@@ -139,7 +139,7 @@ func TestToLogrSink(t *testing.T) {
 	timeNow = func() time.Time { return time.Date(2022, time.January, 9, 20, 29, 45, 0, time.UTC) }
 	defer func() { timeNow = restore }()
 	var buf bytes.Buffer
-	ctx := Context(context.Background(), WithOutput(&buf), WithDebug())
+	ctx := Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatText}), WithDebug())
 	var sink logr.LogSink = ToLogrSink(ctx)
 
 	sink.Init(logr.RuntimeInfo{})
@@ -166,7 +166,7 @@ func TestToLogrSink(t *testing.T) {
 	logger.Error(errors.New("error"), msg)
 	assert.Equal(t, expectederr, buf.String())
 
-	ctx = Context(context.Background(), WithOutput(&buf))
+	ctx = Context(context.Background(), WithOutputs(Output{Writer: &buf, Format: FormatText}))
 	sink = ToLogrSink(ctx)
 	logger = logr.New(sink)
 

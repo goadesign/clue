@@ -17,9 +17,24 @@ func TestDefaultOptions(t *testing.T) {
 	opts := defaultOptions()
 	assert.Equal(t, fmt.Sprintf("%p", opts.disableBuffering), fmt.Sprintf("%p", IsTracing))
 	assert.False(t, opts.debug)
-	assert.Equal(t, opts.w, os.Stdout)
-	assert.Equal(t, fmt.Sprintf("%p", opts.format), fmt.Sprintf("%p", FormatText))
+	if assert.Len(t, opts.outputs, 1) {
+		assert.Equal(t, os.Stdout, opts.outputs[0].Writer)
+		assert.Equal(t, fmt.Sprintf("%p", opts.outputs[0].Format), fmt.Sprintf("%p", FormatText))
+	}
 	assert.Equal(t, opts.maxsize, DefaultMaxSize)
+}
+
+func TestDefaultOptionsTerminalFormat(t *testing.T) {
+	restore := isTerminal
+	isTerminal = func(int) bool {
+		return true
+	}
+	defer func() { isTerminal = restore }()
+
+	opts := defaultOptions()
+	if assert.Len(t, opts.outputs, 1) {
+		assert.Equal(t, fmt.Sprintf("%p", opts.outputs[0].Format), fmt.Sprintf("%p", FormatTerminal))
+	}
 }
 
 func TestWithDisableBuffering(t *testing.T) {
@@ -46,13 +61,64 @@ func TestWithOutput(t *testing.T) {
 	opts := defaultOptions()
 	w := io.Discard
 	WithOutput(w)(opts)
-	assert.Equal(t, opts.w, w)
+	if assert.Len(t, opts.outputs, 1) {
+		assert.Equal(t, w, opts.outputs[0].Writer)
+	}
 }
 
 func TestWithFormat(t *testing.T) {
 	opts := defaultOptions()
 	WithFormat(FormatJSON)(opts)
-	assert.Equal(t, fmt.Sprintf("%p", opts.format), fmt.Sprintf("%p", FormatJSON))
+	if assert.Len(t, opts.outputs, 1) {
+		assert.Equal(t, fmt.Sprintf("%p", opts.outputs[0].Format), fmt.Sprintf("%p", FormatJSON))
+	}
+}
+
+func TestWithOutputs(t *testing.T) {
+	opts := defaultOptions()
+	w := io.Discard
+	WithOutputs(Output{Writer: w, Format: FormatJSON})(opts)
+	if assert.Len(t, opts.outputs, 1) {
+		assert.Equal(t, w, opts.outputs[0].Writer)
+		assert.Equal(t, fmt.Sprintf("%p", opts.outputs[0].Format), fmt.Sprintf("%p", FormatJSON))
+	}
+}
+
+func TestWithOutputRequiresInitializedOutputs(t *testing.T) {
+	opts := &options{}
+	assert.PanicsWithValue(t, "log.WithOutput: logger outputs not initialized", func() {
+		WithOutput(io.Discard)(opts)
+	})
+}
+
+func TestWithFormatRequiresInitializedOutputs(t *testing.T) {
+	opts := &options{}
+	assert.PanicsWithValue(t, "log.WithFormat: logger outputs not initialized", func() {
+		WithFormat(FormatJSON)(opts)
+	})
+}
+
+func TestWithOutputsPanics(t *testing.T) {
+	t.Run("no outputs", func(t *testing.T) {
+		opts := defaultOptions()
+		assert.PanicsWithValue(t, "log.WithOutputs: at least one output must be provided", func() {
+			WithOutputs()(opts)
+		})
+	})
+
+	t.Run("nil writer", func(t *testing.T) {
+		opts := defaultOptions()
+		assert.PanicsWithValue(t, "log.WithOutputs: output writer is nil", func() {
+			WithOutputs(Output{Writer: nil, Format: FormatText})(opts)
+		})
+	})
+
+	t.Run("nil format", func(t *testing.T) {
+		opts := defaultOptions()
+		assert.PanicsWithValue(t, "log.WithOutputs: output format is nil", func() {
+			WithOutputs(Output{Writer: io.Discard, Format: nil})(opts)
+		})
+	})
 }
 
 func TestWithMaxSize(t *testing.T) {
@@ -75,7 +141,16 @@ func TestIsTracing(t *testing.T) {
 }
 
 func TestIsTerminal(t *testing.T) {
-	if IsTerminal() {
-		t.Errorf("expected IsTerminal to return false")
+	restore := isTerminal
+	defer func() { isTerminal = restore }()
+
+	isTerminal = func(int) bool {
+		return false
 	}
+	assert.False(t, IsTerminal())
+
+	isTerminal = func(int) bool {
+		return true
+	}
+	assert.True(t, IsTerminal())
 }

@@ -16,7 +16,7 @@ import (
 
 func TestUnaryServerInterceptor(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := log.Context(context.Background(), log.WithOutput(&buf), log.WithFormat(logKeyValsOnly))
+	ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: &buf, Format: logKeyValsOnly}))
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.ChainUnaryInterceptor(
 			log.UnaryServerInterceptor(ctx, log.WithDisableCallLogging(), log.WithDisableCallID()),
@@ -56,7 +56,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 
 func TestStreamServerInterceptor(t *testing.T) {
 	var buf bytes.Buffer
-	ctx := log.Context(context.Background(), log.WithOutput(&buf), log.WithFormat(logKeyValsOnly))
+	ctx := log.Context(context.Background(), log.WithOutputs(log.Output{Writer: &buf, Format: logKeyValsOnly}))
 	cli, stop := testsvc.SetupGRPC(t,
 		testsvc.WithServerOptions(grpc.ChainStreamInterceptor(
 			log.StreamServerInterceptor(ctx, log.WithDisableCallLogging(), log.WithDisableCallID()),
