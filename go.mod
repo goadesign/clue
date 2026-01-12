@@ -21,7 +21,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.39.0
 	goa.design/goa/v3 v3.23.2
 	golang.org/x/term v0.38.0
-	golang.org/x/tools v0.39.0
+	golang.org/x/tools v0.40.0
 	google.golang.org/genproto v0.0.0-20250908214217-97024824d090
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.10
@@ -43,11 +43,11 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
-	golang.org/x/mod v0.30.0 // indirect
-	golang.org/x/net v0.47.0 // indirect
-	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/mod v0.31.0 // indirect
+	golang.org/x/net v0.48.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/text v0.31.0 // indirect
+	golang.org/x/text v0.32.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
