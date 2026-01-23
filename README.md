@@ -78,7 +78,7 @@ debug and operate microservices using Clue's instrumentation capabilities.
 
 ## Installation
 
-Clue requires Go 1.21 or later. Install the packages required for your
+Clue requires Go 1.24 or later. Install the packages required for your
 application using `go get`, for example:
 
 ```bash
