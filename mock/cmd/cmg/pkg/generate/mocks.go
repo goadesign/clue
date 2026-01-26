@@ -60,12 +60,14 @@ var (
 // If testify is true, it uses github.com/stretchr/testify for assertions.
 func NewMocks(prefix string, p parse.Package, interfaces []parse.Interface, toolVersionFunc ToolVersionFunc, testify bool) Mocks {
 	var (
-		stdImports = importMap{"testing": newImport("testing")}
+		stdImports = make(importMap)
 		extImports = importMap{"mock": newImport("goa.design/clue/mock")}
 		intImports = make(importMap)
 	)
 	if testify {
 		extImports["assert"] = newImport("github.com/stretchr/testify/assert")
+	} else {
+		stdImports["testing"] = newImport("testing")
 	}
 
 	var (

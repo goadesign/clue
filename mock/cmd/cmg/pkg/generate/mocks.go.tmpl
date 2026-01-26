@@ -9,10 +9,14 @@ import (
 {{- range .StdImports }}
 	{{ if .Alias }}{{ .Alias }} {{ end }}"{{ .PkgPath }}"
 {{- end }}
-{{ range .ExtImports }}
+{{- if and (gt (len .StdImports) 0) (or (gt (len .ExtImports) 0) (gt (len .IntImports) 0)) }}
+{{ end }}
+{{- range .ExtImports }}
 	{{ if .Alias }}{{ .Alias }} {{ end }}"{{ .PkgPath }}"
 {{- end }}
-{{ range .IntImports }}
+{{- if and (gt (len .ExtImports) 0) (gt (len .IntImports) 0) }}
+{{ end }}
+{{- range .IntImports }}
 	{{ if .Alias }}{{ .Alias }} {{ end }}"{{ .PkgPath }}"
 {{- end }}
 )
@@ -40,7 +44,7 @@ type (
 {{- range $index, $interface := .Interfaces }}
 {{- if ge $index 1 }}
 {{ end }}
-func {{ .Constructor }}{{ .TypeParameters }}(t *testing.T) *{{ .Name }}{{ .TypeParameterVars }} {
+func {{ .Constructor }}{{ .TypeParameters }}(t {{ if $testify }}assert.TestingT{{ else }}*testing.T{{ end }}) *{{ .Name }}{{ .TypeParameterVars }} {
 	var (
 		{{ .Var | printf ($import.AliasOrPkgName | .ConstructorFmt) }} = &{{ .Name }}{{ .TypeParameterVars }}{mock.New(), {{ if $testify }}assert.New(t){{ else }}t{{ end }}}
 		_ {{ $import.AliasOrPkgName }}.{{ .Name }}{{ .TypeParameterVars }} = m

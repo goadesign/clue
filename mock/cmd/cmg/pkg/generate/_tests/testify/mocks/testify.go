@@ -6,8 +6,6 @@
 package mocktestify
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/assert"
 	"goa.design/clue/mock"
 
@@ -23,7 +21,7 @@ type (
 	TestifySimpleFunc func(a, b int) bool
 )
 
-func NewTestify(t *testing.T) *Testify {
+func NewTestify(t assert.TestingT) *Testify {
 	var (
 		m                 = &Testify{mock.New(), assert.New(t)}
 		_ testify.Testify = m
