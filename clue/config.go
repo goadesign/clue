@@ -82,8 +82,7 @@ func NewConfig(
 	}
 	res, err := resource.Merge(
 		resource.Default(),
-		resource.NewWithAttributes(
-			semconv.SchemaURL,
+		resource.NewSchemaless(
 			semconv.ServiceNameKey.String(svcName),
 			semconv.ServiceVersionKey.String(svcVersion),
 		))
