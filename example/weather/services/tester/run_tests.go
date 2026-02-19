@@ -63,7 +63,7 @@ func recoverFromTestPanic(ctx context.Context, testName string, testCollection *
 	if r := recover(); r != nil {
 		msg := fmt.Sprintf("[Panic Test]: %v", testName)
 		err := errors.New(msg)
-		log.Errorf(ctx, err, fmt.Sprintf("%v", r))
+		log.Errorf(ctx, err, "%v", r)
 		var m sync.Mutex
 		var wg sync.WaitGroup
 		wg.Add(1)
