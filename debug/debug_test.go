@@ -172,14 +172,14 @@ func TestDebugPayloads(t *testing.T) {
 }
 
 func logKeyValsOnly(e *log.Entry) []byte {
-	var buf bytes.Buffer
+	b := make([]byte, 0, 64)
 	for _, kv := range e.KeyVals {
-		buf.WriteString(kv.K)
-		buf.WriteString("=")
-		buf.WriteString(fmt.Sprintf("%v", kv.V))
-		buf.WriteString(" ")
+		b = append(b, kv.K...)
+		b = append(b, '=')
+		b = fmt.Appendf(b, "%v", kv.V)
+		b = append(b, ' ')
 	}
-	return buf.Bytes()
+	return b
 }
 
 func makeRequest(t *testing.T, url string) (int, string) {

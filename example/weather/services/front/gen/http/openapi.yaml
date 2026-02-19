@@ -115,6 +115,12 @@ definitions:
                       summary: Clear
                       temperature: 70
                       temperatureUnit: F
+                    - endTime: "2020-01-01T00:00:00Z"
+                      name: Morning
+                      startTime: "2020-01-01T00:00:00Z"
+                      summary: Clear
+                      temperature: 70
+                      temperatureUnit: F
         example:
             location:
                 city: San Francisco
@@ -144,7 +150,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -160,7 +166,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -171,8 +177,8 @@ definitions:
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
-            timeout: false
+            temporary: false
+            timeout: true
         required:
             - name
             - id
@@ -188,31 +194,29 @@ definitions:
                 type: array
                 items:
                     type: string
-                    example: Sequi ipsum vitae ut impedit.
+                    example: Eligendi sequi.
                 description: Tests to exclude
                 example:
-                    - Asperiores rem consequatur porro architecto aperiam.
-                    - Aut iste eveniet accusantium.
-                    - Architecto minima molestiae ad unde.
+                    - Pariatur nam saepe autem dolorem inventore.
+                    - Velit eius iste.
+                    - Maxime quibusdam in dolor error amet ut.
             include:
                 type: array
                 items:
                     type: string
-                    example: Sint libero natus.
+                    example: Iste eveniet.
                 description: Tests to run
                 example:
-                    - Cum ducimus nostrum temporibus ex quo nihil.
-                    - Ex et.
-                    - Itaque itaque cupiditate voluptas quod.
+                    - Architecto minima molestiae ad unde.
+                    - Porro possimus iste eius minus nesciunt.
+                    - Dolores ducimus.
         example:
             exclude:
-                - Pariatur nam saepe autem dolorem inventore.
-                - Velit eius iste.
-                - Maxime quibusdam in dolor error amet ut.
+                - Veritatis nesciunt est officia facere.
+                - Cum est et sit.
             include:
-                - Possimus iste eius.
-                - Nesciunt sit dolores ducimus.
-                - Eligendi sequi.
+                - Saepe nihil cum laboriosam amet consequatur.
+                - Quis sint alias.
     Location:
         title: Location
         type: object
@@ -321,10 +325,6 @@ definitions:
                     $ref: '#/definitions/TestResult'
                 description: Test results
                 example:
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
                     - duration: 1234
                       error: 'error getting location for valid ip: %v'
                       name: TestValidIP
@@ -474,23 +474,6 @@ definitions:
                 format: int64
         example:
             collections:
-                - duration: 1234
-                  fail_count: 1
-                  name: Locator Tests
-                  pass_count: 12
-                  results:
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
-                    - duration: 1234
-                      error: 'error getting location for valid ip: %v'
-                      name: TestValidIP
-                      passed: true
                 - duration: 1234
                   fail_count: 1
                   name: Locator Tests

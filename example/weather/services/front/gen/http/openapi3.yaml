@@ -20,9 +20,9 @@ paths:
                   required: true
                   schema:
                     type: string
-                    example: 183.149.183.79
+                    example: 132.104.159.207
                     format: ip
-                  example: 125.235.141.72
+                  example: 113.26.252.22
             responses:
                 "200":
                     description: OK response.
@@ -37,12 +37,6 @@ paths:
                                     long: -122.4233
                                     state: CA
                                 periods:
-                                    - endTime: "2020-01-01T00:00:00Z"
-                                      name: Morning
-                                      startTime: "2020-01-01T00:00:00Z"
-                                      summary: Clear
-                                      temperature: 70
-                                      temperatureUnit: F
                                     - endTime: "2020-01-01T00:00:00Z"
                                       name: Morning
                                       startTime: "2020-01-01T00:00:00Z"
@@ -82,15 +76,13 @@ paths:
                             $ref: '#/components/schemas/TestAllRequestBody'
                         example:
                             exclude:
-                                - Veritatis vel inventore voluptatem ab nulla.
-                                - In optio sed id.
-                                - Tenetur repellendus commodi asperiores.
-                                - Quaerat omnis vel quia ab dolorem qui.
+                                - Cum ducimus nostrum temporibus ex quo nihil.
+                                - Ex et.
+                                - Itaque itaque cupiditate voluptas quod.
                             include:
-                                - Consectetur eos nihil accusamus reiciendis eligendi.
-                                - Aut autem non.
-                                - Aperiam possimus assumenda commodi aut facilis provident.
-                                - Aspernatur voluptatem et placeat deserunt.
+                                - Deleniti tenetur voluptatibus.
+                                - Hic eius.
+                                - Sint libero natus.
             responses:
                 "200":
                     description: OK response.
@@ -100,40 +92,6 @@ paths:
                                 $ref: '#/components/schemas/TestResults'
                             example:
                                 collections:
-                                    - duration: 1234
-                                      fail_count: 1
-                                      name: Locator Tests
-                                      pass_count: 12
-                                      results:
-                                        - duration: 1234
-                                          error: 'error getting location for valid ip: %v'
-                                          name: TestValidIP
-                                          passed: true
-                                        - duration: 1234
-                                          error: 'error getting location for valid ip: %v'
-                                          name: TestValidIP
-                                          passed: true
-                                        - duration: 1234
-                                          error: 'error getting location for valid ip: %v'
-                                          name: TestValidIP
-                                          passed: true
-                                    - duration: 1234
-                                      fail_count: 1
-                                      name: Locator Tests
-                                      pass_count: 12
-                                      results:
-                                        - duration: 1234
-                                          error: 'error getting location for valid ip: %v'
-                                          name: TestValidIP
-                                          passed: true
-                                        - duration: 1234
-                                          error: 'error getting location for valid ip: %v'
-                                          name: TestValidIP
-                                          passed: true
-                                        - duration: 1234
-                                          error: 'error getting location for valid ip: %v'
-                                          name: TestValidIP
-                                          passed: true
                                     - duration: 1234
                                       fail_count: 1
                                       name: Locator Tests
@@ -221,40 +179,6 @@ paths:
                                           error: 'error getting location for valid ip: %v'
                                           name: TestValidIP
                                           passed: true
-                                    - duration: 1234
-                                      fail_count: 1
-                                      name: Locator Tests
-                                      pass_count: 12
-                                      results:
-                                        - duration: 1234
-                                          error: 'error getting location for valid ip: %v'
-                                          name: TestValidIP
-                                          passed: true
-                                        - duration: 1234
-                                          error: 'error getting location for valid ip: %v'
-                                          name: TestValidIP
-                                          passed: true
-                                        - duration: 1234
-                                          error: 'error getting location for valid ip: %v'
-                                          name: TestValidIP
-                                          passed: true
-                                    - duration: 1234
-                                      fail_count: 1
-                                      name: Locator Tests
-                                      pass_count: 12
-                                      results:
-                                        - duration: 1234
-                                          error: 'error getting location for valid ip: %v'
-                                          name: TestValidIP
-                                          passed: true
-                                        - duration: 1234
-                                          error: 'error getting location for valid ip: %v'
-                                          name: TestValidIP
-                                          passed: true
-                                        - duration: 1234
-                                          error: 'error getting location for valid ip: %v'
-                                          name: TestValidIP
-                                          passed: true
                                 duration: 1234
                                 fail_count: 1
                                 pass_count: 12
@@ -282,18 +206,18 @@ components:
                 temporary:
                     type: boolean
                     description: Is the error temporary?
-                    example: false
+                    example: true
                 timeout:
                     type: boolean
                     description: Is the error a timeout?
-                    example: false
+                    example: true
             description: IP address is not in the US
             example:
                 fault: true
                 id: 123abc
                 message: parameter 'p' must be an integer
                 name: bad_request
-                temporary: false
+                temporary: true
                 timeout: true
             required:
                 - name
@@ -325,6 +249,18 @@ components:
                           summary: Clear
                           temperature: 70
                           temperatureUnit: F
+                        - endTime: "2020-01-01T00:00:00Z"
+                          name: Morning
+                          startTime: "2020-01-01T00:00:00Z"
+                          summary: Clear
+                          temperature: 70
+                          temperatureUnit: F
+                        - endTime: "2020-01-01T00:00:00Z"
+                          name: Morning
+                          startTime: "2020-01-01T00:00:00Z"
+                          summary: Clear
+                          temperature: 70
+                          temperatureUnit: F
             description: Weather forecast
             example:
                 location:
@@ -333,12 +269,6 @@ components:
                     long: -122.4233
                     state: CA
                 periods:
-                    - endTime: "2020-01-01T00:00:00Z"
-                      name: Morning
-                      startTime: "2020-01-01T00:00:00Z"
-                      summary: Clear
-                      temperature: 70
-                      temperatureUnit: F
                     - endTime: "2020-01-01T00:00:00Z"
                       name: Morning
                       startTime: "2020-01-01T00:00:00Z"
@@ -438,29 +368,27 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Praesentium et est.
+                        example: Sit in autem id.
                     description: Tests to exclude
                     example:
-                        - Sed mollitia voluptate numquam.
-                        - Omnis occaecati sint.
-                        - Est reiciendis.
+                        - Pariatur et.
+                        - Exercitationem tempore.
                 include:
                     type: array
                     items:
                         type: string
-                        example: Et veritatis nesciunt est officia facere.
+                        example: Voluptate numquam recusandae.
                     description: Tests to run
                     example:
-                        - Est et.
-                        - Recusandae qui quod pariatur fugit.
+                        - Sint praesentium.
+                        - Reiciendis accusamus pariatur quibusdam libero.
             example:
                 exclude:
-                    - Ducimus doloremque et est.
-                    - Voluptates sint non modi omnis sed rerum.
+                    - Modi omnis sed.
+                    - Id consequatur alias vitae voluptas quia.
                 include:
-                    - Quibusdam libero ad sit in autem.
-                    - Et doloribus.
-                    - Et quibusdam exercitationem.
+                    - Doloremque et.
+                    - Officia voluptates.
         TestCollection:
             type: object
             properties:
@@ -489,10 +417,6 @@ components:
                         $ref: '#/components/schemas/TestResult'
                     description: Test results
                     example:
-                        - duration: 1234
-                          error: 'error getting location for valid ip: %v'
-                          name: TestValidIP
-                          passed: true
                         - duration: 1234
                           error: 'error getting location for valid ip: %v'
                           name: TestValidIP
@@ -616,6 +540,32 @@ components:
             description: Test results for the integration tests
             example:
                 collections:
+                    - duration: 1234
+                      fail_count: 1
+                      name: Locator Tests
+                      pass_count: 12
+                      results:
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                    - duration: 1234
+                      fail_count: 1
+                      name: Locator Tests
+                      pass_count: 12
+                      results:
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
+                        - duration: 1234
+                          error: 'error getting location for valid ip: %v'
+                          name: TestValidIP
+                          passed: true
                     - duration: 1234
                       fail_count: 1
                       name: Locator Tests

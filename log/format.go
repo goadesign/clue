@@ -1,7 +1,6 @@
 package log
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -233,23 +232,23 @@ func appendJSONArray(b []byte, arr []any) []byte {
 // the entry key/value pairs. The severity and keys are colored according to the
 // severity (gray for debug entries, blue for info entries and red for errors).
 func FormatTerminal(e *Entry) []byte {
-	var b bytes.Buffer
-	b.WriteString(e.Severity.Color())
-	b.WriteString(e.Severity.Code())
-	b.WriteString(reset)
-	b.WriteString(fmt.Sprintf("[%04d]", int(e.Time.Sub(epoch)/time.Second)))
+	b := make([]byte, 0, 256)
+	b = append(b, e.Severity.Color()...)
+	b = append(b, e.Severity.Code()...)
+	b = append(b, reset...)
+	b = fmt.Appendf(b, "[%04d]", int(e.Time.Sub(epoch)/time.Second))
 	if len(e.KeyVals) > 0 {
-		b.WriteByte(' ')
+		b = append(b, ' ')
 		for i, kv := range e.KeyVals {
-			b.WriteString(e.Severity.Color())
-			b.WriteString(kv.K)
-			b.WriteString(reset)
-			b.WriteString(fmt.Sprintf("=%v", kv.V))
+			b = append(b, e.Severity.Color()...)
+			b = append(b, kv.K...)
+			b = append(b, reset...)
+			b = fmt.Appendf(b, "=%v", kv.V)
 			if i < len(e.KeyVals)-1 {
-				b.WriteByte(' ')
+				b = append(b, ' ')
 			}
 		}
 	}
-	b.WriteByte('\n')
-	return b.Bytes()
+	b = append(b, '\n')
+	return b
 }
