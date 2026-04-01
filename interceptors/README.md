@@ -49,8 +49,17 @@ calling the `SetupTraceStreamRecvContext` and `GetTraceStreamRecvContext` helper
 * `WrapTraceServerToClientStreamClientStream`: wraps a client stream for a server to client stream.
 * `WrapTraceClientToServerStreamWithResultClientStream`: wraps a client stream for a client to server stream with a result.
 * `WrapTraceBidirectionalStreamServerStream`: wraps a server stream for a bidirectional stream.
-* `WrapTraceServerToClientStreamServerStream`: wraps a server stream for a server to client stream.
+* `WrapTraceClientToServerStreamServerStream`: wraps a server stream for a client to server stream.
 * `WrapTraceClientToServerStreamWithResultServerStream`: wraps a server stream for a client to server stream with a result.
+
+> **Note:** Wrappers are only provided for stream sides that receive messages, since that is the
+> only operation that requires trace metadata extraction. There are no wrappers for:
+>
+> * **Client-to-server streams without a result (client side):** The client only sends — the
+>   interceptor handles trace metadata injection on send, and `Close()` returns no result to
+>   extract from. Use the stream directly.
+> * **Server-to-client streams (server side):** The server only sends — the interceptor handles
+>   trace metadata injection on send. Use the stream directly.
 
 These interceptor functions will work best if you also set up OpenTelemetry instrumentation for your service
 using the [clue](../clue/) package.
