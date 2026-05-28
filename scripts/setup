@@ -8,10 +8,12 @@ pushd ${GIT_ROOT} > /dev/null
 
 source ./scripts/utils/common.sh
 
+GOLANGCI_LINT_VERSION=${GOLANGCI_LINT_VERSION:-v2.12.1}
+
 if [[ "$CI" == "" ]]; then
   check_required_cmd "tmux"
 fi
 
-curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest 
+go install "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}"
 
 popd > /dev/null
