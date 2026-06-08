@@ -12,7 +12,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
 	goa.design/clue v1.2.5
-	goa.design/goa/v3 v3.27.0
+	goa.design/goa/v3 v3.28.0
 	goa.design/model v1.14.2
 	goa.design/plugins/v3 v3.27.0
 	google.golang.org/grpc v1.81.1
