@@ -3,7 +3,7 @@ module goa.design/clue
 go 1.26.0
 
 require (
-	github.com/aws/smithy-go v1.27.0
+	github.com/aws/smithy-go v1.27.2
 	github.com/go-logr/logr v1.4.3
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0
