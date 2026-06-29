@@ -13,7 +13,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.44.0
 	goa.design/clue v1.2.6
 	goa.design/goa/v3 v3.28.0
-	goa.design/model v1.14.2
+	goa.design/model v1.15.0
 	goa.design/plugins/v3 v3.28.0
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11
