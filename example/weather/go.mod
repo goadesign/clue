@@ -15,7 +15,7 @@ require (
 	goa.design/goa/v3 v3.28.0
 	goa.design/model v1.14.2
 	goa.design/plugins/v3 v3.28.0
-	google.golang.org/grpc v1.82.1
+	google.golang.org/grpc v1.83.0
 	google.golang.org/protobuf v1.36.11
 )
 
