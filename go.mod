@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/aws/smithy-go v1.27.4
-	github.com/go-logr/logr v1.4.3
+	github.com/go-logr/logr v1.4.4
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0
 	go.opentelemetry.io/otel v1.44.0
@@ -23,7 +23,7 @@ require (
 	golang.org/x/term v0.45.0
 	golang.org/x/tools v0.48.0
 	google.golang.org/genproto v0.0.0-20260526163538-3dc84a4a5aaa
-	google.golang.org/grpc v1.81.1
+	google.golang.org/grpc v1.82.1
 	google.golang.org/protobuf v1.36.11
 )
 
