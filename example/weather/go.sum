@@ -47,10 +47,10 @@ go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.70.0 h1:oECp5f+hN7nkwjU/8BxQ/q23bGPb8FIrD839owX222E=
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.70.0/go.mod h1:DqEFwLumhzMBDQv9PcWbyoDxHI/4lAk6CM4nJBH39sc=
-go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.69.0 h1:MCcYL7J6Vt/X0kjqbMZkekCmwsurbQRbL69vkiye2lk=
-go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.69.0/go.mod h1:3jnStNwSufK+f5ktjL4EPcwtig4rtd81NS70lqHuXl8=
-go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0 h1:LMuyCAyfalSjDyjdC65nK6N0zoTT63+E/u95X0JovZI=
-go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0/go.mod h1:085m8qbm4hgc8rZWGDEa4vmyyo2c3nPxUslYUKUIU04=
+go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.71.0 h1:oFNJW32h2SXnET7XXstgT7pVh4vN+jW+GfiIaBguIZE=
+go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.71.0/go.mod h1:+H3sPOFwag14eMHTPMElZtV0e4YfVZ/85KgrKUCB5FI=
+go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.71.0 h1:3g7B90UzBltIDKq1/5mrTGxTnOFDV0ICOhLoxiZ8jlg=
+go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.71.0/go.mod h1:Ef8SuTh59BT7+ofpDxN9z+yOlc4t2GjLmKDgYNJL/NU=
 go.opentelemetry.io/otel v1.46.0 h1:FHt5/CDyVxi/8IM1CH7VE/rRgq3kLHa2mSTVMO8AWyc=
 go.opentelemetry.io/otel v1.46.0/go.mod h1:Gj3SEScelsNC45tp4nSxRYlS+f5iez7W8XPMCt905kE=
 go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.44.0 h1:SUplec5dp06reu1zaXmOXdvqH398taqrDXqUl99jxSc=
