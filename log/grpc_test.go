@@ -56,6 +56,12 @@ func TestUnaryServerInterceptor(t *testing.T) {
 			method:   logUnaryMethod,
 			expected: logged + "\n",
 		},
+		{
+			name:     "with disable call ID",
+			options:  []GRPCLogOption{WithDisableCallID()},
+			method:   logUnaryMethod,
+			expected: strings.ReplaceAll(prefix+"\n"+logged+"\n"+suffix+"\n", `"request_id":"test-request-id",`, ""),
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -118,6 +124,12 @@ func TestStreamServerTrace(t *testing.T) {
 			options:  []GRPCLogOption{WithDisableCallLogging()},
 			method:   echoMethod,
 			expected: logged + "\n",
+		},
+		{
+			name:     "with disable call ID",
+			options:  []GRPCLogOption{WithDisableCallID()},
+			method:   echoMethod,
+			expected: strings.ReplaceAll(prefix+"\n"+logged+"\n"+suffix+"\n", `"request_id":"test-request-id",`, ""),
 		},
 	}
 	for _, c := range cases {
