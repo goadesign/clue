@@ -21,6 +21,24 @@ and does not change the state if the request does not contain a `debug-logs`
 query parameter.  The path, query parameter name and value can be customized by
 passing options to the `MountDebugLogEnabler` function.
 
+Debug logging starts off. To enable it at startup, pass
+`debug.WithInitialState(true)` when mounting the handler, before starting the
+servers. The setting is shared by all debug handlers in the process. Mounting
+another handler without this option preserves the state; when several handlers
+specify an initial state, the last mounted value wins. The HTTP control can
+still turn logging on or off afterward. Each HTTP request, unary RPC and stream
+keeps the setting it had when it started; a toggle affects subsequent requests,
+not already-running streams.
+When supplying a configured logger, place Clue's `log.HTTP`,
+`log.UnaryServerInterceptor`, or `log.StreamServerInterceptor` before the
+corresponding debug middleware. These create the request-local logger and keep
+its buffered messages available if the request later fails. Debug middleware
+also works without a supplied logger; it then creates a default logger.
+
+```go
+debug.MountDebugLogEnabler(mux, debug.WithInitialState(debugEnabled))
+```
+
 Note that for the debug log state to take effect, HTTP servers must use handlers
 returned by the HTTP function and gRPC servers must make use of the
 UnaryInterceptor or StreamInterceptor interceptors.  Also note that gRPC

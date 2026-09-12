@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 	"sync"
 	"time"
 )
@@ -137,7 +138,8 @@ func Fatalf(ctx context.Context, err error, format string, v ...any) {
 
 // With creates a copy of the given log context and appends the given key/value
 // pairs to it. Values must be strings, numbers, booleans, nil or a slice of
-// these types.
+// these types. Changing the copy's logging options does not change the original
+// context. The configured output writers themselves are still shared.
 func With(ctx context.Context, keyvals ...Fielder) context.Context {
 	v := ctx.Value(ctxLogger)
 	if v == nil {
@@ -146,8 +148,12 @@ func With(ctx context.Context, keyvals ...Fielder) context.Context {
 	l := v.(*logger)
 	l.lock.Lock()
 	defer l.lock.Unlock()
+	options := *l.options
+	options.outputs = slices.Clone(options.outputs)
+	options.keyvals = slices.Clone(options.keyvals)
+	options.kvfuncs = slices.Clone(options.kvfuncs)
 	newLogger := logger{
-		options: l.options,
+		options: &options,
 		entries: l.entries,
 		keyvals: l.keyvals.merge(keyvals),
 		flushed: l.flushed,

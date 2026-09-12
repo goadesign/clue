@@ -30,10 +30,11 @@ type (
 	}
 
 	dleOptions struct {
-		path   string
-		query  string
-		onval  string
-		offval string
+		initialState *bool
+		path         string
+		query        string
+		onval        string
+		offval       string
 	}
 
 	pprofOptions struct {
@@ -65,6 +66,16 @@ func WithMaxSize(n int) LogPayloadsOption {
 func WithClient() LogPayloadsOption {
 	return func(o *lpOptions) {
 		o.client = true
+	}
+}
+
+// WithInitialState sets the process-wide debug setting when the handler is
+// mounted, before serving requests. Without this option the setting is unchanged
+// (initially off). If several handlers specify it, the last mounted value wins.
+// HTTP requests to any mounted handler can still change the setting afterward.
+func WithInitialState(enabled bool) DebugLogEnablerOption {
+	return func(o *dleOptions) {
+		o.initialState = &enabled
 	}
 }
 

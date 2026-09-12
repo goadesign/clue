@@ -46,6 +46,11 @@ func TestHTTP(t *testing.T) {
 			opt:      WithDisableRequestLogging(),
 			expected: entry + "\n",
 		},
+		{
+			name:     "with disable request ID",
+			opt:      WithDisableRequestID(),
+			expected: strings.ReplaceAll(prefix+"\n"+entry+"\n"+suffix+"\n", `"request_id":"test-request-id",`, ""),
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

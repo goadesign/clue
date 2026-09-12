@@ -73,7 +73,7 @@ func TestStreamServerInterceptor(t *testing.T) {
 		{"revert to no debug logs", false, ""},
 	}
 	for _, step := range steps {
-		debugLogs = step.enableDebugLogs
+		debugLogs.Store(step.enableDebugLogs)
 		stream, err := cli.GRPCStream(context.Background())
 		assert.NoError(t, err)
 		defer func() {
