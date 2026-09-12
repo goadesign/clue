@@ -10,7 +10,8 @@ import (
 
 // UnaryServerInterceptor return an interceptor that manages whether debug log
 // entries are written. This interceptor should be used in conjunction with the
-// MountDebugLogEnabler function.
+// MountDebugLogEnabler function. An existing logger must be request-local;
+// placing log.UnaryServerInterceptor before this interceptor creates one.
 func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -18,7 +19,7 @@ func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 		_ *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (any, error) {
-		if debugLogs {
+		if debugLogs.Load() {
 			ctx = log.Context(ctx, log.WithDebug())
 		} else {
 			ctx = log.Context(ctx, log.WithNoDebug())
@@ -30,7 +31,9 @@ func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 // StreamServerInterceptor returns a stream interceptor that manages whether
 // debug log entries are written. Note: a change in the debug setting is
 // effective only for the next stream request. This interceptor should be used
-// in conjunction with the MountDebugLogEnabler function.
+// in conjunction with the MountDebugLogEnabler function. An existing logger
+// must belong to this stream; placing log.StreamServerInterceptor before this
+// interceptor creates one.
 func StreamServerInterceptor() grpc.StreamServerInterceptor {
 	return func(
 		srv any,
@@ -39,7 +42,7 @@ func StreamServerInterceptor() grpc.StreamServerInterceptor {
 		handler grpc.StreamHandler,
 	) error {
 		ctx := stream.Context()
-		if debugLogs {
+		if debugLogs.Load() {
 			ctx = log.Context(ctx, log.WithDebug())
 		} else {
 			ctx = log.Context(ctx, log.WithNoDebug())

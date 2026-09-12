@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"strings"
+	"sync/atomic"
 
 	goa "goa.design/goa/v3/pkg"
 
@@ -21,7 +22,7 @@ type Muxer interface {
 
 var (
 	// debugLogs is true if debug logs should be enabled.
-	debugLogs bool
+	debugLogs atomic.Bool
 )
 
 // MountDebugLogEnabler mounts an endpoint under "/debug" that manages the
@@ -31,6 +32,8 @@ var (
 // cases the endpoint returns the current debug logs status. The path, query
 // parameter name and values can be changed using the WithPath, WithQuery,
 // WithOnValue and WithOffValue options.
+// WithInitialState sets the process-wide starting state. Mount handlers before
+// serving requests; mounting without this option leaves the current state alone.
 //
 // Note: the endpoint merely controls the status of debug logs. It does not
 // actually configure the current logger. The logger is configured by the
@@ -42,16 +45,19 @@ func MountDebugLogEnabler(mux Muxer, opts ...DebugLogEnablerOption) {
 	for _, opt := range opts {
 		opt(o)
 	}
+	if o.initialState != nil {
+		debugLogs.Store(*o.initialState)
+	}
 	if !strings.HasPrefix(o.path, "/") {
 		o.path = "/" + o.path
 	}
 	mux.Handle(o.path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if q := r.URL.Query().Get(o.query); q == o.onval {
-			debugLogs = true
+			debugLogs.Store(true)
 		} else if q == o.offval {
-			debugLogs = false
+			debugLogs.Store(false)
 		}
-		if debugLogs {
+		if debugLogs.Load() {
 			fmt.Fprintf(w, `{"%s":"%s"}`, o.query, o.onval) // nolint: errcheck
 		} else {
 			fmt.Fprintf(w, `{"%s":"%s"}`, o.query, o.offval) // nolint: errcheck

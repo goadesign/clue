@@ -8,18 +8,18 @@ import (
 
 // HTTP returns a middleware that manages whether debug log entries are written.
 // This middleware should be used in conjunction with the MountDebugLogEnabler
-// function.
+// function. If the request already has a logger, it must be request-local;
+// placing log.HTTP before this middleware creates one.
 func HTTP() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if debugLogs {
-				ctx := log.Context(r.Context(), log.WithDebug())
-				r = r.WithContext(ctx)
+			ctx := r.Context()
+			if debugLogs.Load() {
+				ctx = log.Context(ctx, log.WithDebug())
 			} else {
-				ctx := log.Context(r.Context(), log.WithNoDebug())
-				r = r.WithContext(ctx)
+				ctx = log.Context(ctx, log.WithNoDebug())
 			}
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 		return handler
 	}

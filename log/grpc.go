@@ -35,7 +35,7 @@ type (
 var shortID = randShortID
 
 // UnaryServerInterceptor returns a unary interceptor that performs two tasks:
-// 1. Enriches the request context with the logger specified in logCtx.
+// 1. Creates a request-local copy of the logger specified in logCtx.
 // 2. Logs details of the unary call, unless the WithDisableCallLogging option is provided.
 // UnaryServerInterceptor panics if logCtx was not created with Context.
 func UnaryServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc.UnaryServerInterceptor {
@@ -59,6 +59,8 @@ func UnaryServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc.
 		ctx = WithContext(ctx, logCtx)
 		if !o.disableCallID {
 			ctx = With(ctx, KV{RequestIDKey, shortID()})
+		} else {
+			ctx = With(ctx)
 		}
 		if o.disableCallLogging {
 			return handler(ctx, req)
@@ -85,7 +87,7 @@ func UnaryServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc.
 }
 
 // StreamServerInterceptor returns a stream interceptor that performs two tasks:
-// 1. Enriches the request context with the logger specified in logCtx.
+// 1. Creates a stream-local copy of the logger specified in logCtx.
 // 2. Logs details of the stream call, unless the WithDisableCallLogging option is provided.
 // StreamServerInterceptor panics if logCtx was not created with Context.
 func StreamServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc.StreamServerInterceptor {
@@ -109,6 +111,8 @@ func StreamServerInterceptor(logCtx context.Context, opts ...GRPCLogOption) grpc
 		ctx := WithContext(stream.Context(), logCtx)
 		if !o.disableCallID {
 			ctx = With(ctx, KV{RequestIDKey, shortID()})
+		} else {
+			ctx = With(ctx)
 		}
 		stream = &streamWithContext{stream, ctx}
 		if o.disableCallLogging {

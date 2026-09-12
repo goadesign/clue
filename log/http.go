@@ -51,7 +51,7 @@ type (
 )
 
 // HTTP returns a HTTP middleware that performs two tasks:
-//  1. Enriches the request context with the logger specified in logCtx.
+//  1. Creates a request-local copy of the logger specified in logCtx.
 //  2. Logs HTTP request details, except when WithDisableRequestLogging is set or
 //     URL path matches a WithPathFilter regex.
 //
@@ -81,6 +81,8 @@ func HTTP(logCtx context.Context, opts ...HTTPLogOption) func(http.Handler) http
 			ctx := WithContext(req.Context(), logCtx)
 			if !options.disableRequestID {
 				ctx = With(ctx, KV{RequestIDKey, shortID()})
+			} else {
+				ctx = With(ctx)
 			}
 			if options.disableRequestLogging {
 				h.ServeHTTP(w, req.WithContext(ctx))
