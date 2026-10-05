@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/stretchr/testify v1.12.1
 	goa.design/clue v1.2.6
-	goa.design/goa/v3 v3.30.0
+	goa.design/goa/v3 v3.32.0
 )
 
 require (
