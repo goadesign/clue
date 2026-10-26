@@ -1,11 +1,11 @@
 module example.com/c/d
 
-go 1.26.0
+go 1.27.3
 
 require (
 	github.com/stretchr/testify v1.12.1
 	goa.design/clue v1.2.6
-	goa.design/goa/v3 v3.30.0
+	goa.design/goa/v3 v3.35.0
 )
 
 require (
