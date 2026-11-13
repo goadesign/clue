@@ -25,7 +25,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dimfeld/httppath v0.0.0-20170720192232-ee938bf73598 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
-	github.com/go-chi/chi/v5 v5.3.1 // indirect
+	github.com/go-chi/chi/v5 v5.4.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gohugoio/hashstructure v1.0.0 // indirect
